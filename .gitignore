@@ -4,3 +4,9 @@
 
 venv
 *.tar.gz
+
+*.mat
+*.npz
+*.zip
+*.h5
+*.7z
