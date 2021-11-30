@@ -2,11 +2,70 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 import numpy as np
+from torch_geometric.nn import MessagePassing
+
+from utils.utils import build_edge_idx
 
 
-class GlobalGraphLearning(nn.Module):
+class GlobalGraphLearning(MessagePassing):
     def __init__(self, config):
-        super().__init__()
+        super(GlobalGraphLearning, self).__init__(aggr=None)
 
+        self.embedding_dim = config.embedding_dim
+        self.num_nodes = config.nodes_num
 
+        self.kernel_size = config.kernel_size
+        self.stride = config.stride
+        self.conv1_dim = config.conv1_dim
+        self.conv2_dim = config.conv2_dim
+        self.fc_dim = config.fc_dim
 
+        self.conv1 = torch.nn.Conv1d(1, self.conv1_dim, self.kernel_size, stride=self.stride)
+        self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size, stride=self.stride)
+
+        self.hidden_drop = torch.nn.Dropout(0.2)
+
+        self.fc = torch.nn.Linear(self.fc_dim, self.embedding_dim)
+
+        self.bn1 = torch.nn.BatchNorm1d(self.conv1_dim)
+        self.bn2 = torch.nn.BatchNorm1d(self.conv2_dim)
+        self.bn3 = torch.nn.BatchNorm1d(self.embedding_dim)
+
+        self.fc_out = nn.Linear(self.embedding_dim * 2, self.embedding_dim)
+        self.fc_cat = nn.Linear(self.embedding_dim, 2)
+
+        self.init_weights()
+
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight.data)
+                m.bias.data.fill_(0.1)
+
+    def forward(self, x, edge_index):
+        x = x.transpose(1, 0).reshape(self.num_nodes, 1, -1)
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.bn1(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = self.bn2(x)
+        x = x.view(self.num_nodes, -1)
+        x = self.fc(x)
+        x = F.relu(x)
+        x = self.bn3(x)
+
+        x = self.propagate(edge_index, x=x)
+        return x
+
+    def message(self, x_i, x_j):
+        x = torch.cat([x_i, x_j], dim=-1)
+        return x
+
+    def update(self, aggr_out):
+        x = self.fc_cat(aggr_out)
+        return x
+
+    def aggregate(self, x):
+        x = torch.relu(self.fc_out(x))
+        return x
