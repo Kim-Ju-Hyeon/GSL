@@ -1,0 +1,62 @@
+train: #training 할 때 #tsteps이 다름 train/valid: 49 / test: 99
+  sim_setting:
+    data: 'spr5'
+    num_nodes: 5 # should change on modules
+    num_node_features: 4 # should change on modules
+    num_timesteps: 49 # should change on modules
+    edge_types: 3 # should change on modules
+    device: 'cuda:0' # should change on modules
+    pred_step: 10
+    batch_size: 128 # should change on modules
+    edge_type_explicit: True
+    prior_not_uniform: False
+    prior_z:
+      - 1
+      - 2
+
+  model_params:
+    encoder:
+      num_hidden: 256
+
+    decoder:
+      msg_hidden: 256
+      msg_out: 256
+      num_hidden: 256
+      do_prob: 0.
+
+    training:
+      lr: 0.0005
+      lr_decay: 200
+      gamma: 0.5
+
+    model:
+      save_folder: 'model/' # model/'str(data) from sim_setting'
+      pred_step: 10 # should change on modules
+      output_var: 0.00005 
+      epoch: 500
+
+modules:
+  device: 'cuda:3'
+  num_sims: 1
+  num_nodes: 5
+  num_node_features: 4
+  num_timesteps: 49
+  edge_types: 2
+  pred_step: 10
+  batch_size: 128
+
+plot:
+  encoder_file: 'model/spring5/encoder.pt'
+  decoder_file: 'model/spring5/decoder.pt'
+  num_timesteps: 49
+  num_node_features: 4
+  edge_types: 2
+  var: 0.00005
+  pred_step: 10
+  device: 'cuda:3'
+  encoder:
+    num_hidden: 256
+  decoder:
+    msg_hid: 256
+    msg_out: 256
+    num_hidden: 256
