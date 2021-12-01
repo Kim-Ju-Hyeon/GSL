@@ -4,8 +4,6 @@ from torch.nn import functional as F
 import numpy as np
 from torch_geometric.nn import MessagePassing
 
-from utils.utils import build_edge_idx
-
 
 class GlobalGraphLearning(MessagePassing):
     def __init__(self, config):
@@ -13,6 +11,7 @@ class GlobalGraphLearning(MessagePassing):
 
         self.embedding_dim = config.embedding_dim
         self.num_nodes = config.nodes_num
+        self.nodes_feas = config.node_features
 
         self.kernel_size = config.kernel_size
         self.stride = config.stride
@@ -20,10 +19,10 @@ class GlobalGraphLearning(MessagePassing):
         self.conv2_dim = config.conv2_dim
         self.fc_dim = config.fc_dim
 
-        self.conv1 = torch.nn.Conv1d(1, self.conv1_dim, self.kernel_size, stride=self.stride)
+        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size, stride=self.stride)
         self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size, stride=self.stride)
 
-        self.hidden_drop = torch.nn.Dropout(0.2)
+        self.hidden_drop = nn.Dropout(0.2)
 
         self.fc = torch.nn.Linear(self.fc_dim, self.embedding_dim)
 
@@ -43,14 +42,21 @@ class GlobalGraphLearning(MessagePassing):
                 m.bias.data.fill_(0.1)
 
     def forward(self, x, edge_index):
-        x = x.transpose(1, 0).reshape(self.num_nodes, 1, -1)
+        print(x.shape)
+        x = x.transpose(1, 0).reshape(self.num_nodes, 1, -1) # Input Data에 따라 수정해야됨 --- Feature dim 고려
+        print(x.shape)
+
         x = self.conv1(x)
         x = F.relu(x)
         x = self.bn1(x)
         x = self.conv2(x)
         x = F.relu(x)
         x = self.bn2(x)
+
+        print(x.shape)
         x = x.view(self.num_nodes, -1)
+
+        print(x.shape)
         x = self.fc(x)
         x = F.relu(x)
         x = self.bn3(x)

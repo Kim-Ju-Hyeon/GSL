@@ -1,0 +1,22 @@
+
+
+embedding_dim: 64
+nodes_num: 30
+kernel_size: 10
+stride: 1
+conv1_dim: 8
+conv2_dim: 16
+fc_dim: 15712
+
+
+node_features: 1
+diffusion_k: 3
+num_layer: 1
+
+tau: 0.3
+output_dim: 1
+
+encoder_length: 70
+decoder_length: 30
+
+

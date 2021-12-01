@@ -5,18 +5,19 @@ import torch.nn as nn
 class DCRNN(torch.nn.Module):
     def __init__(self, config):
         super(DCRNN, self).__init__()
-        self.num_layer = config.dcrnn_num_layer
+        self.num_layer = config.num_layer
         self.node_features = config.node_features
         self.diffusion_k = config.diffusion_k
 
         self.recurrent = nn.ModuleList(
-            [dcrnn(self.node_features, self.node_features, self.diffusion_k) for _ in range(self.num_layer)]
+            [dcrnn(self.embedding_dim, self.embedding_dim, self.diffusion_k) for _ in range(self.num_layer)]
         )
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, hidden_state=None):
         output = x
-        for layer_num, dcgru_layer in enumerate(self.dcgru_layers):
-            next_hidden_state = dcgru_layer(output, edge_index)
+        print(x.shape)
+        for layer_num, dcgru_layer in enumerate(self.recurrent):
+            next_hidden_state = dcgru_layer(output, edge_index, hidden_state)
             output = next_hidden_state
 
         return output
