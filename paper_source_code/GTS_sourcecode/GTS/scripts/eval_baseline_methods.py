@@ -4,9 +4,9 @@ import pandas as pd
 
 from statsmodels.tsa.vector_ar.var_model import VAR
 
-from lib import utils
-from lib.metrics import masked_rmse_np, masked_mape_np, masked_mae_np
-from lib.utils import StandardScaler
+from paper_source_code.GTS_sourcecode.GTS.lib import utils
+from paper_source_code.GTS_sourcecode.GTS.lib.metrics import masked_rmse_np, masked_mape_np, masked_mae_np
+from paper_source_code.GTS_sourcecode.GTS.lib.utils import StandardScaler
 
 
 def historical_average_predict(df, period=12 * 24 * 7, test_ratio=0.2, null_val=0.):

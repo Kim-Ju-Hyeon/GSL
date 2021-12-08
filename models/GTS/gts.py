@@ -34,7 +34,6 @@ class GTSModel(nn.Module):
 
     def decoder(self, encoder_hidden_state, inputs, adj):
         # Teaching Force 미구현
-
         outputs = []
 
         batch_size = encoder_hidden_state.size(0)
@@ -70,7 +69,3 @@ class GTSModel(nn.Module):
 
         # DCRNN decoder
         outputs = self.decoder(encoder_hidden_state, adj_matrix)
-
-
-
-

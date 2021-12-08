@@ -1,9 +1,9 @@
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-from lib import utils
-from model.pytorch.model import GTSModel
-from model.pytorch.loss import masked_mae_loss, masked_mape_loss, masked_rmse_loss, masked_mse_loss
+from paper_source_code.GTS_sourcecode.GTS.lib import utils
+from paper_source_code.GTS_sourcecode.GTS.model.pytorch.model import GTSModel
+from paper_source_code.GTS_sourcecode.GTS.model.pytorch.loss import masked_mae_loss, masked_mape_loss, masked_rmse_loss, masked_mse_loss
 import pandas as pd
 import os
 import time
@@ -53,6 +53,7 @@ class GTSSupervisor:
 
         k = self._train_kwargs.get('knn_k')
         knn_metric = 'cosine'
+        
         from sklearn.neighbors import kneighbors_graph
         g = kneighbors_graph(train_feas.T, k, metric=knn_metric)
         g = np.array(g.todense(), dtype=np.float32)
