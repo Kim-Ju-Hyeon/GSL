@@ -173,6 +173,7 @@ class DCRNN(torch.nn.Module):
 
     def _calculate_update_gate(self, X, edge_index, edge_weight, H):
         Z = torch.cat([X, H], dim=1)
+        print(f"Z shape: {Z.shape}")
         Z = self.conv_x_z(Z, edge_index, edge_weight)
         Z = torch.sigmoid(Z)
         return Z

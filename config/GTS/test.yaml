@@ -1,6 +1,6 @@
 
 
-embedding_dim: 64
+hidden_dim: 64
 nodes_num: 30
 kernel_size: 10
 stride: 1

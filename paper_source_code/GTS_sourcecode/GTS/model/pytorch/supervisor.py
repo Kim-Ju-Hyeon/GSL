@@ -53,7 +53,7 @@ class GTSSupervisor:
 
         k = self._train_kwargs.get('knn_k')
         knn_metric = 'cosine'
-        
+
         from sklearn.neighbors import kneighbors_graph
         g = kneighbors_graph(train_feas.T, k, metric=knn_metric)
         g = np.array(g.todense(), dtype=np.float32)
