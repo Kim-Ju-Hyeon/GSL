@@ -42,9 +42,7 @@ class GlobalGraphLearning(MessagePassing):
                 m.bias.data.fill_(0.1)
 
     def forward(self, x, edge_index):
-        print(x.shape)
         x = x.transpose(1, 0).reshape(self.num_nodes, 1, -1) # Input Data에 따라 수정해야됨 --- Feature dim 고려
-        print(x.shape)
 
         x = self.conv1(x)
         x = F.relu(x)
@@ -53,10 +51,8 @@ class GlobalGraphLearning(MessagePassing):
         x = F.relu(x)
         x = self.bn2(x)
 
-        print(x.shape)
         x = x.view(self.num_nodes, -1)
 
-        print(x.shape)
         x = self.fc(x)
         x = F.relu(x)
         x = self.bn3(x)
