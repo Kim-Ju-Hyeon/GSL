@@ -1,17 +1,18 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
 import numpy as np
 
-from models.GTS.graph_learning import GlobalGraphLearning
 from models.GTS.DCRNN import DCRNN
-from utils.utils import build_edge_idx
 
 
 class EncoderModel(nn.Module):
     def __init__(self, config):
         super(EncoderModel, self).__init__()
         self.encoder_dcrnn = DCRNN(config)
+
+    def forward(self, inputs, adj, hidden_state=None):
+        hidden_state = self.encoder_dcrnn(inputs, adj, hidden_state)
+        return hidden_state
 
 
 class DecoderModel(nn.Module):
@@ -24,8 +25,16 @@ class DecoderModel(nn.Module):
         self.decoder_dcrnn = DCRNN(config)
         self.prediction_layer = nn.Linear(self.hidden_dim, self.output_dim)
 
-    def forward(self, inputs, adj, encoder_hidden_state):
-        decoder_hidden_state = encoder_hidden_state
+        self.init_weights()
+
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight.data)
+                m.bias.data.fill_(0.1)
+
+    def forward(self, inputs, adj, hidden_state):
+        decoder_hidden_state = hidden_state
         output = inputs
 
         decoder_hidden_state = self.decoder_dcrnn(output, adj, hidden_state=decoder_hidden_state)
@@ -60,16 +69,15 @@ class GTS_Forecasting_Module(nn.Module):
     def encoder(self, inputs, adj):
         encoder_hidden_state = None
         for t in range(self.encoder_length):
-            encoder_hidden_state = self.encoder_model(inputs[t], adj, hidden_state=encoder_hidden_state)
+            encoder_hidden_state = self.encoder_model(inputs[:, :, t], adj, hidden_state=encoder_hidden_state)
 
         return encoder_hidden_state
 
     def decoder(self, targets, encoder_hidden_state, adj):
-        # Teacher Forcing 미구현
         outputs = []
 
         batch_size = encoder_hidden_state.size(0)
-        go_symbol = torch.zeros((batch_size, self.nodes_num, self.output_dim), device=self.decive)
+        go_symbol = torch.zeros((batch_size, self.nodes_num, self.output_dim), device=self.device)
         decoder_hidden_state = encoder_hidden_state
         decoder_input = go_symbol
 

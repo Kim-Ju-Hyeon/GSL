@@ -10,3 +10,6 @@ venv
 *.zip
 *.h5
 *.7z
+
+LNP_lam_all.pickle
+LNP_spk_all.pickle
