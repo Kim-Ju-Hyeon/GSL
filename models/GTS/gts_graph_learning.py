@@ -33,7 +33,7 @@ class GTS_Graph_Learning(MessagePassing):
         self.fc_out = nn.Linear(self.hidden_dim * 2, self.hidden_dim)
         self.fc_cat = nn.Linear(self.hidden_dim, 2)
 
-        # self.init_weights()
+        self.init_weights()
 
     def init_weights(self):
         for m in self.modules():
