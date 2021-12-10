@@ -1,4 +1,3 @@
-import torch
 import numpy as np
 
 def build_fully_connected_edge_idx(num_nodes):
