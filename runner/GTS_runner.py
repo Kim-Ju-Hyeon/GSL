@@ -16,7 +16,17 @@ class GTS_Runner(object):
         self.seed = config.seed
         self.device = config.device
 
+        self.dataset_conf = config.dataset
+
+        if self.dataset_conf.name == 'spike_lambda':
+            spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
+            lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
+
+            self.entire_inputs = spike
+
         self.model = GTS_Model(self.config)
+
+
 
     def train(self):
         pass

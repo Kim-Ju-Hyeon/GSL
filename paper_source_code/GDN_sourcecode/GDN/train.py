@@ -6,7 +6,7 @@ import time
 from util.time import *
 from util.env import *
 from sklearn.metrics import mean_squared_error
-from test import *
+from paper_source_code.GDN_sourcecode.GDN.test import *
 import torch.nn.functional as F
 import numpy as np
 from evaluate import get_best_performance_data, get_val_performance_data, get_full_err_scores

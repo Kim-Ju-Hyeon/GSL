@@ -3,8 +3,8 @@ import torch
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import time
-from util.time import *
-from util.env import *
+from paper_source_code.GDN_sourcecode.GDN.util.time import *
+from paper_source_code.GDN_sourcecode.GDN.util.env import *
 from torch_geometric.nn import GCNConv, GATConv, EdgeConv
 import math
 import torch.nn.functional as F

@@ -1,6 +1,6 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
-from utils.utils import build_edge_idx
+from utils.utils import build_fully_connected_edge_idx
 
 import torch
 import torch.nn as nn
@@ -18,7 +18,7 @@ class GTS_Model(nn.Module):
 
         self.loss = config.loss_function
 
-        self.fully_connected_edge_index = build_edge_idx(self.config.num_nodes)
+        self.fully_connected_edge_index = build_fully_connected_edge_idx(self.config.num_nodes)
 
         if self.loss == 'CrossEntropy':
             self.loss_func = nn.CrossEntropyLoss()
