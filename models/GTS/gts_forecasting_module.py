@@ -40,7 +40,7 @@ class DecoderModel(nn.Module):
         decoder_hidden_state = self.decoder_dcrnn(output, adj, hidden_state=decoder_hidden_state)
         prediction = self.prediction_layer(decoder_hidden_state[-1].view(-1, self.hidden_dim))
 
-        output = prediction.view(-1, self.num_nodes * self.output_dim)
+        output = prediction.view(inputs.shape[0], self.output_dim)
 
         return output, decoder_hidden_state
 
@@ -69,15 +69,14 @@ class GTS_Forecasting_Module(nn.Module):
     def encoder(self, inputs, adj):
         encoder_hidden_state = None
         for t in range(self.encoder_length):
-            encoder_hidden_state = self.encoder_model(inputs[:, :, t], adj, hidden_state=encoder_hidden_state)
+            encoder_hidden_state = self.encoder_model(inputs[:, t].reshape(-1,1), adj, hidden_state=encoder_hidden_state)
 
         return encoder_hidden_state
 
     def decoder(self, targets, encoder_hidden_state, adj):
         outputs = []
 
-        batch_size = encoder_hidden_state.size(0)
-        go_symbol = torch.zeros((batch_size, self.nodes_num, self.output_dim), device=self.device)
+        go_symbol = torch.zeros((targets.shape[0], 1), device=self.device)
         decoder_hidden_state = encoder_hidden_state
         decoder_input = go_symbol
 
@@ -89,11 +88,11 @@ class GTS_Forecasting_Module(nn.Module):
                                                (self.use_teacher_forcing is True) else False
 
             if self.training and self.use_teacher_forcing:
-                decoder_input = targets[t]
+                decoder_input = targets[:,t].reshape(-1,1)
             else:
                 decoder_input = output
 
-        outputs = torch.stack(outputs)
+        outputs = torch.cat(outputs, dim=-1)
         return outputs
 
     def forward(self, inputs, targets, adj_matrix):

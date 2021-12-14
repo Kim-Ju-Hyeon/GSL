@@ -35,7 +35,7 @@ class Train_Dataset(InMemoryDataset):
 
         time_steps = 200  # previous time steps = 20ms
         pred_steps = 20  # steps to predict
-        window_size = 100  # for training only
+        window_size = 50  # for training only
 
         valid_sampling_locations = []
         valid_sampling_locations += [
@@ -100,7 +100,7 @@ class Validation_Dataset(InMemoryDataset):
 
         time_steps = 200  # previous time steps = 20ms
         pred_steps = 20  # steps to predict
-        window_size = 100  # for training only
+        window_size = 50  # for training only
 
         valid_sampling_locations = []
         valid_sampling_locations += [

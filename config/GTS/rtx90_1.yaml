@@ -1,8 +1,8 @@
 ---
 exp_name: 1
 exp_dir: ./exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: [0]
 seed: 1010
 model_name: GTS
 

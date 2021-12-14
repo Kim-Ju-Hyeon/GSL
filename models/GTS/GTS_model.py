@@ -39,7 +39,7 @@ class GTS_Model(nn.Module):
         edge_ = []
         for ii, rel in enumerate(edge_probability[0]):
             if bool(rel):
-                edge_.append(self.fully_connected_edge_index[:, ii])
+                edge_.append(edge_index[:, ii])
 
         adj_matrix = torch.stack(edge_, dim=-1)
         batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)

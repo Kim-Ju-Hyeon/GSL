@@ -39,7 +39,7 @@ class GTS_Runner(object):
             spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
             # lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
 
-            self.entire_inputs = torch.FloatTensor(spike)
+            self.entire_inputs = torch.FloatTensor(spike[:,:100])
 
             print("Split Spike Train, Valid, Test Dataset")
             self.train_dataset = Train_Dataset(root=self.dataset_conf.root)
@@ -107,7 +107,6 @@ class GTS_Runner(object):
                 optimizer.step()
 
                 train_loss += [float(loss.data.cpu().numpy())]
-                print(float(loss.data.cpu().numpy()))
 
                 # display loss
                 if (iter_count + 1) % 10 == 0:
@@ -134,14 +133,16 @@ class GTS_Runner(object):
             results['val_loss'] += [val_loss]
             results['val_adj_matirix'] += [adj_matrix]
 
-            logger.ingo("Avg. Validation Loss = {:.6}".format(val_loss, 0))
-            logger.ingo("Current Best Validation Loss = {:.6}".format(best_val_loss))
+            logger.info("Avg. Validation Loss = {:.6}".format(val_loss, 0))
+            logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
 
             model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
+
+            pickle.dump(results, open(os.path.join(self.config.exp_dir,'result.pickle'), 'wb'))
 
     def test(self):
         pass
