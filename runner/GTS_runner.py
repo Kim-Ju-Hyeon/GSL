@@ -89,7 +89,7 @@ class GTS_Runner(object):
 
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
-
+            print(f'Epoch: {epoch}')
             # ====================== training ============================= #
             self.model.train()
             train_loss = []
@@ -107,6 +107,7 @@ class GTS_Runner(object):
                 optimizer.step()
 
                 train_loss += [float(loss.data.cpu().numpy())]
+                print(float(loss.data.cpu().numpy()))
 
                 # display loss
                 if (iter_count + 1) % 10 == 0:

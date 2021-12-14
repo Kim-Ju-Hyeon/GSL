@@ -1,0 +1,2 @@
+INFO  | File run_exp_local.py     | Line 15    | Writing log file to ./exp/GTS_1_1214_181341/log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 16    | Exp instance id = GTS_1_1214_181341
