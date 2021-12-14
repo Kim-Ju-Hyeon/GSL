@@ -4,6 +4,7 @@ exp_dir: ./exp
 use_gpu: False
 device: cpu
 seed: 1010
+model_name: GTS
 
 dataset:
   root: ./data/spike_lambda

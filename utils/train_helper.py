@@ -22,7 +22,7 @@ def get_config(config_file):
         config.seed = set_seed()
 
     config.exp_name = '_'.join([
-        config.model.name, str(config.exp_name), now.strftime('%m%d_%H%M%S')
+        config.model_name, str(config.exp_name), now.strftime('%m%d_%H%M%S')
     ])
 
     config.exp_dir = os.path.join(config.exp_dir, config.exp_name)

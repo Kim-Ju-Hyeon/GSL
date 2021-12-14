@@ -13,7 +13,9 @@ from models.GTS.GTS_model import GTS_Model
 from utils.utils import build_fully_connected_edge_idx
 from dataset.torch_geometric_spike_dataset import *
 from utils.train_helper import model_snapshot, load_model
+from utils.logger import get_logger
 
+logger = get_logger('exp_logger')
 
 class GTS_Runner(object):
     def __init__(self, config):
@@ -30,14 +32,16 @@ class GTS_Runner(object):
         self.dataset_conf = config.dataset
         self.train_conf = config.train
 
-        self.fully_connected_edge_index = build_fully_connected_edge_idx(self.config.num_nodes)
+        self.fully_connected_edge_index = build_fully_connected_edge_idx(self.config.nodes_num)
 
         if self.dataset_conf.name == 'spike_lambda':
+            print("Load Spike Dataset")
             spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
             # lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
 
             self.entire_inputs = torch.FloatTensor(spike)
 
+            print("Split Spike Train, Valid, Test Dataset")
             self.train_dataset = Train_Dataset(root=self.dataset_conf.root)
             self.valid_dataset = Validation_Dataset(root=self.dataset_conf.root)
             self.test_dataset = Test_Dataset(root=self.dataset_conf.root)
@@ -51,6 +55,7 @@ class GTS_Runner(object):
             self.model = self.model.to(device=self.device)
 
     def train(self):
+        print('Train Start')
         train_loader = DataLoader(self.train_dataset, batch_size=self.train_conf.batch_size)
         valid_loader = DataLoader(self.valid_dataset, batch_size=self.train_conf.batch_size)
 
@@ -105,7 +110,7 @@ class GTS_Runner(object):
 
                 # display loss
                 if (iter_count + 1) % 10 == 0:
-                    print(
+                    logger.info(
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iter_count + 1, train_loss))
 
             train_loss = np.stack(train_loss).mean()
@@ -128,8 +133,8 @@ class GTS_Runner(object):
             results['val_loss'] += [val_loss]
             results['val_adj_matirix'] += [adj_matrix]
 
-            print("Avg. Validation Loss = {:.6}".format(val_loss, 0))
-            print("Current Best Validation Loss = {:.6}".format(best_val_loss))
+            logger.ingo("Avg. Validation Loss = {:.6}".format(val_loss, 0))
+            logger.ingo("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
