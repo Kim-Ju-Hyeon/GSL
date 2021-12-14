@@ -11,5 +11,6 @@ venv
 *.h5
 *.7z
 
+data/
 LNP_lam_all.pickle
 LNP_spk_all.pickle

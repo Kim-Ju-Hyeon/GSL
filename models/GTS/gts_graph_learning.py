@@ -42,7 +42,8 @@ class GTS_Graph_Learning(MessagePassing):
                 m.bias.data.fill_(0.1)
 
     def forward(self, x, edge_index):
-        # x = x.transpose(1, 0).reshape(self.num_nodes, 1, -1)  # Input Data에 따라 수정해야됨 --- Feature dim 고려
+        if len(x.shape) == 2:
+            x = x.reshape(self.num_nodes, 1, -1)
 
         x = self.conv1(x)
         x = F.relu(x)

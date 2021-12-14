@@ -3,6 +3,12 @@ seed: 1010
 
 dataset:
   name: spike_lambda
+  time_stpes: 200
+  pred_steps: 20
+  window_size: 2
+  batch_size : 128
+
+
 
 loss : MSELoss
 

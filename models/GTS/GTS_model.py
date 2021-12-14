@@ -1,6 +1,5 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
-from utils.utils import build_fully_connected_edge_idx
 
 import torch
 import torch.nn as nn
@@ -18,8 +17,6 @@ class GTS_Model(nn.Module):
 
         self.loss = config.loss_function
 
-        self.fully_connected_edge_index = build_fully_connected_edge_idx(self.config.num_nodes)
-
         if self.loss == 'CrossEntropy':
             self.loss_func = nn.CrossEntropyLoss()
 
@@ -29,8 +26,8 @@ class GTS_Model(nn.Module):
         else:
             raise ValueError("Non-supported loss function!")
 
-    def forward(self, inputs, entire_inputs, targets):
-        adj = self.graph_learning(entire_inputs, self.fully_connected_edge_index)
+    def forward(self, inputs, targets, entire_inputs, edge_index):
+        adj = self.graph_learning(entire_inputs, edge_index)
 
         edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
         edge_probability = torch.transpose(edge_probability, 0, 1)
