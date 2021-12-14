@@ -9,12 +9,12 @@ model_name: GTS
 dataset:
   root: ./data/spike_lambda
   name: spike_lambda
-  time_steps: 500
-  pred_steps: 20
+  time_steps: 10
+  pred_steps: 2
   window: 100
-  train_step: 4000
-  validation_step: 4400
-  test_step: 4800
+  train_step: 400
+  validation_step: 440
+  test_step: 480
 
 train:
   optimizer: Adam
@@ -23,7 +23,7 @@ train:
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 128
+  batch_size : 2
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
