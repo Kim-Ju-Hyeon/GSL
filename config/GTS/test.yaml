@@ -1,3 +1,6 @@
+---
+exp_name: 1
+exp_dir: ./exp
 use_gpu: False
 device: cpu
 seed: 1010
@@ -8,13 +11,13 @@ dataset:
   time_steps: 500
   pred_steps: 20
   window: 100
-  train_step: 4000000
-  validation_step: 4400000
-  test_step: 4800000
+  train_step: 4000
+  validation_step: 4400
+  test_step: 4800
 
 train:
   optimizer: Adam
-  epoch: 10
+  epoch: 1
   loss_function : MSELoss
   lr: 1.0e-3
   momentum: 0.9
@@ -26,7 +29,7 @@ train:
 
 node_features: 1
 output_dim: 1
-hidden_dim: 64
+hidden_dim: 16
 nodes_num: 100
 
 kernel_size: 10
