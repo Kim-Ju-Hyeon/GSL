@@ -1,0 +1,21 @@
+INFO  | File run_exp_local.py     | Line 15    | Writing log file to ./exp/GTS_1_1215_020854/log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 16    | Exp instance id = GTS_1_1215_020854
+ERROR | File run_exp_local.py     | Line 23    | Traceback (most recent call last):
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_local.py", line 20, in main
+    runner.train()
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/GTS_runner.py", line 100, in train
+    _, _, loss = self.model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/GTS_model.py", line 51, in forward
+    loss = self.loss_func(outputs, targets)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/loss.py", line 520, in forward
+    return F.mse_loss(input, target, reduction=self.reduction)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/functional.py", line 3111, in mse_loss
+    expanded_input, expanded_target = torch.broadcast_tensors(input, target)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/functional.py", line 72, in broadcast_tensors
+    return _VF.broadcast_tensors(tensors)  # type: ignore[attr-defined]
+RuntimeError: The size of tensor a (2) must match the size of tensor b (20) at non-singleton dimension 1
+

@@ -43,8 +43,8 @@ diffusion_k: 3
 num_layer: 1
 
 batch_size: 2
-encoder_length: 20
-decoder_length: 2
+encoder_length: 200
+decoder_length: 20
 
 tau: 0.3
 use_teacher_forcing: True
