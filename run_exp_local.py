@@ -19,6 +19,8 @@ def main(conf_file_path):
         runner = GTS_Runner(config=config)
         runner.train()
 
+        runner.test()
+
     except:
         logger.error(traceback.format_exc())
 

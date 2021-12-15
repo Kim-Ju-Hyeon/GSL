@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="03b44255-a9ab-4eb8-a61d-dfbdd9f0f5fb" name="dgx_gsl">
+        <fileTransfer rootFolder="/home/nvidia/GSL" accessType="SFTP" host="192.168.1.10" port="22" sshConfigId="07403b2d-87d3-47cf-aa65-cd9c349b20b2" sshConfig="nvidia@192.168.1.10:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

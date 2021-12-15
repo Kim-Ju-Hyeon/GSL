@@ -17,18 +17,18 @@ class Train_Dataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return [f'train_n100.pt']
+        return [f'train_bin_n100.pt']
 
     def download(self):
         pass
 
     def process(self):
-        lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
-        spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
+        lam = pickle.load(open('./data/lam_bin_n100.pickle', 'rb'))
+        spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
         # [tsteps, neurons] > [neurons, tsteps]
-        data = spike[:, :4000000]
-        lam = lam[:, :4000000]
+        data = spike[:, :40000]
+        lam = lam[:, :40000]
 
         num_neurons = data.shape[0]
         total_time = data.shape[-1]
@@ -82,18 +82,18 @@ class Validation_Dataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return [f'validation_n100.pt']
+        return [f'validation_bin_n100.pt']
 
     def download(self):
         pass
 
     def process(self):
-        lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
-        spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
+        lam = pickle.load(open('./data/lam_bin_n100.pickle', 'rb'))
+        spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
         # [tsteps, neurons] > [neurons, tsteps]
-        data = spike[:, 4000000:4400000]
-        lam = lam[:, 4000000:4400000]
+        data = spike[:, 40000:44000]
+        lam = lam[:, 40000:44000]
 
         num_neurons = data.shape[0]
         total_time = data.shape[-1]
@@ -147,18 +147,18 @@ class Test_Dataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return [f'test_n100.pt']
+        return [f'test_bin_n100.pt']
 
     def download(self):
         pass
 
     def process(self):
-        lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
-        spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
+        lam = pickle.load(open('./data/lam_bin_n100.pickle', 'rb'))
+        spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
         # [tsteps, neurons] > [neurons, tsteps]
-        data = spike[:, 4400000:4800000]
-        lam = lam[:, 4400000:4800000]
+        data = spike[:, 44000:48000]
+        lam = lam[:, 44000:48000]
 
         num_neurons = data.shape[0]
         total_time = data.shape[-1]

@@ -13,4 +13,4 @@ def build_batch_edge_index(edge_index, num_graphs):
     for num in range(1, num_graphs):
         next_graph_edge = edge_index + num * 100
         new_edge = torch.cat([new_edge, next_graph_edge], dim=-1)
-    return torch.LongTensor(new_edge)
+    return new_edge

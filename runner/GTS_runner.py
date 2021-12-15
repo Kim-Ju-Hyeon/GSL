@@ -17,6 +17,7 @@ from utils.logger import get_logger
 
 logger = get_logger('exp_logger')
 
+
 class GTS_Runner(object):
     def __init__(self, config):
         self.config = config
@@ -33,13 +34,17 @@ class GTS_Runner(object):
         self.train_conf = config.train
 
         self.fully_connected_edge_index = build_fully_connected_edge_idx(self.config.nodes_num)
+        if self.use_gpu and (self.device != 'cpu'):
+            self.fully_connected_edge_index = self.fully_connected_edge_index.to(device=self.device)
 
         if self.dataset_conf.name == 'spike_lambda':
             print("Load Spike Dataset")
-            spike = pickle.load(open('./data/LNP_spk_all.pickle', 'rb'))
-            # lam = pickle.load(open('./data/LNP_lam_all.pickle', 'rb'))
+            # lam = pickle.load(open('./data/lam_bin_n100.pickle', 'rb'))
+            spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
-            self.entire_inputs = torch.FloatTensor(spike[:,:100])
+            self.entire_inputs = torch.FloatTensor(spike[:, :40000])
+            if self.use_gpu and (self.device != 'cpu'):
+                self.entire_inputs = self.entire_inputs.to(device=self.device)
 
             print("Split Spike Train, Valid, Test Dataset")
             self.train_dataset = Train_Dataset(root=self.dataset_conf.root)
@@ -89,13 +94,19 @@ class GTS_Runner(object):
 
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
-            print(f'Epoch: {epoch}')
             # ====================== training ============================= #
             self.model.train()
             train_loss = []
-            for data_batch in train_loader:
+
+            iter = 0
+            for data_batch in tqdm(train_loader):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
+
+                # print(f'data_batch.x: {data_batch.x.shape}')
+                # print(f'data_batch.x: {data_batch.y[:, :, 0].shape}')
+                # print(f'entire_inputs: {self.entire_inputs.shape}')
+                # print(f'fully_connected_edge_index.x: {self.fully_connected_edge_index.shape}')
 
                 _, _, loss = self.model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
                                         entire_inputs=self.entire_inputs,
@@ -107,11 +118,12 @@ class GTS_Runner(object):
                 optimizer.step()
 
                 train_loss += [float(loss.data.cpu().numpy())]
+                iter += 1
 
                 # display loss
-                if (iter_count + 1) % 10 == 0:
+                if (iter + 1) % 10 == 0:
                     logger.info(
-                        "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iter_count + 1, train_loss))
+                        "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iter + 1, float(loss.data.cpu().numpy())))
 
             train_loss = np.stack(train_loss).mean()
             results['train_loss'] += [train_loss]
@@ -120,16 +132,17 @@ class GTS_Runner(object):
             self.model.eval()
 
             val_loss = []
-            for data_batch in valid_loader:
+            for data_batch in tqdm(valid_loader):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
                 with torch.no_grad():
                     adj_matrix, _, loss = self.model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
-                                                     entire_inputs=self.entire_inputs,
-                                                     edge_index=self.fully_connected_edge_index)
+                                                       entire_inputs=self.entire_inputs,
+                                                       edge_index=self.fully_connected_edge_index)
                 val_loss += [float(loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()
+
             results['val_loss'] += [val_loss]
             results['val_adj_matirix'] += [adj_matrix]
 
@@ -142,7 +155,45 @@ class GTS_Runner(object):
 
             model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
 
-            pickle.dump(results, open(os.path.join(self.config.exp_dir,'result.pickle'), 'wb'))
+        pickle.dump(results, open(os.path.join(self.config.exp_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-        pass
+        print('Test Start')
+        test_loader = DataLoader(self.test_dataset, batch_size=self.train_conf.batch_size)
+
+        self.best_model = GTS_Model(self.config)
+        best_snapshot = load_model(self.best_model_dir)
+
+        self.best_model.load_state_dict(best_snapshot)
+
+        if self.use_gpu and (self.device != 'cpu'):
+            self.best_model = self.best_model.to(device=self.device)
+
+        # ===================== validation ============================ #
+        self.best_model.eval()
+
+        test_loss = []
+        results = defaultdict(list)
+        output = []
+        target = []
+        for data_batch in tqdm(test_loader):
+            if self.use_gpu and (self.device != 'cpu'):
+                data_batch = data_batch.to(device=self.device)
+            with torch.no_grad():
+                adj_matrix, out, loss = self.best_model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
+                                                   entire_inputs=self.entire_inputs,
+                                                   edge_index=self.fully_connected_edge_index)
+            test_loss += [float(loss.data.cpu().numpy())]
+            output += [out.cpu().numpy()]
+            target += [data_batch.y[:, :, 0].cpu().numpy()]
+
+        test_loss = np.stack(test_loss).mean()
+
+        results['test_loss'] += [test_loss]
+        results['adj_matrix'] = adj_matrix.cpu().numpy()
+        results['prediction'] = output
+        results['target'] = target
+
+        logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
+
+        pickle.dump(results, open(os.path.join(self.config.exp_dir, 'test_result.pickle'), 'wb'))

@@ -45,20 +45,28 @@ class GTS_Graph_Learning(MessagePassing):
         if len(x.shape) == 2:
             x = x.reshape(self.num_nodes, 1, -1)
 
+        # print(x.shape)
+        # print(edge_index.shape)
+
         x = self.conv1(x)
         x = F.relu(x)
+        # print(x.shape)
         x = self.bn1(x)
         x = self.conv2(x)
         x = F.relu(x)
+        # print(x.shape)
         x = self.bn2(x)
 
         x = x.view(self.num_nodes, -1)
+        # print(x.shape)
 
         x = self.fc(x)
         x = F.relu(x)
+        # print(x.shape)
         x = self.bn3(x)
 
         x = self.propagate(edge_index, x=x)
+        # print(x.shape)
         return x
 
     def message(self, x_i, x_j):

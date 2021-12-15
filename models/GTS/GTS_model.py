@@ -31,6 +31,7 @@ class GTS_Model(nn.Module):
 
     def forward(self, inputs, targets, entire_inputs, edge_index):
         batch_size = inputs.shape[0] // self.node_nums
+
         adj = self.graph_learning(entire_inputs, edge_index)
 
         edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
