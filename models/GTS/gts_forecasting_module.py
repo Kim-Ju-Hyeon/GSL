@@ -105,9 +105,9 @@ class Spike_Linear_Decoder(nn.Module):
         x = self.fc_2(x)
         x = F.relu(x)
         output = self.prediction_layer(x)
-        x = F.relu(x)
+        output = F.relu(output)
 
-        return x
+        return output
 
 
 class GTS_Forecasting_Module(nn.Module):

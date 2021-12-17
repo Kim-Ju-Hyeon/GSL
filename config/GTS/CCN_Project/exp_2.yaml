@@ -1,8 +1,8 @@
 ---
 exp_name: test
 exp_dir: ./exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: 1010
 model_name: GTS
 
@@ -24,12 +24,12 @@ dataset:
 
 train:
   optimizer: Adam
-  epoch: 2
+  epoch: 200
   loss_function : CrossEntropy
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 16 # 1 # 64
+  batch_size : 1 # 1 # 64
   lr_decay: 0.1
   lr_decay_steps: [10000]
 

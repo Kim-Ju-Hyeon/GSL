@@ -1,0 +1,23 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp\GTS_test_1218_032151\log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1218_032151
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_CCN_Project.py", line 20, in main
+    runner.train()
+  File "C:\Users\KimJuHyeon\GSL\runner\CCN_Project_runner.py", line 153, in train
+    _, _, loss = self.model(inputs=data_batch.x, targets=target,
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\GTS_model_for_CNN_Project.py", line 37, in forward
+    adj = self.graph_learning(entire_inputs[batch,:,:], edge_index)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\gts_graph_learning.py", line 55, in forward
+    x = self.conv2(x)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\conv.py", line 301, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\conv.py", line 297, in _conv_forward
+    return F.conv1d(input, weight, bias, self.stride,
+RuntimeError: Calculated padded input size per channel: (54). Kernel size: (212). Kernel size can't be greater than actual input size
+
