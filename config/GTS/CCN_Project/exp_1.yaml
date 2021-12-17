@@ -25,26 +25,26 @@ dataset:
 train:
   optimizer: Adam
   epoch: 2
-  loss_function : MSELoss
+  loss_function : CrossEntropy
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 8
+  batch_size : 1
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
 
 node_features: 1
 embedding_dim: 128
-output_dim: 1
+output_dim: 8
 hidden_dim: 64
 nodes_num: 98
 
-kernel_size: 100
+kernel_size: 212
 stride: 1
 conv1_dim: 8
 conv2_dim: 16
-fc_dim: 1312
+fc_dim: 5120
 
 diffusion_k: 3
 num_layer: 1

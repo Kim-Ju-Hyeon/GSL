@@ -1,0 +1,29 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp/GTS_test_1217_170808/log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1217_170808
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_CCN_Project.py", line 20, in main
+    runner.train()
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 151, in train
+    _, _, loss = self.model(inputs=data_batch.x, targets=target,
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/GTS_model_for_CNN_Project.py", line 53, in forward
+    outputs = self.graph_forecasting(inputs, batch_adj_matrix)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/gts_forecasting_module.py", line 155, in forward
+    encoder_hidden_state = self.encoder(inputs, adj_matrix)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/gts_forecasting_module.py", line 148, in encoder
+    encoder_hidden_state = self.encoder_model(inputs[:, t, :].reshape(-1, 1), adj,
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/gts_forecasting_module.py", line 16, in forward
+    inputs = self.embedding_layer(inputs)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (166208x1 and 212x128)
+

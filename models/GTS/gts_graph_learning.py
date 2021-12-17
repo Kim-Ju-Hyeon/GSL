@@ -45,8 +45,8 @@ class GTS_Graph_Learning(MessagePassing):
         if len(x.shape) == 2:
             x = x.reshape(self.num_nodes, 1, -1)
 
-        print(x.shape)
-        print(edge_index.shape)
+        # print(x.shape)
+        # print(edge_index.shape)
 
         x = self.conv1(x)
         x = F.relu(x)

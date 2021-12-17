@@ -131,7 +131,9 @@ class GTS_Runner(object):
             iter = 0
             for data_batch in tqdm(train_loader):
                 target = np.stack(data_batch.y, axis=0)[:, 0]
-                target = F.one_hot(torch.Tensor(target).to(torch.int64), num_classes=8)
+                target = torch.Tensor(target).to(torch.int64)
+                # target = F.one_hot(torch.Tensor(target).to(torch.int64), num_classes=8)
+                # target = torch.FloatTensor(target)
 
                 indexs = np.stack(data_batch.y, axis=0)[:, 1]
 
@@ -143,10 +145,10 @@ class GTS_Runner(object):
                     target = target.to(device=self.device)
                     entire_input = entire_input.to(device=self.device)
 
-                print(f'data_batch.x: {data_batch.x.shape}')
-                print(f'data_batch.x: {target.shape}')
-                print(f'entire_inputs: {entire_input.shape}')
-                print(f'fully_connected_edge_index.x: {self.fully_connected_edge_index.shape}')
+                # print(f'data_batch.x: {data_batch.x.shape}')
+                # print(f'data_batch.x: {target.shape}')
+                # print(f'entire_inputs: {entire_input.shape}')
+                # print(f'fully_connected_edge_index.x: {self.fully_connected_edge_index.shape}')
 
                 _, _, loss = self.model(inputs=data_batch.x, targets=target,
                                         entire_inputs=entire_input,

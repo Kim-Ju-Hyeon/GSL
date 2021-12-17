@@ -54,4 +54,4 @@ class GTS_Model(nn.Module):
 
         loss = self.loss_func(outputs, targets)
 
-        return adj_matrix, outputs, loss
+        return edge_list, outputs, loss

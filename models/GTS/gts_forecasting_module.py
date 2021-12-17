@@ -51,11 +51,13 @@ class DecoderModel(nn.Module):
 class Spike_Linear_Decoder(nn.Module):
     def __init__(self, config):
         super(Spike_Linear_Decoder, self).__init__()
+        self.node_nums = config.nodes_num
         self.output_dim = config.output_dim
         self.hidden_dim = config.hidden_dim
 
-        self.fc_1 = nn.Linear(self.hidden_dim, self.hidden_dim//2)
-        self.prediction_layer = nn.Linear(self.hidden_dim//2, self.output_dim)
+        self.fc_1 = nn.Linear(self.node_nums*self.hidden_dim, self.node_nums*self.hidden_dim//2)
+        self.fc_2 = nn.Linear(self.node_nums*self.hidden_dim//2, self.node_nums * self.hidden_dim // 4)
+        self.prediction_layer = nn.Linear(self.node_nums * self.hidden_dim // 4, self.output_dim)
 
         self.init_weights()
 
@@ -66,7 +68,8 @@ class Spike_Linear_Decoder(nn.Module):
                 m.bias.data.fill_(0.1)
 
     def forward(self, inputs):
-        x = self.fc_1(inputs[-1].view(-1, self.hidden_dim))
+        x = self.fc_1(inputs[-1].view(-1, self.node_nums*self.hidden_dim))
+        x = self.fc_2(x)
         output = self.prediction_layer(x)
 
         return output
@@ -145,7 +148,7 @@ class GTS_Spike_Decoding(nn.Module):
     def encoder(self, inputs, adj):
         encoder_hidden_state = None
         for t in range(self.encoder_length):
-            encoder_hidden_state = self.encoder_model(inputs[:, t, :].reshape(-1, 1), adj,
+            encoder_hidden_state = self.encoder_model(inputs[:, t, :], adj,
                                                       hidden_state=encoder_hidden_state)
 
         return encoder_hidden_state
