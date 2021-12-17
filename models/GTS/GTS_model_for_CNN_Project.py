@@ -1,6 +1,6 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
-from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
-from utils.utils import build_batch_edge_index
+from models.GTS.gts_forecasting_module import GTS_Spike_Decoding
+from utils.utils import build_dynamic_batch_edge_index
 
 import torch
 import torch.nn as nn
@@ -16,7 +16,7 @@ class GTS_Model(nn.Module):
         self.node_nums = config.nodes_num
 
         self.graph_learning = GTS_Graph_Learning(self.config)
-        self.graph_forecasting = GTS_Forecasting_Module(self.config)
+        self.graph_forecasting = GTS_Spike_Decoding(self.config)
 
         self.loss = config.train.loss_function
 
@@ -32,20 +32,25 @@ class GTS_Model(nn.Module):
     def forward(self, inputs, targets, entire_inputs, edge_index):
         batch_size = inputs.shape[0] // self.node_nums
 
-        adj = self.graph_learning(entire_inputs, edge_index)
+        edge_list = []
+        for batch in range(batch_size):
+            adj = self.graph_learning(entire_inputs[0,:,:], edge_index)
 
-        edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
-        edge_probability = torch.transpose(edge_probability, 0, 1)
+            edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
+            edge_probability = torch.transpose(edge_probability, 0, 1)
 
-        edge_ = []
-        for ii, rel in enumerate(edge_probability[0]):
-            if bool(rel):
-                edge_.append(edge_index[:, ii])
+            edge_ = []
+            for ii, rel in enumerate(edge_probability[0]):
+                if bool(rel):
+                    edge_.append(edge_index[:, ii])
 
-        adj_matrix = torch.stack(edge_, dim=-1)
-        batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)
+            adj_matrix = torch.stack(edge_, dim=-1)
 
-        outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
+            edge_list.append(adj_matrix)
+
+        batch_adj_matrix = build_dynamic_batch_edge_index(edge_list)
+
+        outputs = self.graph_forecasting(inputs, batch_adj_matrix)
 
         loss = self.loss_func(outputs, targets)
 

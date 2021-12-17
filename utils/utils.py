@@ -14,3 +14,13 @@ def build_batch_edge_index(edge_index, num_graphs):
         next_graph_edge = edge_index + num * 100
         new_edge = torch.cat([new_edge, next_graph_edge], dim=-1)
     return new_edge
+
+def build_dynamic_batch_edge_index(edge_index):
+    new_edge = edge_index
+    num = 0
+    for batch_edge_index in edge_index:
+        next_graph_edge = batch_edge_index + num * 98
+        new_edge = torch.cat([new_edge, next_graph_edge], dim=-1)
+
+        num += 1
+    return new_edge

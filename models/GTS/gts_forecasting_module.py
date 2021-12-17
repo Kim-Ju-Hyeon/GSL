@@ -47,6 +47,7 @@ class DecoderModel(nn.Module):
 
         return output, decoder_hidden_state
 
+
 class Spike_Linear_Decoder(nn.Module):
     def __init__(self, config):
         super(Spike_Linear_Decoder, self).__init__()
@@ -65,8 +66,10 @@ class Spike_Linear_Decoder(nn.Module):
                 m.bias.data.fill_(0.1)
 
     def forward(self, inputs):
-        x = self.fc_1(inputs)
-        out = self.prediction_layer(x)
+        x = self.fc_1(inputs[-1].view(-1, self.hidden_dim))
+        output = self.prediction_layer(x)
+
+        return output
 
 
 class GTS_Forecasting_Module(nn.Module):
@@ -77,7 +80,6 @@ class GTS_Forecasting_Module(nn.Module):
         self.device = config.device
 
         self.nodes_num = config.nodes_num
-        self.tau = config.tau
         self.use_teacher_forcing = config.use_teacher_forcing
         self.teacher_forcing_ratio = config.teacher_forcing_ratio
 
@@ -133,23 +135,12 @@ class GTS_Forecasting_Module(nn.Module):
 class GTS_Spike_Decoding(nn.Module):
     def __init__(self, config):
         super(GTS_Spike_Decoding, self).__init__()
-
         self.coonfig = config
-        self.device = config.device
-
-        self.nodes_num = config.nodes_num
-        self.tau = config.tau
-        self.use_teacher_forcing = config.use_teacher_forcing
-        self.teacher_forcing_ratio = config.teacher_forcing_ratio
-
-        self.nodes_feas = config.node_features
-        self.output_dim = config.output_dim
 
         self.encoder_length = config.encoder_length
-        self.decoder_length = config.decoder_length
 
         self.encoder_model = EncoderModel(config)
-        self.decoder_model = DecoderModel(config)
+        self.decoder_model = Spike_Linear_Decoder(config)
 
     def encoder(self, inputs, adj):
         encoder_hidden_state = None
@@ -159,33 +150,11 @@ class GTS_Spike_Decoding(nn.Module):
 
         return encoder_hidden_state
 
-    def decoder(self, targets, encoder_hidden_state, adj):
-        outputs = []
-
-        go_symbol = torch.zeros((targets.shape[0], 1), device=self.device)
-        decoder_hidden_state = encoder_hidden_state
-        decoder_input = go_symbol
-
-        for t in range(self.decoder_length):
-            output, decoder_hidden_state = self.decoder_model(decoder_input, adj, hidden_state=decoder_hidden_state)
-            outputs.append(output)
-
-            self.use_teacher_forcing = True if (np.random.random() < self.teacher_forcing_ratio) and \
-                                               (self.use_teacher_forcing is True) else False
-
-            if self.training and self.use_teacher_forcing:
-                decoder_input = targets[:, t].reshape(-1, 1)
-            else:
-                decoder_input = output
-
-        outputs = torch.cat(outputs, dim=-1)
-        return outputs
-
-    def forward(self, inputs, targets, adj_matrix):
+    def forward(self, inputs, adj_matrix):
         # DCRNN encoder
         encoder_hidden_state = self.encoder(inputs, adj_matrix)
 
         # DCRNN decoder
-        outputs = self.decoder(targets, encoder_hidden_state, adj_matrix)
+        outputs = self.decoder_model(encoder_hidden_state)
 
         return outputs
