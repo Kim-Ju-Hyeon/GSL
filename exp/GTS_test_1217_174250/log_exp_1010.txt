@@ -50,3 +50,12 @@ INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration
 INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 480 = 5340840.0
 INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 490 = 9521852.0
 INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 500 = 21536648.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 510 = 9998420.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 520 = 16128504.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 530 = 37150744.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 540 = 42062948.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 550 = 31335496.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 560 = 40026584.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 570 = 12791926.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 580 = 35910720.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 590 = 10171996.0
