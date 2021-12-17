@@ -34,7 +34,7 @@ class GTS_Model(nn.Module):
 
         edge_list = []
         for batch in range(batch_size):
-            adj = self.graph_learning(entire_inputs[0,:,:], edge_index)
+            adj = self.graph_learning(entire_inputs[batch,:,:], edge_index)
 
             edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
             edge_probability = torch.transpose(edge_probability, 0, 1)

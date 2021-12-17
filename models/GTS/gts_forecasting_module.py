@@ -31,18 +31,17 @@ class EncoderModel(nn.Module):
         self.encoder_dcrnn = DCRNN(config)
 
     def forward(self, inputs, adj, hidden_state=None):
+        batch_nodes = inputs.shape[0]
         if len(inputs.shape) == 2:
-            inputs = inputs.reshape(self.num_nodes, 1, -1)
+            inputs = inputs.reshape(batch_nodes, 1, -1)
         x = self.conv1(inputs)
         x = F.relu(x)
-        # print(x.shape)
         x = self.bn1(x)
         x = self.conv2(x)
         x = F.relu(x)
-        # print(x.shape)
         x = self.bn2(x)
 
-        x = x.view(self.num_nodes, -1)
+        x = x.view(batch_nodes, -1)
 
         x = self.fc(x)
         x = F.relu(x)
