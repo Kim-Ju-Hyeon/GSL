@@ -59,3 +59,24 @@ INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration
 INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 570 = 12791926.0
 INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 580 = 35910720.0
 INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 590 = 10171996.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 600 = 16500480.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 610 = 57653868.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 620 = 34681876.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 630 = 7197192.0
+INFO  | File CCN_Project_runner.py | Line 170   | Train Loss @ epoch 1 iteration 640 = 26634964.0
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_CCN_Project.py", line 20, in main
+    runner.train()
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 198, in train
+    val_loss += [float(loss.data.cpu().numpy())]
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/GTS_model_for_CNN_Project.py", line 59, in forward
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/modules/loss.py", line 1150, in forward
+    return F.cross_entropy(input, target, weight=self.weight,
+  File "/opt/anaconda3/envs/GraphStructureLearning/lib/python3.9/site-packages/torch/nn/functional.py", line 2846, in cross_entropy
+    return torch._C._nn.cross_entropy_loss(input, target, weight, _Reduction.get_enum(reduction), ignore_index, label_smoothing)
+RuntimeError: Expected floating point type for target with class probabilities, got Long
+

@@ -180,7 +180,8 @@ class GTS_Runner(object):
             correct = 0
             for data_batch in tqdm(valid_loader):
                 target = np.stack(data_batch.y, axis=0)[:, 0]
-                target = F.one_hot(torch.Tensor(target).to(torch.int64), num_classes=8)
+                target = torch.Tensor(target).to(torch.int64)
+                # target = F.one_hot(torch.Tensor(target).to(torch.int64), num_classes=8)
 
                 indexs = np.stack(data_batch.y, axis=0)[:, 1]
                 gl = [self.train_entire[i] for i in indexs]
@@ -240,7 +241,8 @@ class GTS_Runner(object):
 
         for data_batch in tqdm(test_loader):
             target = np.stack(data_batch.y, axis=0)[:, 0]
-            target = F.one_hot(torch.Tensor(target).to(torch.int64), num_classes=8)
+            target = torch.Tensor(target).to(torch.int64)
+            # target = F.one_hot(torch.Tensor(target).to(torch.int64), num_classes=8)
 
             indexs = np.stack(data_batch.y, axis=0)[:, 1]
             gl = [self.train_entire[i] for i in indexs]
