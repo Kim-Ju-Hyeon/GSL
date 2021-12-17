@@ -52,4 +52,11 @@ num_layer: 1
 batch_size: 2
 encoder_length: 11
 
+embedding:
+  kernel_size: 20
+  stride: 5
+  conv1_dim: 8
+  conv2_dim: 16
+  fc_dim: 64
+
 

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from torch.nn import functional as F
 from models.GTS.DCRNN import DCRNN
 
 
@@ -9,12 +10,43 @@ class EncoderModel(nn.Module):
     def __init__(self, config):
         super(EncoderModel, self).__init__()
 
-        self.embedding_layer = nn.Linear(config.dataset.window_size, config.embedding_dim)
+        # self.embedding_layer = nn.Linear(config.dataset.window_size, config.embedding_dim)
+        self.num_nodes = config.nodes_num
+
+        self.kernel_size = config.embedding.kernel_size
+        self.stride = config.embedding.stride
+        self.conv1_dim = config.embedding.conv1_dim
+        self.conv2_dim = config.embedding.conv2_dim
+        self.fc_dim = config.embedding.fc_dim
+
+        self.nodes_feas = config.node_features
+
+        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size, stride=self.stride)
+        self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size, stride=self.stride)
+        self.fc = torch.nn.Linear(self.fc_dim, 1)
+
+        self.bn1 = torch.nn.BatchNorm1d(self.conv1_dim)
+        self.bn2 = torch.nn.BatchNorm1d(self.conv2_dim)
+
         self.encoder_dcrnn = DCRNN(config)
 
     def forward(self, inputs, adj, hidden_state=None):
-        inputs = self.embedding_layer(inputs)
-        hidden_state = self.encoder_dcrnn(inputs, adj, hidden_state)
+        x = self.conv1(inputs)
+        x = F.relu(x)
+        # print(x.shape)
+        x = self.bn1(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        # print(x.shape)
+        x = self.bn2(x)
+
+        x = x.view(self.num_nodes, -1)
+
+        x = self.fc(x)
+        x = F.relu(x)
+        # print(x.shape)
+
+        hidden_state = self.encoder_dcrnn(x, adj, hidden_state)
         return hidden_state
 
 
@@ -69,10 +101,13 @@ class Spike_Linear_Decoder(nn.Module):
 
     def forward(self, inputs):
         x = self.fc_1(inputs[-1].view(-1, self.node_nums*self.hidden_dim))
+        x = F.relu(x)
         x = self.fc_2(x)
+        x = F.relu(x)
         output = self.prediction_layer(x)
+        x = F.relu(x)
 
-        return output
+        return x
 
 
 class GTS_Forecasting_Module(nn.Module):
