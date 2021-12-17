@@ -1,0 +1,7 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp\GTS_test_1218_011936\log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1218_011936
+INFO  | File CCN_Project_runner.py | Line 167   | Train Loss @ epoch 1 iteration 10 = 7.357631206512451
+INFO  | File CCN_Project_runner.py | Line 167   | Train Loss @ epoch 1 iteration 20 = 7.357556343078613
+INFO  | File CCN_Project_runner.py | Line 167   | Train Loss @ epoch 1 iteration 30 = 7.357556343078613
+INFO  | File CCN_Project_runner.py | Line 167   | Train Loss @ epoch 1 iteration 40 = 7.357556343078613
+INFO  | File CCN_Project_runner.py | Line 167   | Train Loss @ epoch 1 iteration 50 = 7.357556343078613

@@ -31,6 +31,8 @@ class EncoderModel(nn.Module):
         self.encoder_dcrnn = DCRNN(config)
 
     def forward(self, inputs, adj, hidden_state=None):
+        if len(inputs.shape) == 2:
+            inputs = inputs.reshape(self.num_nodes, 1, -1)
         x = self.conv1(inputs)
         x = F.relu(x)
         # print(x.shape)
@@ -44,7 +46,6 @@ class EncoderModel(nn.Module):
 
         x = self.fc(x)
         x = F.relu(x)
-        # print(x.shape)
 
         hidden_state = self.encoder_dcrnn(x, adj, hidden_state)
         return hidden_state

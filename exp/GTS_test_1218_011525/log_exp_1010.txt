@@ -1,0 +1,37 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp\GTS_test_1218_011525\log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1218_011525
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_CCN_Project.py", line 20, in main
+    runner.train()
+  File "C:\Users\KimJuHyeon\GSL\runner\CCN_Project_runner.py", line 153, in train
+    _, _, loss = self.model(inputs=data_batch.x, targets=target,
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\GTS_model_for_CNN_Project.py", line 53, in forward
+    outputs = self.graph_forecasting(inputs, batch_adj_matrix)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\gts_forecasting_module.py", line 194, in forward
+    encoder_hidden_state = self.encoder(inputs, adj_matrix)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\gts_forecasting_module.py", line 187, in encoder
+    encoder_hidden_state = self.encoder_model(inputs[:, t, :], adj,
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\gts_forecasting_module.py", line 50, in forward
+    hidden_state = self.encoder_dcrnn(x, adj, hidden_state)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\DCRNN.py", line 35, in forward
+    next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, H=hidden_state)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric_temporal\nn\recurrent\dcrnn.py", line 215, in forward
+    Z = self._calculate_update_gate(X, edge_index, edge_weight, H)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric_temporal\nn\recurrent\dcrnn.py", line 174, in _calculate_update_gate
+    Z = self.conv_x_z(Z, edge_index, edge_weight)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric_temporal\nn\recurrent\dcrnn.py", line 81, in forward
+    H = torch.matmul(Tx_0, (self.weight[0])[0]) + torch.matmul(
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (98x65 and 192x64)
+
