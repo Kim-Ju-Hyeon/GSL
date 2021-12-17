@@ -30,6 +30,8 @@ class Train_Dataset(InMemoryDataset):
         data = spike[:, :40000]
         lam = lam[:, :40000]
 
+
+
         num_neurons = data.shape[0]
         total_time = data.shape[-1]
 

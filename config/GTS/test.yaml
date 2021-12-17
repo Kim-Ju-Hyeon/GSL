@@ -9,12 +9,18 @@ model_name: GTS
 dataset:
   root: ./data/spike_lambda
   name: spike_lambda
+  total_time_length: 742
+  window_size: 212
+  slide: 53
+  train_valid_test: [80,90,100]
+
 #  time_steps: 10
 #  pred_steps: 2
 #  window: 100
 #  train_step: 400
 #  validation_step: 440
 #  test_step: 480
+
 
 train:
   optimizer: Adam
@@ -29,6 +35,7 @@ train:
 
 
 node_features: 1
+embedding_dim: 128
 output_dim: 1
 hidden_dim: 64
 nodes_num: 100
