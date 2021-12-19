@@ -163,7 +163,7 @@ class GTS_Runner(object):
                 iter += 1
 
                 # display loss
-                if (iter + 1) % 10 == 0:
+                if (iter + 1) % 100 == 0:
                     logger.info(
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iter + 1, float(loss.data.cpu().numpy())))
 
