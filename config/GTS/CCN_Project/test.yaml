@@ -1,0 +1,62 @@
+---
+exp_name: test
+exp_dir: ./exp
+use_gpu: False
+device: cpu
+seed: 1010
+model_name: GTS
+
+dataset:
+  root: ./data/CCN/monkey_spike.pickle
+  name: monkey_data
+  total_time_length: 742
+  window_size: 202
+  slide: 10
+  train_valid_test: [80,90,100]
+
+#  time_steps: 10
+#  pred_steps: 2
+#  window: 100
+#  train_step: 400
+#  validation_step: 440
+#  test_step: 480
+
+
+train:
+  optimizer: Adam
+  epoch: 2
+  loss_function : CrossEntropy
+  lr: 1.0e-3
+  momentum: 0.9
+  wd: 0.0e-4
+  batch_size : 16 # 1 # 64
+  lr_decay: 0.1
+  lr_decay_steps: [10000]
+
+
+node_features: 1
+embedding_dim: 16
+output_dim: 3
+hidden_dim: 16
+nodes_num: 98
+
+kernel_size: 100
+stride: 5
+conv1_dim: 8
+conv2_dim: 16
+fc_dim: 96
+
+diffusion_k: 3
+num_layer: 1
+
+batch_size: 2
+encoder_length: 11
+
+embedding:
+  kernel_size: 20
+  stride: 8
+  conv1_dim: 8
+  conv2_dim: 16
+  embedding_dim: 128
+
+

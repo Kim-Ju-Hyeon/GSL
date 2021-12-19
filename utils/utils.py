@@ -19,7 +19,7 @@ def build_dynamic_batch_edge_index(edge_index):
     new_edge = edge_index[0]
     num = 1
 
-    if len(edge_index) is not 1:
+    if len(edge_index) != 1:
         for batch_edge_index in edge_index[1:]:
             next_graph_edge = batch_edge_index + num * 98
             new_edge = torch.cat([new_edge, next_graph_edge], dim=-1)
