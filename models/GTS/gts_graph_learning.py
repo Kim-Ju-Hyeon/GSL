@@ -9,7 +9,6 @@ class GTS_Graph_Learning(MessagePassing):
     def __init__(self, config):
         super(GTS_Graph_Learning, self).__init__(aggr=None)
 
-        self.hidden_dim = config.hidden_dim
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
 
@@ -17,20 +16,22 @@ class GTS_Graph_Learning(MessagePassing):
         self.stride = config.stride
         self.conv1_dim = config.conv1_dim
         self.conv2_dim = config.conv2_dim
+        self.hidden_dim = config.hidden_dim
+
         self.fc_dim = config.fc_dim
 
-        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size, stride=self.stride)
-        self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size, stride=self.stride)
+        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size[0], stride=self.stride[0])
+        self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size[1], stride=self.stride[1])
+        self.conv3 = torch.nn.Conv1d(self.conv2_dim, self.hidden_dim, self.kernel_size[2], stride=self.stride[2])
+        self.fc = nn.Linear(self.hidden_dim, self.hidden_dim)
 
         self.hidden_drop = nn.Dropout(0.2)
-
-        self.fc = torch.nn.Linear(self.fc_dim, self.hidden_dim)
 
         self.bn1 = torch.nn.BatchNorm1d(self.conv1_dim)
         self.bn2 = torch.nn.BatchNorm1d(self.conv2_dim)
         self.bn3 = torch.nn.BatchNorm1d(self.hidden_dim)
 
-        self.fc_out = nn.Linear(self.hidden_dim * 2, self.hidden_dim)
+        self.fc_out = nn.Linear(self.hidden_dim*2, self.hidden_dim)
         self.fc_cat = nn.Linear(self.hidden_dim, 2)
 
         self.init_weights()
@@ -52,10 +53,16 @@ class GTS_Graph_Learning(MessagePassing):
         x = F.relu(x)
         # print(x.shape)
         x = self.bn1(x)
+
         x = self.conv2(x)
         x = F.relu(x)
         # print(x.shape)
         x = self.bn2(x)
+
+        x = self.conv3(x)
+        x = F.relu(x)
+        # print(x.shape)
+        x = self.bn3(x)
 
         x = x.view(self.num_nodes, -1)
         # print(x.shape)
@@ -74,9 +81,9 @@ class GTS_Graph_Learning(MessagePassing):
         return x
 
     def update(self, aggr_out):
-        x = self.fc_cat(aggr_out)
+        x = F.relu(self.fc_cat(aggr_out))
         return x
 
     def aggregate(self, x):
-        x = torch.relu(self.fc_out(x))
+        x = F.relu(self.fc_out(x))
         return x

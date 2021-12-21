@@ -11,7 +11,7 @@ dataset:
   name: monkey_data
   total_time_length: 742
   window_size: 202
-  slide: 10
+  slide: 54
   train_valid_test: [80,90,100]
 
 #  time_steps: 10
@@ -25,38 +25,34 @@ dataset:
 train:
   optimizer: Adam
   epoch: 2
-  loss_function : CrossEntropy
+  loss_function : MSELoss
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 16 # 1 # 64
+  batch_size : 1
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
+decode_step: 54
+decode_dim: 3
 
 node_features: 1
-embedding_dim: 16
 output_dim: 3
-hidden_dim: 16
 nodes_num: 98
 
-kernel_size: 100
-stride: 5
-conv1_dim: 8
-conv2_dim: 16
-fc_dim: 96
+kernel_size: [100, 50, 10]
+stride: [10, 5, 1]
+conv1_dim: 16
+conv2_dim: 64
+hidden_dim: 128
 
 diffusion_k: 3
 num_layer: 1
 
-batch_size: 2
-encoder_length: 11
-
 embedding:
-  kernel_size: 20
-  stride: 8
-  conv1_dim: 8
-  conv2_dim: 16
-  embedding_dim: 128
+  kernel_size: [20, 10]
+  stride: [5, 3]
+  conv_dim: 16
+  embedding_dim: 64
 
 

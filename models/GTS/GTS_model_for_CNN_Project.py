@@ -26,32 +26,28 @@ class GTS_Model(nn.Module):
         elif self.loss == 'MSELoss':
             self.loss_func = nn.MSELoss()
 
+        elif self.loss == 'Multitask_Loss':
+            # self.CE_loss = nn.CrossEntropyLoss()
+            # self.mse_loss = nn.MSELoss()
+            pass
         else:
             raise ValueError("Non-supported loss function!")
 
-    def forward(self, inputs, targets, entire_inputs, edge_index):
-        batch_size = inputs.shape[0] // self.node_nums
+    def forward(self, inputs, targets, edge_index):
+        adj = self.graph_learning(inputs, edge_index)
 
-        edge_list = []
-        for batch in range(batch_size):
-            adj = self.graph_learning(entire_inputs[batch,:,:], edge_index)
+        edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
+        edge_probability = torch.transpose(edge_probability, 0, 1)
 
-            edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
-            edge_probability = torch.transpose(edge_probability, 0, 1)
+        edge_ = []
+        for ii, rel in enumerate(edge_probability[0]):
+            if bool(rel):
+                edge_.append(edge_index[:, ii])
 
-            edge_ = []
-            for ii, rel in enumerate(edge_probability[0]):
-                if bool(rel):
-                    edge_.append(edge_index[:, ii])
+        adj_matrix = torch.stack(edge_, dim=-1)
 
-            adj_matrix = torch.stack(edge_, dim=-1)
-
-            edge_list.append(adj_matrix)
-
-        batch_adj_matrix = build_dynamic_batch_edge_index(edge_list)
-
-        outputs = self.graph_forecasting(inputs, batch_adj_matrix)
+        outputs = self.graph_forecasting(inputs, adj_matrix)
 
         loss = self.loss_func(outputs, targets)
 
-        return edge_list, outputs, loss
+        return adj_matrix, outputs, loss

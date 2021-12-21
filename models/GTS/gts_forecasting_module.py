@@ -4,6 +4,7 @@ import numpy as np
 
 from torch.nn import functional as F
 from models.GTS.DCRNN import DCRNN
+from torch_geometric_temporal.nn.recurrent import DCRNN as tg_dcrnn
 
 
 class EncoderModel(nn.Module):
@@ -80,36 +81,6 @@ class DecoderModel(nn.Module):
         return output, decoder_hidden_state
 
 
-class Spike_Linear_Decoder(nn.Module):
-    def __init__(self, config):
-        super(Spike_Linear_Decoder, self).__init__()
-        self.node_nums = config.nodes_num
-        self.output_dim = config.output_dim
-        self.hidden_dim = config.hidden_dim
-
-        self.fc_1 = nn.Linear(self.node_nums*self.hidden_dim, self.node_nums*self.hidden_dim//2)
-        self.fc_2 = nn.Linear(self.node_nums*self.hidden_dim//2, self.node_nums * self.hidden_dim // 4)
-        self.prediction_layer = nn.Linear(self.node_nums * self.hidden_dim // 4, self.output_dim)
-
-        self.init_weights()
-
-    def init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_normal_(m.weight.data)
-                m.bias.data.fill_(0.1)
-
-    def forward(self, inputs):
-        x = self.fc_1(inputs[-1].view(-1, self.node_nums*self.hidden_dim))
-        x = F.relu(x)
-        x = self.fc_2(x)
-        x = F.relu(x)
-        output = self.prediction_layer(x)
-        output = F.relu(output)
-
-        return output
-
-
 class GTS_Forecasting_Module(nn.Module):
     def __init__(self, config):
         super(GTS_Forecasting_Module, self).__init__()
@@ -170,29 +141,72 @@ class GTS_Forecasting_Module(nn.Module):
         return outputs
 
 
-class GTS_Spike_Decoding(nn.Module):
+class RecurrentGCN(torch.nn.Module):
     def __init__(self, config):
-        super(GTS_Spike_Decoding, self).__init__()
-        self.coonfig = config
+        super(RecurrentGCN, self).__init__()
+        self.config = config
+        self.num_nodes = config.nodes_num
+        self.nodes_feas = config.node_features
 
-        self.encoder_length = config.encoder_length
+        self.kernel_size = config.embedding.kernel_size
+        self.stride = config.embedding.stride
+        self.conv_dim = config.embedding.conv_dim
+        self.embedding_dim = config.embedding.embedding_dim
 
-        self.encoder_model = EncoderModel(config)
-        self.decoder_model = Spike_Linear_Decoder(config)
+        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv_dim, self.kernel_size[0],
+                                     stride=self.stride[0])
+        self.conv2 = torch.nn.Conv1d(self.conv_dim, self.embedding_dim,
+                                     self.kernel_size[1], stride=self.stride[1])
 
-    def encoder(self, inputs, adj):
-        encoder_hidden_state = None
-        for t in range(self.encoder_length):
-            encoder_hidden_state = self.encoder_model(inputs[:, t, :], adj,
-                                                      hidden_state=encoder_hidden_state)
+        self.bn1 = torch.nn.BatchNorm1d(self.conv_dim)
+        self.bn2 = torch.nn.BatchNorm1d(self.embedding_dim)
 
-        return encoder_hidden_state
+        self.recurrent = tg_dcrnn(config.embedding.embedding_dim, config.embedding.embedding_dim, 3)
 
-    def forward(self, inputs, adj_matrix):
-        # DCRNN encoder
-        encoder_hidden_state = self.encoder(inputs, adj_matrix)
+        self.conv3 = torch.nn.Conv1d(1, 1, config.embedding.embedding_dim, stride=1)
 
-        # DCRNN decoder
-        outputs = self.decoder_model(encoder_hidden_state)
+        self.out_1 = torch.nn.Linear(self.num_nodes, config.decode_step)
+        self.out_2 = torch.nn.Linear(self.num_nodes, config.decode_step)
 
-        return outputs
+        if config.decode_dim == 3:
+            self.out_3 = torch.nn.Linear(self.num_nodes, config.decode_step)
+
+    def forward(self, x, edge_index, hidden_state):
+        batch_nodes = x.shape[0]
+        if len(x.shape) == 2:
+            x = x.reshape(batch_nodes, 1, -1)
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.bn1(x)
+        #         print(x.shape)
+
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = self.bn2(x)
+        #         print(x.shape)
+
+        x = x.view(batch_nodes, -1)
+        #         print(x.shape)
+
+        h = self.recurrent(x, edge_index, H=hidden_state)
+        h = F.relu(h)
+        #         print(h.shape)
+
+        h_ = h.view(batch_nodes, 1, self.embedding_dim)
+        #         print(h_.shape)
+        forecast_h = self.conv3(h_)
+        forecast_h = F.relu(forecast_h)
+        #         print(forecast_h.shape)
+
+        forecast_h = forecast_h.view(-1)
+        #         print(forecast_h.shape)
+
+        out_x = self.out_1(forecast_h)
+        out_y = self.out_2(forecast_h)
+        output = [out_x, out_y]
+
+        if self.config.decode_dim == 3:
+            out_z = self.out_3(forecast_h)
+            output = [out_x, out_y, out_z]
+
+        return output, h
