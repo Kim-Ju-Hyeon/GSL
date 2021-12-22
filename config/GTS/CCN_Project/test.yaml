@@ -24,7 +24,7 @@ dataset:
 
 train:
   optimizer: Adam
-  epoch: 2
+  epoch: 1
   loss_function : MSELoss
   lr: 1.0e-3
   momentum: 0.9
@@ -40,19 +40,24 @@ node_features: 1
 output_dim: 3
 nodes_num: 98
 
-kernel_size: [100, 50, 10]
+kernel_size: [100, 50, 4]
 stride: [10, 5, 1]
 conv1_dim: 16
 conv2_dim: 64
 hidden_dim: 128
+fc_dim: 128
+
+loss_ratio: 0.5
 
 diffusion_k: 3
 num_layer: 1
 
 embedding:
-  kernel_size: [20, 10]
-  stride: [5, 3]
-  conv_dim: 16
-  embedding_dim: 64
+  kernel_size: [30, 15]
+  stride: [10, 5]
+  conv_dim: [8, 16]
+  embedding_dim: 16
+  hidden_state: 16
+
 
 

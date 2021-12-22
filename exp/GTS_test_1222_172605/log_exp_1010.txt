@@ -1,0 +1,13 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp/GTS_test_1222_172605/log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1222_172605
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_CCN_Project.py", line 19, in main
+    runner = GTS_Runner(config=config)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 43, in __init__
+    self.model = GTS_Model(self.config)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/GTS_model_for_CNN_Project.py", line 68, in __init__
+    self.graph_learning = GTS_Graph_Learning(self.config)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/gts_graph_learning.py", line 21, in __init__
+    self.fc_dim = config.fc_dim
+AttributeError: 'EasyDict' object has no attribute 'fc_dim'
+

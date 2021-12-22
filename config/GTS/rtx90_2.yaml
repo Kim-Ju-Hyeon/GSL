@@ -1,52 +1,54 @@
 ---
-exp_name: 1
+exp_name: exp_2
 exp_dir: ./exp
 use_gpu: True
-device: 1
-seed: 10101
+device: 0
+seed: 10102
 model_name: GTS
 
 dataset:
-  root: ./data/spike_lambda
-  name: spike_lambda
-#  time_steps: 10
-#  pred_steps: 2
-#  window: 100
-#  train_step: 400
-#  validation_step: 440
-#  test_step: 480
+  root: ./data/CCN/monkey_spike.pickle
+  name: monkey_data
+  total_time_length: 742
+  window_size: 202
+  slide: 54
+  train_valid_test: [80,90,100]
 
 train:
   optimizer: Adam
-  epoch: 10
+  epoch: 200
   loss_function : MSELoss
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 128
+  batch_size : 1
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
+decode_step: 54
+decode_dim: 3
 
 node_features: 1
-output_dim: 1
-hidden_dim: 64
-nodes_num: 100
+output_dim: 3
+nodes_num: 98
 
-kernel_size: 10
-stride: 1
-conv1_dim: 8
-conv2_dim: 16
-fc_dim: 1312
+kernel_size: [100, 50, 4]
+stride: [10, 5, 1]
+conv1_dim: 16
+conv2_dim: 64
+hidden_dim: 128
+fc_dim: 128
+
+loss_ratio: 0.5
 
 diffusion_k: 3
 num_layer: 1
 
-encoder_length: 200
-decoder_length: 20
-
-tau: 0.3
-use_teacher_forcing: True
-teacher_forcing_ratio: 0.5
+embedding:
+  kernel_size: [30, 15]
+  stride: [10, 5]
+  conv_dim: [8, 16]
+  embedding_dim: 16
+  hidden_state: 16
 
 

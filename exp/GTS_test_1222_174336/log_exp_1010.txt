@@ -1,0 +1,11 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp/GTS_test_1222_174336/log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1222_174336
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_CCN_Project.py", line 20, in main
+    runner.train()
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 142, in train
+    loss = self.compute_loss(outputs, angle, data_batch.y, self.loss_ratio)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 112, in compute_loss
+    print(class_prediction.view((1,1)).shape)
+RuntimeError: shape '[1, 1]' is invalid for input of size 8
+
