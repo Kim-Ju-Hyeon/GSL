@@ -1,0 +1,11 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp\GTS_test_1223_002346\log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1223_002346
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_CCN_Project.py", line 20, in main
+    runner.train()
+  File "C:\Users\KimJuHyeon\GSL\runner\CCN_Project_runner.py", line 169, in train
+    _, pred = torch.max(angle.data)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\_tensor.py", line 642, in __iter__
+    raise TypeError('iteration over a 0-d tensor')
+TypeError: iteration over a 0-d tensor
+

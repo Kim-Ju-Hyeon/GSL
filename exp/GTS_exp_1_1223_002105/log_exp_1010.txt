@@ -1,0 +1,11 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp\GTS_exp_1_1223_002105\log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_exp_1_1223_002105
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_CCN_Project.py", line 19, in main
+    runner = GTS_Runner(config=config)
+  File "C:\Users\KimJuHyeon\GSL\runner\CCN_Project_runner.py", line 41, in __init__
+    self.fully_connected_edge_index = self.fully_connected_edge_index.to(device=self.device)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\cuda\__init__.py", line 208, in _lazy_init
+    raise AssertionError("Torch not compiled with CUDA enabled")
+AssertionError: Torch not compiled with CUDA enabled
+

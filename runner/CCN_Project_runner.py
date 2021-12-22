@@ -165,6 +165,10 @@ class GTS_Runner(object):
 
                 val_loss += [float(loss.data.cpu().numpy())]
 
+                _, pred = torch.max(angle.data.reshape(1, 8), 1)
+                correct += (pred == data_batch.y[-1, 0]).sum().item()
+                total += 1
+
             val_loss = np.stack(val_loss).mean()
             results['val_loss'] += [val_loss]
 
@@ -212,7 +216,7 @@ class GTS_Runner(object):
 
             test_loss += [float(loss.data.cpu().numpy())]
 
-            _, pred = torch.max(angle.data, 1)
+            _, pred = torch.max(angle.data.reshape(1, 8), 1)
             correct += (pred == data_batch.y[-1, 0]).sum().item()
             total += 1
 

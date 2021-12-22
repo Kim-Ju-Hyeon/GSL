@@ -1,0 +1,11 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp\GTS_test_1223_002509\log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1223_002509
+INFO  | File CCN_Project_runner.py | Line 179   | Avg. Validation Loss = 0.43677
+INFO  | File CCN_Project_runner.py | Line 180   | Current Best Validation Loss = inf
+ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_CCN_Project.py", line 22, in main
+    runner.test()
+  File "C:\Users\KimJuHyeon\GSL\runner\CCN_Project_runner.py", line 221, in test
+    _, pred = torch.max(angle.data, 1)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+
