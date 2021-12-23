@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torch_geometric_temporal.nn.recurrent import DCRNN
+from torch_geometric.utils.random import erdos_renyi_graph
 
 class GTS_Spike_Decoding(nn.Module):
     def __init__(self, config):
@@ -91,17 +92,19 @@ class GTS_Model(nn.Module):
         return valid_sampling_locations
 
     def forward(self, inputs, edge_index):
-        adj = self.graph_learning(inputs, edge_index)
+        # adj = self.graph_learning(inputs, edge_index)
+        #
+        # edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
+        # edge_probability = torch.transpose(edge_probability, 0, 1)
+        #
+        # edge_ = []
+        # for ii, rel in enumerate(edge_probability[0]):
+        #     if bool(rel):
+        #         edge_.append(edge_index[:, ii])
+        #
+        # adj_matrix = torch.stack(edge_, dim=-1)
 
-        edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
-        edge_probability = torch.transpose(edge_probability, 0, 1)
-
-        edge_ = []
-        for ii, rel in enumerate(edge_probability[0]):
-            if bool(rel):
-                edge_.append(edge_index[:, ii])
-
-        adj_matrix = torch.stack(edge_, dim=-1)
+        adj_matrix =erdos_renyi_graph(self.node_nums, 0.1)
 
         loc = self.sliding()
 
