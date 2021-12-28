@@ -13,14 +13,7 @@ dataset:
   window_size: 202
   slide: 54
   train_valid_test: [80,90,100]
-
-#  time_steps: 10
-#  pred_steps: 2
-#  window: 100
-#  train_step: 400
-#  validation_step: 440
-#  test_step: 480
-
+  pred: vel
 
 train:
   optimizer: Adam
@@ -39,6 +32,9 @@ decode_dim: 3
 node_features: 1
 output_dim: 3
 nodes_num: 98
+
+learn_structure: False
+edge_probability: 0.1
 
 kernel_size: [100, 50, 4]
 stride: [10, 5, 1]

@@ -1,0 +1,6 @@
+INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp/GTS_test_1223_130300/log_exp_1010.txt
+INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1223_130300
+INFO  | File CCN_Project_runner.py | Line 185   | Avg. Validation Loss = 0.276236
+INFO  | File CCN_Project_runner.py | Line 186   | Classification Acc = Target = 0.0
+INFO  | File CCN_Project_runner.py | Line 187   | Current Best Validation Loss = inf
+INFO  | File CCN_Project_runner.py | Line 248   | Avg. Test Loss = 0.253837

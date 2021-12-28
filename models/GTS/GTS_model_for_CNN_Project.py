@@ -62,19 +62,23 @@ class GTS_Model(nn.Module):
         self.config = config
         self.dataset_conf = config.dataset
 
+        self.learn_structure = config.learn_structure
+        self.edge_probability = config.edge_probability
+
         self.node_nums = config.nodes_num
         self.embedding_dim = config.embedding.embedding_dim
         self.decode_step = config.decode_step
         self.decode_dim =config.decode_dim
 
-        self.graph_learning = GTS_Graph_Learning(self.config)
+        if self.learn_structure:
+            self.graph_learning = GTS_Graph_Learning(self.config)
         self.graph_forecasting = GTS_Spike_Decoding(self.config)
 
         self.linear_1 = torch.nn.Linear(self.node_nums*self.embedding_dim, self.node_nums*self.embedding_dim//2)
 
-        self.lin_reg = nn.ModuleList()
-        for _ in range(self.decode_dim):
-            self.lin_reg.append(torch.nn.Linear(self.node_nums*self.embedding_dim//2, 742))
+        self.lin_reg_x = torch.nn.Linear(self.node_nums * self.embedding_dim//2, 400)
+        self.lin_reg_y = torch.nn.Linear(self.node_nums * self.embedding_dim // 2, 400)
+        self.lin_reg_z = torch.nn.Linear(self.node_nums * self.embedding_dim // 2, 400)
 
         self.classification_1 = torch.nn.Linear(self.node_nums*self.embedding_dim//2,
                                               self.node_nums*self.embedding_dim//8)
@@ -92,19 +96,21 @@ class GTS_Model(nn.Module):
         return valid_sampling_locations
 
     def forward(self, inputs, edge_index):
-        # adj = self.graph_learning(inputs, edge_index)
-        #
-        # edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
-        # edge_probability = torch.transpose(edge_probability, 0, 1)
-        #
-        # edge_ = []
-        # for ii, rel in enumerate(edge_probability[0]):
-        #     if bool(rel):
-        #         edge_.append(edge_index[:, ii])
-        #
-        # adj_matrix = torch.stack(edge_, dim=-1)
+        if self.learn_structure:
+            adj = self.graph_learning(inputs, edge_index)
 
-        adj_matrix =erdos_renyi_graph(self.node_nums, 0.1)
+            edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
+            edge_probability = torch.transpose(edge_probability, 0, 1)
+
+            edge_ = []
+            for ii, rel in enumerate(edge_probability[0]):
+                if bool(rel):
+                    edge_.append(edge_index[:, ii])
+
+            adj_matrix = torch.stack(edge_, dim=-1)
+
+        else:
+            adj_matrix =erdos_renyi_graph(self.node_nums, self.edge_probability).to(device=self.config.device)
 
         loc = self.sliding()
 
@@ -121,9 +127,12 @@ class GTS_Model(nn.Module):
         angle = self.classification_2(angle_out)
 
         outputs = []
-        for ii in range(self.decode_dim):
-            output = self.lin_reg[ii](out)
-            outputs.append(output)
+        out_x = self.lin_reg_x(out)
+        out_y = self.lin_reg_y(out)
+        out_z = self.lin_reg_z(out)
+        outputs.append(out_x)
+        outputs.append(out_y)
+        outputs.append(out_z)
 
         outputs = torch.stack(outputs, dim=0)
 

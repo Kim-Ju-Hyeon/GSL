@@ -1,0 +1,58 @@
+---
+exp_name: random_graph_01
+exp_dir: ./exp
+use_gpu: True
+device: 0
+seed: 1010
+model_name: GTS
+
+dataset:
+  root: ./data/CCN/monkey_spike.pickle
+  name: monkey_data
+  total_time_length: 742
+  window_size: 202
+  slide: 54
+  train_valid_test: [80,90,100]
+  pred: vel
+
+train:
+  optimizer: Adam
+  epoch: 30
+  loss_function : MSELoss
+  lr: 1.0e-3
+  momentum: 0.9
+  wd: 0.0e-4
+  batch_size : 1
+  lr_decay: 0.1
+  lr_decay_steps: [10000]
+
+decode_step: 54
+decode_dim: 3
+
+node_features: 1
+output_dim: 3
+nodes_num: 98
+
+learn_structure: False
+edge_probability: 0.4
+
+kernel_size: [100, 50, 4]
+stride: [10, 5, 1]
+conv1_dim: 16
+conv2_dim: 64
+hidden_dim: 128
+fc_dim: 128
+
+loss_ratio: 0.5
+
+diffusion_k: 3
+num_layer: 1
+
+embedding:
+  kernel_size: [30, 15]
+  stride: [10, 5]
+  conv_dim: [8, 16]
+  embedding_dim: 16
+  hidden_state: 16
+
+

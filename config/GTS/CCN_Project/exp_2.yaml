@@ -1,9 +1,9 @@
 ---
-exp_name: exp_2
+exp_name: sparse_graph
 exp_dir: ./exp
 use_gpu: True
 device: 0
-seed: 10102
+seed: 1010
 model_name: GTS
 
 dataset:
@@ -13,10 +13,11 @@ dataset:
   window_size: 202
   slide: 54
   train_valid_test: [80,90,100]
+  pred: vel
 
 train:
   optimizer: Adam
-  epoch: 100
+  epoch: 30
   loss_function : MSELoss
   lr: 1.0e-3
   momentum: 0.9
@@ -31,6 +32,9 @@ decode_dim: 3
 node_features: 1
 output_dim: 3
 nodes_num: 98
+
+learn_structure: False
+edge_probability: 0.0007
 
 kernel_size: [100, 50, 4]
 stride: [10, 5, 1]

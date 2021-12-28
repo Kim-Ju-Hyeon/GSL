@@ -50,13 +50,24 @@ class GTS_Runner(object):
             self.model = self.model.to(device=self.device)
 
         dataset = pickle.load(open('./data/CCN/monkeydata_with_class.pickle', 'rb'))
-        train_data, valid_data, test_data = self.split_train_valid_test(dataset)
+
+        inputs = dataset[:, :, :98, :]
+        if self.dataset_conf.pred == 'vel':
+            target = torch.FloatTensor(np.diff(dataset[:, :, 98:-1, :]))
+
+        else:
+            target = dataset[:, :, 98:, :]
+
+        labels = dataset[:, :, -1:, :-1]
+        targets = torch.cat([target, labels], dim=2)
+
+        train_data, valid_data, test_data = self.split_train_valid_test(inputs, targets)
 
         self.train_dataset = self.make_dataset(train_data, edge_index=self.fully_connected_edge_index)
         self.valid_dataset = self.make_dataset(valid_data, edge_index=self.fully_connected_edge_index)
         self.test_dataset = self.make_dataset(test_data, edge_index=self.fully_connected_edge_index)
 
-    def split_train_valid_test(self, dataset):
+    def split_train_valid_test(self, inputs, target):
         train_x = []
         train_y = []
 
@@ -67,8 +78,9 @@ class GTS_Runner(object):
         test_y = []
 
         for angle in range(8):
-            data = dataset[angle, :, :, :]
-            X_train, X_test, y_train, y_test = train_test_split(data[:, :98, :], data[:, 98:, :], test_size=0.2)
+            data = inputs[angle, :, :, :]
+            y = target[angle, :, :, :]
+            X_train, X_test, y_train, y_test = train_test_split(data, y, test_size=0.2)
             X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5)
 
             train_x += X_train
@@ -102,11 +114,11 @@ class GTS_Runner(object):
         return data_list
 
     def compute_loss(self, reg_prediction, class_prediction, target, loss_ratio):
-        cost_x = self.mse_loss(reg_prediction[0,:], target[0,:])
-        cost_y = self.mse_loss(reg_prediction[1, :], target[1, :])
-        cost_z = self.mse_loss(reg_prediction[2, :], target[2, :])
+        cost_x = self.mse_loss(reg_prediction[0, :], target[0, 300:-41])
+        cost_y = self.mse_loss(reg_prediction[1, :], target[1, 300:-41])
+        cost_z = self.mse_loss(reg_prediction[2, :], target[2, 300:-41])
 
-        reg_cost = (cost_x+cost_y+cost_z) / 3 / target.shape[1]
+        reg_cost = (0.4*cost_x+0.4*cost_y+0.2*cost_z) / 3 / 400
 
         classification_cost = self.CE_loss(class_prediction.reshape(1,8), target[-1,:1].to(torch.long))
 
@@ -175,6 +187,7 @@ class GTS_Runner(object):
             results['valid_classification_acc'] += [correct / total]
 
             logger.info("Avg. Validation Loss = {:.6}".format(val_loss, 0))
+            logger.info(f"Classification Acc = Target = {correct / total}")
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             if val_loss < best_val_loss:
@@ -205,12 +218,18 @@ class GTS_Runner(object):
         total = 0
         correct = 0
 
+        outputs = []
+        targets = []
         for data_batch in tqdm(test_loader):
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
                 adj_matrix, out, angle = self.model(inputs=data_batch.x, edge_index=data_batch.edge_index)
+
+            target = data_batch.y
+            outputs += [out]
+            targets += [target]
 
             loss = self.compute_loss(out, angle, data_batch.y, self.loss_ratio)
 
@@ -226,6 +245,8 @@ class GTS_Runner(object):
         results['test_loss'] += [test_loss]
         results['adj_matrix'] = adj_matrix.cpu().numpy()
         results['test_classification_acc'] += [correct / total]
+        results['prediction'] = outputs
+        results['target'] = targets
 
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
