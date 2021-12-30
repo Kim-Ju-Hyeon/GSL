@@ -1,9 +1,0 @@
-INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp/GTS_test_1222_172752/log_exp_1010.txt
-INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1222_172752
-ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
-  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_CCN_Project.py", line 19, in main
-    runner = GTS_Runner(config=config)
-  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 52, in __init__
-    dataset = pickle.load(open('./data/CCN/monkeydata_with_class.pickle', 'rb'))
-FileNotFoundError: [Errno 2] No such file or directory: './data/CCN/monkeydata_with_class.pickle'
-

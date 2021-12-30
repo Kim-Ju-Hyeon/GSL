@@ -1,9 +1,0 @@
-INFO  | File run_exp_CCN_Project.py | Line 15    | Writing log file to ./exp/GTS_test_1223_125855/log_exp_1010.txt
-INFO  | File run_exp_CCN_Project.py | Line 16    | Exp instance id = GTS_test_1223_125855
-ERROR | File run_exp_CCN_Project.py | Line 25    | Traceback (most recent call last):
-  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_CCN_Project.py", line 19, in main
-    runner = GTS_Runner(config=config)
-  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/CCN_Project_runner.py", line 54, in __init__
-    dataset[:, :, 98:-1, :] = torch.FloatTensor(np.diff(dataset[:, :, 98:-1, :]))
-RuntimeError: The expanded size of the tensor (742) must match the existing size (741) at non-singleton dimension 3.  Target sizes: [8, 100, 3, 742].  Tensor sizes: [8, 100, 3, 741]
-
