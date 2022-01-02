@@ -4,37 +4,42 @@ import numpy as np
 
 from torch.nn import functional as F
 from models.GTS.DCRNN import DCRNN
-from torch_geometric_temporal.nn.recurrent import DCRNN as tg_dcrnn
 
 
-class EncoderModel(nn.Module):
+class Embedding(nn.Module):
     def __init__(self, config):
-        super(EncoderModel, self).__init__()
-
-        # self.embedding_layer = nn.Linear(config.dataset.window_size, config.embedding_dim)
-        self.num_nodes = config.nodes_num
-
-        self.kernel_size = config.embedding.kernel_size
-        self.stride = config.embedding.stride
-        self.conv1_dim = config.embedding.conv1_dim
-        self.conv2_dim = config.embedding.conv2_dim
-        self.fc_dim = config.embedding.fc_dim
-
+        super(Embedding, self).__init__()
         self.nodes_feas = config.node_features
+        self.embedding_dim = config.embedding_dim
+
+        self.window_size = config.dataset.window_size
+        self.kernel_size = config.forecasting_module.embedding.kernel_size
+        self.stride = config.forecasting_module.embedding.stride
+        self.conv1_dim = config.forecasting_module.embedding.conv1_dim
+        self.conv2_dim = config.forecasting_module.embedding.conv2_dim
+        self.fc_dim = config.forecasting_module.embedding.fc_dim
+
+        out_size = 0
+        for i in range(len(self.kernel_size)):
+            if i == 0:
+                out_size = int(((self.window_size - self.kernel_size[i]) / self.stride[i]) + 1)
+            else:
+                out_size = int(((out_size - self.kernel_size[i]) / self.stride[i]) + 1)
+        out_size = out_size * self.conv2_dim
 
         self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size, stride=self.stride)
         self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size, stride=self.stride)
-        self.fc = torch.nn.Linear(self.fc_dim, 1)
+        self.fc_conv = torch.nn.Conv1d(self.conv2_dim, 1, 1, stride=1)
+        self.fc = torch.nn.Linear(out_size, self.embedding_dim)
 
         self.bn1 = torch.nn.BatchNorm1d(self.conv1_dim)
         self.bn2 = torch.nn.BatchNorm1d(self.conv2_dim)
 
-        self.encoder_dcrnn = DCRNN(config)
-
-    def forward(self, inputs, adj, hidden_state=None):
+    def forward(self, inputs):
         batch_nodes = inputs.shape[0]
         if len(inputs.shape) == 2:
             inputs = inputs.reshape(batch_nodes, 1, -1)
+
         x = self.conv1(inputs)
         x = F.relu(x)
         x = self.bn1(x)
@@ -42,14 +47,11 @@ class EncoderModel(nn.Module):
         x = F.relu(x)
         x = self.bn2(x)
 
-        x = x.view(batch_nodes, -1)
-
-        x = self.fc(x)
+        x = self.fc_conv(x)
         x = F.relu(x)
 
-        hidden_state = self.encoder_dcrnn(x, adj, hidden_state)
-        return hidden_state
-
+        x = self.fc(x)
+        return F.relu(x)
 
 class DecoderModel(nn.Module):
     def __init__(self, config):
@@ -89,8 +91,8 @@ class GTS_Forecasting_Module(nn.Module):
         self.device = config.device
 
         self.nodes_num = config.nodes_num
-        self.use_teacher_forcing = config.use_teacher_forcing
-        self.teacher_forcing_ratio = config.teacher_forcing_ratio
+        self.use_teacher_forcing = config.forecasting_module.use_teacher_forcing
+        self.teacher_forcing_ratio = config.forecasting_module.teacher_forcing_ratio
 
         self.nodes_feas = config.node_features
         self.output_dim = config.output_dim
@@ -98,8 +100,9 @@ class GTS_Forecasting_Module(nn.Module):
         self.encoder_length = config.encoder_length
         self.decoder_length = config.decoder_length
 
-        self.encoder_model = EncoderModel(config)
-        self.decoder_model = DecoderModel(config)
+        self.embedding = Embedding(config)
+        self.encoder_model = DCRNN(config)
+        self.decoder_model = DCRNN(config)
 
     def encoder(self, inputs, adj):
         encoder_hidden_state = None
@@ -139,4 +142,3 @@ class GTS_Forecasting_Module(nn.Module):
         outputs = self.decoder(targets, encoder_hidden_state, adj_matrix)
 
         return outputs
-

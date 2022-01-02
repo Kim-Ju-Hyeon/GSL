@@ -5,6 +5,7 @@ from utils.utils import build_batch_edge_index
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from torch_geometric.utils import to_undirected
 
 
 class GTS_Model(nn.Module):
@@ -14,6 +15,8 @@ class GTS_Model(nn.Module):
         self.config = config
 
         self.node_nums = config.nodes_num
+
+        self.undirected_adj = config.graph_learning.to_symmetric
 
         self.graph_learning = GTS_Graph_Learning(self.config)
         self.graph_forecasting = GTS_Forecasting_Module(self.config)
@@ -26,6 +29,9 @@ class GTS_Model(nn.Module):
         elif self.loss == 'MSELoss':
             self.loss_func = nn.MSELoss()
 
+        # elif self.loss == 'poissinLoss':
+        #     self.loss_func = F.poisson_nll_loss()
+
         else:
             raise ValueError("Non-supported loss function!")
 
@@ -35,14 +41,11 @@ class GTS_Model(nn.Module):
         adj = self.graph_learning(entire_inputs, edge_index)
 
         edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
-        edge_probability = torch.transpose(edge_probability, 0, 1)
+        connect = torch.where(edge_probability[:, 0])
 
-        edge_ = []
-        for ii, rel in enumerate(edge_probability[0]):
-            if bool(rel):
-                edge_.append(edge_index[:, ii])
-
-        adj_matrix = torch.stack(edge_, dim=-1)
+        adj_matrix = torch.stack([edge_index[0, :][connect], edge_index[1, :][connect]])
+        if self.undirected_adj:
+            adj_matrix = to_undirected(adj_matrix)
         batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)
 
         outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)

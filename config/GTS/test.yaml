@@ -7,13 +7,13 @@ seed: 1010
 model_name: GTS
 
 dataset:
-  root: ./data/spike_lambda
-  name: spike_lambda
-  total_time_length: 742
-  window_size: 212
-  slide: 53
-  pred_steps: 2
-  train_valid_test: [80,10,10]
+  root: ./data/spike_lambda_bin100
+  name: spike_lambda_bin100
+  total_time_length: 48000
+  window_size: 200
+  slide: 50
+  train_valid_test: [40000,44000,48000]
+  save: ./data/spike_lambda_bin100/
 
 
 train:
@@ -27,28 +27,40 @@ train:
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
-
+nodes_num: 100
 node_features: 1
+hidden_dim: 64
 embedding_dim: 128
 output_dim: 1
-hidden_dim: 64
-nodes_num: 100
 
-kernel_size: 10
-stride: 1
-conv1_dim: 8
-conv2_dim: 16
-fc_dim: 1312
+graph_learning:
+  to_symmetric: True
+  kernel_size: [200, 100, 50]
+  stride: [20, 10, 5]
+  conv1_dim: 8
+  conv2_dim: 16
+  conv3_dim: 64
+#  fc_dim: 256
 
-diffusion_k: 3
-num_layer: 1
+
+forecasting_module:
+  diffusion_k: 3
+  num_layer: 1
+  use_teacher_forcing: True
+  teacher_forcing_ratio: 0.5
+
+  embedding:
+    kernel_size: [10, 10]
+    stride: [3, 3]
+    conv1_dim: 8
+    conv2_dim: 16
+#    fc_dim: 128
 
 batch_size: 2
 encoder_length: 200
 decoder_length: 20
 
 tau: 0.3
-use_teacher_forcing: True
-teacher_forcing_ratio: 0.5
+
 
 
