@@ -15,32 +15,20 @@ class GTS_Model(nn.Module):
         self.config = config
 
         self.node_nums = config.nodes_num
+        self.tau = config.tau
 
         self.undirected_adj = config.graph_learning.to_symmetric
 
         self.graph_learning = GTS_Graph_Learning(self.config)
         self.graph_forecasting = GTS_Forecasting_Module(self.config)
 
-        self.loss = config.train.loss_function
-
-        if self.loss == 'CrossEntropy':
-            self.loss_func = nn.CrossEntropyLoss()
-
-        elif self.loss == 'MSELoss':
-            self.loss_func = nn.MSELoss()
-
-        # elif self.loss == 'poissinLoss':
-        #     self.loss_func = F.poisson_nll_loss()
-
-        else:
-            raise ValueError("Non-supported loss function!")
 
     def forward(self, inputs, targets, entire_inputs, edge_index):
         batch_size = inputs.shape[0] // self.node_nums
 
         adj = self.graph_learning(entire_inputs, edge_index)
 
-        edge_probability = F.gumbel_softmax(adj, tau=0.3, hard=True)
+        edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
         connect = torch.where(edge_probability[:, 0])
 
         adj_matrix = torch.stack([edge_index[0, :][connect], edge_index[1, :][connect]])

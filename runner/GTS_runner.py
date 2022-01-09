@@ -3,15 +3,21 @@ import numpy as np
 from tqdm import tqdm
 import pickle
 import torch
+from torch.nn import functional as F
 import torch.nn as nn
+
+from models.GTS.gts_graph_learning import GTS_Graph_Learning
+from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
 
 from collections import defaultdict
 import torch.optim as optim
 from torch_geometric.loader import DataLoader
+from torch_geometric.utils import to_undirected
 
 from models.GTS.GTS_model import GTS_Model
 from utils.utils import build_fully_connected_edge_idx
-from dataset.torch_geometric_spike_dataset import *
+from utils.utils import build_batch_edge_index
+from dataset.make_datset import MakeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 
@@ -27,37 +33,57 @@ class GTS_Runner(object):
         self.use_gpu = config.use_gpu
         self.device = config.device
 
-        self.best_model_dir = os.path.join(self.model_save, 'best.pth')
+        self.best_gl_model_dir = os.path.join(self.model_save, 'best_gl.pth')
+        self.best_fe_model_dir = os.path.join(self.model_save, 'best_fe.pth')
         self.ck_dir = os.path.join(self.exp_dir, 'training.ck')
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
 
+        self.node_nums = config.nodes_num
+        self.undirected_adj = config.graph_learning.to_symmetric
+        self.tau = config.tau
+
+        self.graph_learning_module = config.graph_learning_module
+        self.graph_forecasting_module = config.graph_forecasting_module
+
         self.fully_connected_edge_index = build_fully_connected_edge_idx(self.config.nodes_num)
         if self.use_gpu and (self.device != 'cpu'):
             self.fully_connected_edge_index = self.fully_connected_edge_index.to(device=self.device)
 
-        if self.dataset_conf.name == 'spike_lambda':
+        if self.dataset_conf.name == 'spike_lambda_bin100':
             print("Load Spike Dataset")
-            # lam = pickle.load(open('./data/lam_bin_n100.pickle', 'rb'))
             spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
             self.entire_inputs = torch.FloatTensor(spike[:, :40000])
             if self.use_gpu and (self.device != 'cpu'):
                 self.entire_inputs = self.entire_inputs.to(device=self.device)
 
-            print("Split Spike Train, Valid, Test Dataset")
-            self.train_dataset = Train_Dataset(root=self.dataset_conf.root)
-            self.valid_dataset = Validation_Dataset(root=self.dataset_conf.root)
-            self.test_dataset = Test_Dataset(root=self.dataset_conf.root)
+            dataset_maker = MakeDataset(self.config)
+            total_dataset = dataset_maker.make()
+
+            self.train_dataset = total_dataset['train']
+            self.valid_dataset = total_dataset['valid']
+            self.test_dataset = total_dataset['test']
 
         else:
             raise ValueError("Non-supported dataset!")
 
-        self.model = GTS_Model(self.config)
-
         if self.use_gpu and (self.device != 'cpu'):
-            self.model = self.model.to(device=self.device)
+            self.graph_learning_module = self.graph_learning_module.to(device=self.device)
+            self.graph_forecasting_module = self.graph_forecasting_module.to(device=self.device)
+
+    def _gumbel_softmax_structure_sampling(self, adj, batch_size):
+        edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
+        connect = torch.where(edge_probability[:, 0])
+
+        adj_matrix = torch.stack([self.fully_connected_edge_index[0, :][connect],
+                                  self.fully_connected_edge_index[1, :][connect]])
+        if self.undirected_adj:
+            adj_matrix = to_undirected(adj_matrix)
+        batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)
+
+        return batch_adj_matrix, adj_matrix
 
     def train(self):
         print('Train Start')
@@ -65,80 +91,78 @@ class GTS_Runner(object):
         valid_loader = DataLoader(self.valid_dataset, batch_size=self.train_conf.batch_size)
 
         # create optimizer
-        params = filter(lambda p: p.requires_grad, self.model.parameters())
-        if self.train_conf.optimizer == 'SGD':
-            optimizer = optim.SGD(
-                params,
-                lr=self.train_conf.lr,
-                momentum=self.train_conf.momentum,
-                weight_decay=self.train_conf.wd)
-        elif self.train_conf.optimizer == 'Adam':
-            optimizer = optim.Adam(
-                params,
-                lr=self.train_conf.lr,
-                weight_decay=self.train_conf.wd)
-        else:
-            raise ValueError("Non-supported optimizer!")
+        # params = filter(lambda p: p.requires_grad, self.graph_learning_module.parameters())
+        # if self.train_conf.optimizer == 'SGD':
+        #     optimizer = optim.SGD(
+        #         params,
+        #         lr=self.train_conf.lr)
+        # elif self.train_conf.optimizer == 'Adam':
+        #     optimizer = optim.Adam(
+        #         params,
+        #         lr=self.train_conf.lr)
+        # else:
+        #     raise ValueError("Non-supported optimizer!")
 
-        lr_scheduler = optim.lr_scheduler.MultiStepLR(
-            optimizer,
-            milestones=self.train_conf.lr_decay_steps,
-            gamma=self.train_conf.lr_decay)
+        optimizer = optim.Adam(lr=self.train_conf.lr)
 
-        # reset gradient
-        optimizer.zero_grad()
-
-        iter_count = 0
         results = defaultdict(list)
         best_val_loss = np.inf
 
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
-            self.model.train()
+            self.graph_learning_module.train()
+            self.graph_forecasting_module.train()
+
             train_loss = []
 
-            iter = 0
+            iters = 0
             for data_batch in tqdm(train_loader):
+                batch_size = data_batch.x.shape[0] // self.node_nums
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                # print(f'data_batch.x: {data_batch.x.shape}')
-                # print(f'data_batch.x: {data_batch.y[:, :, 0].shape}')
-                # print(f'entire_inputs: {self.entire_inputs.shape}')
-                # print(f'fully_connected_edge_index.x: {self.fully_connected_edge_index.shape}')
+                adj = self.graph_learning(self.entire_inputs, self.fully_connected_edge_index)
+                batch_adj_matrix, _ = self._gumbel_softmax_structure_sampling(adj, batch_size)
 
-                _, _, loss = self.model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
-                                        entire_inputs=self.entire_inputs,
-                                        edge_index=self.fully_connected_edge_index)
+                outputs = self.graph_forecasting_module(data_batch.x, data_batch.y, batch_adj_matrix)
+
+                loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
 
                 # backward pass (accumulates gradients).
                 loss.backward()
                 # performs a single update step.
                 optimizer.step()
+                optimizer.zero_grad()
 
                 train_loss += [float(loss.data.cpu().numpy())]
-                iter += 1
+                iters += 1
 
                 # display loss
-                if (iter + 1) % 10 == 0:
+                if (iters + 1) % 10 == 0:
                     logger.info(
-                        "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iter + 1, float(loss.data.cpu().numpy())))
+                        "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iters + 1,
+                                                                         float(loss.data.cpu().numpy())))
 
             train_loss = np.stack(train_loss).mean()
             results['train_loss'] += [train_loss]
 
             # ===================== validation ============================ #
-            self.model.eval()
+            self.graph_learning_module.eval()
+            self.graph_forecasting_module.eval()
 
             val_loss = []
             for data_batch in tqdm(valid_loader):
+                batch_size = data_batch.x.shape[0] // self.node_nums
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
                 with torch.no_grad():
-                    adj_matrix, _, loss = self.model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
-                                                       entire_inputs=self.entire_inputs,
-                                                       edge_index=self.fully_connected_edge_index)
+                    adj = self.graph_learning(self.entire_inputs, self.fully_connected_edge_index)
+                    batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, batch_size)
+
+                    outputs = self.graph_forecasting_module(data_batch.x, data_batch.y, batch_adj_matrix)
+
+                loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
                 val_loss += [float(loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()
@@ -151,9 +175,11 @@ class GTS_Runner(object):
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                torch.save(self.model.state_dict(), self.best_model_dir)
+                torch.save(self.graph_learning_module.state_dict(), self.best_gl_model_dir)
+                torch.save(self.graph_forecasting_module.state_dict(), self.best_fe_model_dir)
 
-            model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
+            # model_snapshot(epoch, self.graph_learning_module, optimizer, best_val_loss, self.ck_dir)
+            # model_snapshot(epoch, self.graph_forecasting_module, optimizer, best_val_loss, self.ck_dir)
 
         pickle.dump(results, open(os.path.join(self.config.exp_dir, 'training_result.pickle'), 'wb'))
 
@@ -161,31 +187,39 @@ class GTS_Runner(object):
         print('Test Start')
         test_loader = DataLoader(self.test_dataset, batch_size=self.train_conf.batch_size)
 
-        self.best_model = GTS_Model(self.config)
-        best_snapshot = load_model(self.best_model_dir)
+        best_gl_snapshot = load_model(self.best_gl_model_dir)
+        best_fe_snapshot = load_model(self.best_fe_model_dir)
 
-        self.best_model.load_state_dict(best_snapshot)
+        self.graph_learning_module.load_state_dict(best_gl_snapshot)
+        self.graph_forecasting_module.load_state_dict(best_fe_snapshot)
 
         if self.use_gpu and (self.device != 'cpu'):
-            self.best_model = self.best_model.to(device=self.device)
+            self.graph_learning_module = self.graph_learning_module.to(device=self.device)
+            self.graph_forecasting_module = self.graph_forecasting_module.to(device=self.device)
 
         # ===================== validation ============================ #
-        self.best_model.eval()
+        self.graph_learning_module.eval()
+        self.graph_forecasting_module.eval()
 
         test_loss = []
         results = defaultdict(list)
         output = []
         target = []
         for data_batch in tqdm(test_loader):
+            batch_size = data_batch.x.shape[0] // self.node_nums
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
             with torch.no_grad():
-                adj_matrix, out, loss = self.best_model(inputs=data_batch.x, targets=data_batch.y[:, :, 0],
-                                                   entire_inputs=self.entire_inputs,
-                                                   edge_index=self.fully_connected_edge_index)
+                adj = self.graph_learning(self.entire_inputs, self.fully_connected_edge_index)
+                batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, batch_size)
+
+                outputs = self.graph_forecasting_module(data_batch.x, data_batch.y, batch_adj_matrix)
+
+            loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
+
             test_loss += [float(loss.data.cpu().numpy())]
-            output += [out.cpu().numpy()]
-            target += [data_batch.y[:, :, 0].cpu().numpy()]
+            output += [outputs.cpu().numpy()]
+            target += [data_batch.y]
 
         test_loss = np.stack(test_loss).mean()
 

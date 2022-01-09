@@ -1,0 +1,11 @@
+INFO  | File run_exp_local.py     | Line 15    | Writing log file to ./exp\GTS_1_0110_043215\log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 16    | Exp instance id = GTS_1_0110_043215
+ERROR | File run_exp_local.py     | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_local.py", line 19, in main
+    runner = GTS_Runner(config=config)
+  File "C:\Users\KimJuHyeon\GSL\runner\GTS_runner.py", line 73, in __init__
+    self.graph_learning = GTS_Graph_Learning(self.config)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\gts_graph_learning.py", line 13, in __init__
+    self.total_length = config.dataset.total_time_length
+AttributeError: 'EasyDict' object has no attribute 'total_time_length'
+
