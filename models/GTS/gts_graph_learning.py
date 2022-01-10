@@ -31,13 +31,13 @@ class GTS_Graph_Learning(MessageLayer):
 
         self.fc_conv = torch.nn.Conv1d(self.conv3_dim, 1, 1, stride=1)
 
-        self.fc = nn.Linear(out_size, self.hidden_dim)
+        self.fc = nn.Linear(45, self.hidden_dim)
 
         self.hidden_drop = nn.Dropout(0.2)
 
         self.bn1 = torch.nn.BatchNorm1d(self.conv1_dim)
         self.bn2 = torch.nn.BatchNorm1d(self.conv2_dim)
-        self.bn3 = torch.nn.BatchNorm1d(self.hidden_dim)
+        self.bn3 = torch.nn.BatchNorm1d(self.conv3_dim)
 
         self.fc_cat = nn.Linear(self.hidden_dim*2, self.hidden_dim)
         self.fc_out = nn.Linear(self.hidden_dim, 2)
@@ -54,32 +54,24 @@ class GTS_Graph_Learning(MessageLayer):
         if len(x.shape) == 2:
             x = x.reshape(self.num_nodes, 1, -1)
 
-        # print(x.shape)
-        # print(edge_index.shape)
-
         x = self.conv1(x)
         x = F.relu(x)
         x = self.bn1(x)
-        # print(x.shape)
 
         x = self.conv2(x)
         x = F.relu(x)
         x = self.bn2(x)
-        # print(x.shape)
 
         x = self.conv3(x)
         x = F.relu(x)
         x = self.bn3(x)
-        # print(x.shape)
 
         x = self.fc_conv(x)
         x = F.relu(x)
-        # print(x.shape)
 
         x = x.squeeze()
         x = self.fc(x)
         x = F.relu(x)
-        x = self.bn3(x)
 
         _, x = self.propagate(edge_index, x=x)
         return x

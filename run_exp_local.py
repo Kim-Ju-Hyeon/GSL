@@ -18,7 +18,6 @@ def main(conf_file_path):
     try:
         runner = GTS_Runner(config=config)
         runner.train()
-
         runner.test()
 
     except:

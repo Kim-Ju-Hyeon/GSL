@@ -77,7 +77,7 @@ class GTS_Runner(object):
         valid_loader = DataLoader(self.valid_dataset, batch_size=self.train_conf.batch_size)
 
         # create optimizer
-        params = filter(lambda p: p.requires_grad, self.graph_learning_module.parameters())
+        params = filter(lambda p: p.requires_grad, self.model.parameters())
         if self.train_conf.optimizer == 'SGD':
             optimizer = optim.SGD(
                 params,
@@ -129,8 +129,7 @@ class GTS_Runner(object):
             results['train_loss'] += [train_loss]
 
             # ===================== validation ============================ #
-            self.graph_learning_module.eval()
-            self.graph_forecasting_module.eval()
+            self.model.eval()
 
             val_loss = []
             for data_batch in tqdm(valid_loader):
@@ -147,7 +146,7 @@ class GTS_Runner(object):
             val_loss = np.stack(val_loss).mean()
 
             results['val_loss'] += [val_loss]
-            results['val_adj_matirix'] += [adj_matrix]
+            results['val_adj_matirix'] += [adj_matrix.detach().cpu()]
 
             logger.info("Avg. Validation Loss = {:.6}".format(val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
@@ -196,9 +195,9 @@ class GTS_Runner(object):
         test_loss = np.stack(test_loss).mean()
 
         results['test_loss'] += [test_loss]
-        results['adj_matrix'] = adj_matrix.cpu().numpy()
+        results['adj_matrix'] = adj_matrix.cpu()
         results['prediction'] = output
-        results['target'] = target
+        results['target'] = target.cpu()
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
 

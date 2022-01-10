@@ -24,10 +24,9 @@ class Embedding(nn.Module):
                 out_size = int(((self.window_size - self.kernel_size[i]) / self.stride[i]) + 1)
             else:
                 out_size = int(((out_size - self.kernel_size[i]) / self.stride[i]) + 1)
-        out_size = out_size * self.conv2_dim
 
-        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size, stride=self.stride)
-        self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size, stride=self.stride)
+        self.conv1 = torch.nn.Conv1d(self.nodes_feas, self.conv1_dim, self.kernel_size[0], stride=self.stride[0])
+        self.conv2 = torch.nn.Conv1d(self.conv1_dim, self.conv2_dim, self.kernel_size[1], stride=self.stride[1])
         self.fc_conv = torch.nn.Conv1d(self.conv2_dim, 1, 1, stride=1)
         self.fc = torch.nn.Linear(out_size, self.embedding_dim)
 
@@ -37,11 +36,12 @@ class Embedding(nn.Module):
     def forward(self, inputs):
         batch_nodes = inputs.shape[0]
         if len(inputs.shape) == 2:
-            inputs = inputs.reshape(batch_nodes, 1, -1)
+            inputs = inputs.view(batch_nodes, 1, -1)
 
         x = self.conv1(inputs)
         x = F.relu(x)
         x = self.bn1(x)
+
         x = self.conv2(x)
         x = F.relu(x)
         x = self.bn2(x)
@@ -50,7 +50,9 @@ class Embedding(nn.Module):
         x = F.relu(x)
 
         x = self.fc(x)
-        return F.relu(x)
+        F.relu(x)
+
+        return x.squeeze()
 
 
 class DecoderModel(nn.Module):
@@ -78,7 +80,7 @@ class DecoderModel(nn.Module):
 
         output = prediction.view(inputs.shape[0], self.output_dim)
 
-        return output, decoder_hidden_state
+        return output
 
 
 class GTS_Forecasting_Module(nn.Module):
@@ -135,11 +137,10 @@ class GTS_Forecasting_Module(nn.Module):
             seq2seq_decoder_input = self.embedding(inputs[:, _input_idx[self.encoder_step + j]:
                                                              _input_idx[self.encoder_step + j] + self.window_size])
 
-            outputs = self.decoder_model(seq2seq_decoder_input, adj_matrix, decoder_hidden_state)
-            outputs.append(outputs)
+            output = self.decoder_model(seq2seq_decoder_input, adj_matrix, decoder_hidden_state)
+            outputs.append(output)
 
         outputs = torch.cat(outputs, dim=-1)
-
         return outputs
 
 

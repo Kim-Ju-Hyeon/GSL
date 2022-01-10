@@ -6,7 +6,7 @@ import torch.nn as nn
 class DCRNN(torch.nn.Module):
     def __init__(self, config):
         super(DCRNN, self).__init__()
-        self.node_features = config.node_features
+        self.embedding_dim = config.embedding_dim
         self.hidden_dim = config.hidden_dim
 
         self.num_layer = config.forecasting_module.num_layer
@@ -16,7 +16,7 @@ class DCRNN(torch.nn.Module):
         for layer_num in range(self.num_layer):
             if layer_num == 0:
                 self.recurrent.append(
-                    tgt_dcrnn(in_channels=self.node_features, out_channels=self.hidden_dim, K=self.diffusion_k))
+                    tgt_dcrnn(in_channels=self.embedding_dim, out_channels=self.hidden_dim, K=self.diffusion_k))
             else:
                 self.recurrent.append(
                     tgt_dcrnn(in_channels=self.hidden_dim, out_channels=self.hidden_dim, K=self.diffusion_k))

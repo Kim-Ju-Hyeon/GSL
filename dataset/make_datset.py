@@ -38,11 +38,10 @@ class MakeDataset:
             self.load = False
 
     def _valid_sampling(self, i):
+        start = 0
         if i == 0:
-            start = 0
             total_length = self.train_valid_test[i]
         else:
-            start = self.train_valid_test[i - 1]
             total_length = self.train_valid_test[i] - self.train_valid_test[i - 1]
 
         valid_sampling_locations = []
@@ -56,11 +55,11 @@ class MakeDataset:
 
     def _split(self, i):
         if i == 0:
-            data = self.spk_bin[:self.train_valid_test[i]]
-            lam = self.lam_bin[:self.train_valid_test[i]]
+            data = self.spk_bin[:, :self.train_valid_test[i]]
+            lam = self.lam_bin[:, :self.train_valid_test[i]]
         else:
-            data = self.spk_bin[self.train_valid_test[i - 1]:self.train_valid_test[i]]
-            lam = self.lam_bin[self.train_valid_test[i - 1]:self.train_valid_test[i]]
+            data = self.spk_bin[:, self.train_valid_test[i - 1]:self.train_valid_test[i]]
+            lam = self.lam_bin[:, self.train_valid_test[i - 1]:self.train_valid_test[i]]
 
         return data, lam
 
@@ -73,7 +72,6 @@ class MakeDataset:
             for i, types in enumerate(list(data_dict.keys())):
                 data, lam = self._split(i)
                 valid_sampling_locations = self._valid_sampling(i)
-
                 data_list = []
                 for start_idx in valid_sampling_locations:
                     spike_input = data[:, start_idx:start_idx + self.total_input_size]
