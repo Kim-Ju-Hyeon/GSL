@@ -31,7 +31,7 @@ class GTS_Graph_Learning(MessageLayer):
 
         self.fc_conv = torch.nn.Conv1d(self.conv3_dim, 1, 1, stride=1)
 
-        self.fc = nn.Linear(45, self.hidden_dim)
+        self.fc = nn.Linear(out_size, self.hidden_dim)
 
         self.hidden_drop = nn.Dropout(0.2)
 
