@@ -1,9 +1,0 @@
-INFO  | File run_exp_local.py     | Line 15    | Writing log file to ./exp\GTS_1_0110_043321\log_exp_1010.txt
-INFO  | File run_exp_local.py     | Line 16    | Exp instance id = GTS_1_0110_043321
-ERROR | File run_exp_local.py     | Line 25    | Traceback (most recent call last):
-  File "C:\Users\KimJuHyeon\GSL\run_exp_local.py", line 20, in main
-    runner.train()
-  File "C:\Users\KimJuHyeon\GSL\runner\GTS_runner.py", line 116, in train
-    params = filter(lambda p: p.requires_grad, self.model.parameters())
-AttributeError: 'GTS_Runner' object has no attribute 'model'
-
