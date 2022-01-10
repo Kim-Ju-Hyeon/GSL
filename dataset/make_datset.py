@@ -26,7 +26,8 @@ class MakeDataset:
         self.batch_idx = int(self.total_input_size * self.idx_ratio)
 
         self.save_dir = path.join(config.dataset.save, f'{config.dataset.name}_'
-                                                       f'{self.window_size}{self.slide}{self.pred_step}.pickle')
+                                                       f'{self.window_size}{self.slide}{self.pred_step}_'
+                                                       f'{self.encoder_step}{self.decoder_step}.pickle')
 
         if path.exists(self.save_dir):
             self.dataset = pickle.load(open(self.save_dir, 'rb'))
@@ -35,9 +36,6 @@ class MakeDataset:
             self.spk_bin = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
             self.lam_bin = pickle.load(open('./data/lam_bin_n100.pickle', 'rb'))
             self.load = False
-
-    def _save_dataset(self):
-        pass
 
     def _valid_sampling(self, i):
         if i == 0:

@@ -22,22 +22,24 @@ class GTS_Model(nn.Module):
         self.graph_learning = GTS_Graph_Learning(self.config)
         self.graph_forecasting = GTS_Forecasting_Module(self.config)
 
+    def _gumbel_softmax_structure_sampling(self, adj, batch_size):
+        edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
+        connect = torch.where(edge_probability[:, 0])
+
+        adj_matrix = torch.stack([self.init_edge_index[0, :][connect],
+                                  self.init_edge_index[1, :][connect]])
+        if self.undirected_adj:
+            adj_matrix = to_undirected(adj_matrix)
+        batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)
+
+        return batch_adj_matrix, adj_matrix
 
     def forward(self, inputs, targets, entire_inputs, edge_index):
         batch_size = inputs.shape[0] // self.node_nums
 
         adj = self.graph_learning(entire_inputs, edge_index)
-
-        edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
-        connect = torch.where(edge_probability[:, 0])
-
-        adj_matrix = torch.stack([edge_index[0, :][connect], edge_index[1, :][connect]])
-        if self.undirected_adj:
-            adj_matrix = to_undirected(adj_matrix)
-        batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)
+        batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, batch_size)
 
         outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
 
-        loss = self.loss_func(outputs, targets)
-
-        return adj_matrix, outputs, loss
+        return adj_matrix, outputs

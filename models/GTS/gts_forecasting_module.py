@@ -130,25 +130,13 @@ class GTS_Forecasting_Module(nn.Module):
         # DCRNN decoder
         outputs = []
 
-        go_symbol = torch.zeros((targets.shape[0], 1), device=self.device)
         decoder_hidden_state = encoder_hidden_state
-
         for j in range(self.decoder_step):
             seq2seq_decoder_input = self.embedding(inputs[:, _input_idx[self.encoder_step + j]:
                                                              _input_idx[self.encoder_step + j] + self.window_size])
 
             outputs = self.decoder_model(seq2seq_decoder_input, adj_matrix, decoder_hidden_state)
             outputs.append(outputs)
-            spike = torch.poisson(outputs.exp())
-
-            # self.use_teacher_forcing = True if (np.random.random() < self.teacher_forcing_ratio) and \
-            #                                    (self.use_teacher_forcing is True) else False
-            #
-            # if self.training and self.use_teacher_forcing:
-            #     decoder_input = targets[:, t].reshape(-1, 1)
-            # else:
-            #     decoder_input = output
-            #
 
         outputs = torch.cat(outputs, dim=-1)
 
