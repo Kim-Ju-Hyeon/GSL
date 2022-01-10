@@ -9,8 +9,9 @@ model_name: GTS
 
 graph_learning_module: GTS
 graph_forecasting_module: GTS
+initial_egde_index: Fully Connected
 
-dataset:
+dataset:∂
   root: ./data/spike_lambda_bin100
   name: spike_lambda_bin100
   total_time_length: 48000
