@@ -9,6 +9,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="cf441055-03cc-48c3-b7fc-89f380dca458" name="home_dgx_gsl">
+        <fileTransfer rootFolder="/home/nvidia" accessType="SFTP" host="166.104.115.40" port="5523" sshConfigId="cae4c3c3-9470-49a4-8073-82a496af19e2" sshConfig="nvidia@166.104.115.40:5523 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

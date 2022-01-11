@@ -189,15 +189,15 @@ class GTS_Runner(object):
             loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
 
             test_loss += [float(loss.data.cpu().numpy())]
-            output += [outputs.cpu().numpy()]
-            target += [data_batch.y]
+            output += [outputs.cpu()]
+            target += [data_batch.y.cpu()]
 
         test_loss = np.stack(test_loss).mean()
 
         results['test_loss'] += [test_loss]
         results['adj_matrix'] = adj_matrix.cpu()
         results['prediction'] = output
-        results['target'] = target.cpu()
+        results['target'] = target
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
 
