@@ -14,3 +14,5 @@ venv
 data/
 LNP_lam_all.pickle
 LNP_spk_all.pickle
+
+*/exp/*

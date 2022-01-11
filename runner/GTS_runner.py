@@ -52,7 +52,8 @@ class GTS_Runner(object):
             print("Load Spike Dataset")
             spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
-            self.entire_inputs = torch.FloatTensor(spike)
+            self.entire_inputs = torch.FloatTensor(spike[:, :self.dataset_conf.total_time_length])
+
             if self.use_gpu and (self.device != 'cpu'):
                 self.entire_inputs = self.entire_inputs.to(device=self.device)
 

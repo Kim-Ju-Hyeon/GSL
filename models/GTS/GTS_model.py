@@ -38,7 +38,8 @@ class GTS_Model(nn.Module):
         batch_size = inputs.shape[0] // self.node_nums
 
         adj = self.graph_learning(entire_inputs, edge_index)
-        batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
+        # batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
+        batch_adj_matrix, adj_matrix = adj, adj
 
         outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
 

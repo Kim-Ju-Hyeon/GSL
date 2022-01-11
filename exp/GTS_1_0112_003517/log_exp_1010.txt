@@ -1,0 +1,33 @@
+INFO  | File run_exp_local.py     | Line 15    | Writing log file to ./exp\GTS_1_0112_003517\log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 16    | Exp instance id = GTS_1_0112_003517
+ERROR | File run_exp_local.py     | Line 24    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_local.py", line 20, in main
+    runner.train()
+  File "C:\Users\KimJuHyeon\GSL\runner\GTS_runner.py", line 109, in train
+    _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\GTS_model.py", line 44, in forward
+    outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\gts_forecasting_module.py", line 129, in forward
+    encoder_hidden_state = self.encoder_model(seq2seq_encoder_input, adj_matrix,
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\DCRNN.py", line 30, in forward
+    next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, H=hidden_state)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric_temporal\nn\recurrent\dcrnn.py", line 215, in forward
+    Z = self._calculate_update_gate(X, edge_index, edge_weight, H)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric_temporal\nn\recurrent\dcrnn.py", line 174, in _calculate_update_gate
+    Z = self.conv_x_z(Z, edge_index, edge_weight)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric_temporal\nn\recurrent\dcrnn.py", line 59, in forward
+    adj_mat = to_dense_adj(edge_index, edge_attr=edge_weight)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric\utils\to_dense_adj.py", line 22, in to_dense_adj
+    batch = edge_index.new_zeros(edge_index.max().item() + 1)
+TypeError: new_zeros(): argument 'size' (position 1) must be tuple of ints, not float
+
