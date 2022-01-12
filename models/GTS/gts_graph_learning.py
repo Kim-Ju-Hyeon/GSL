@@ -10,6 +10,8 @@ class GTS_Graph_Learning(MessageLayer):
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
 
+        self.mode = config.graph_learning.mode
+
         self.total_length = config.dataset.total_time_length
         self.kernel_size = config.graph_learning.kernel_size
         self.stride = config.graph_learning.stride
@@ -40,7 +42,13 @@ class GTS_Graph_Learning(MessageLayer):
         self.bn3 = torch.nn.BatchNorm1d(self.conv3_dim)
 
         self.fc_cat = nn.Linear(self.hidden_dim*2, self.hidden_dim)
-        self.fc_out = nn.Linear(self.hidden_dim, 2)
+
+        if self.mode == 'weight':
+            self.fc_out = nn.Linear(self.hidden_dim, 1)
+        elif self.mode == 'adj':
+            self.fc_out = nn.Linear(self.hidden_dim, 2)
+        else:
+            raise ValueError("Invalid graph learning mode")
 
         self.init_weights()
 

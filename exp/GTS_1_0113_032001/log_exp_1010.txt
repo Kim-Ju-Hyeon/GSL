@@ -1,0 +1,7 @@
+INFO  | File run_exp_local.py     | Line 15    | Writing log file to ./exp\GTS_1_0113_032001\log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 16    | Exp instance id = GTS_1_0113_032001
+INFO  | File GTS_runner.py        | Line 152   | Avg. Validation Loss = 1.01811
+INFO  | File GTS_runner.py        | Line 153   | Current Best Validation Loss = inf
+INFO  | File GTS_runner.py        | Line 152   | Avg. Validation Loss = 0.984021
+INFO  | File GTS_runner.py        | Line 153   | Current Best Validation Loss = 1.01811
+INFO  | File GTS_runner.py        | Line 203   | Avg. Test Loss = 0.98444

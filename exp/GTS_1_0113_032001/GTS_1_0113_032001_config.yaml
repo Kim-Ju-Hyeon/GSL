@@ -15,8 +15,8 @@ decoder_step: 2
 device: cpu
 embedding_dim: 16
 encoder_step: 2
-exp_dir: ./exp\GTS_1_0111_101749
-exp_name: GTS_1_0111_101749
+exp_dir: ./exp\GTS_1_0113_032001
+exp_name: GTS_1_0113_032001
 forecasting_module:
   diffusion_k: 1
   embedding:
@@ -40,6 +40,7 @@ graph_learning:
   - 200
   - 80
   - 10
+  mode: weight
   stride:
   - 20
   - 10
@@ -49,14 +50,14 @@ graph_learning_module: GTS
 hidden_dim: 16
 initial_edge_index: Fully Connected
 model_name: GTS
-model_save: ./exp\GTS_1_0111_101749\model_save
+model_save: ./exp\GTS_1_0113_032001\model_save
 node_features: 1
 nodes_num: 100
 seed: 1010
 tau: 0.3
 train:
-  batch_size: 64
-  epoch: 50
+  batch_size: 32
+  epoch: 2
   loss_function: MSELoss
   lr: 0.001
   lr_decay: 0.1

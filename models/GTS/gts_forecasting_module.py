@@ -72,10 +72,10 @@ class DecoderModel(nn.Module):
                 nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.fill_(0.1)
 
-    def forward(self, inputs, adj, hidden_state):
+    def forward(self, inputs, adj, hidden_state, weight_matrix=None):
         decoder_hidden_state = hidden_state
 
-        decoder_hidden_state = self.decoder_dcrnn(inputs, adj, hidden_state=decoder_hidden_state)
+        decoder_hidden_state = self.decoder_dcrnn(inputs, adj, hidden_state=decoder_hidden_state, weight_matrix=weight_matrix)
         prediction = self.prediction_layer(decoder_hidden_state[-1].view(-1, self.hidden_dim))
 
         output = prediction.view(inputs.shape[0], self.output_dim)
@@ -119,7 +119,7 @@ class GTS_Forecasting_Module(nn.Module):
 
         return valid_sampling_locations
 
-    def forward(self, inputs, targets, adj_matrix):
+    def forward(self, inputs, targets, adj_matrix, weight_matrix=None):
         _input_idx = self._seq2seq_data_processor()
 
         # DCRNN encoder
@@ -127,7 +127,7 @@ class GTS_Forecasting_Module(nn.Module):
         for i in range(self.encoder_step):
             seq2seq_encoder_input = self.embedding(inputs[:, _input_idx[i]:_input_idx[i] + self.window_size])
             encoder_hidden_state = self.encoder_model(seq2seq_encoder_input, adj_matrix,
-                                                      encoder_hidden_state)
+                                                      encoder_hidden_state, weight_matrix)
 
         # DCRNN decoder
         outputs = []
@@ -137,7 +137,7 @@ class GTS_Forecasting_Module(nn.Module):
             seq2seq_decoder_input = self.embedding(inputs[:, _input_idx[self.encoder_step + j]:
                                                              _input_idx[self.encoder_step + j] + self.window_size])
 
-            output = self.decoder_model(seq2seq_decoder_input, adj_matrix, decoder_hidden_state)
+            output = self.decoder_model(seq2seq_decoder_input, adj_matrix, decoder_hidden_state, weight_matrix)
             outputs.append(output)
 
         outputs = torch.cat(outputs, dim=-1)

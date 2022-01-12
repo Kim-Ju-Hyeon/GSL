@@ -1,11 +1,11 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
-from utils.utils import build_batch_edge_index
+from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.utils import to_undirected
+from torch_geometric.utils import to_undirected, to_dense_adj, add_self_loops, sort_edge_index, remove_self_loops
 
 
 class GTS_Model(nn.Module):
@@ -19,6 +19,8 @@ class GTS_Model(nn.Module):
 
         self.undirected_adj = config.graph_learning.to_symmetric
 
+        self.graph_learning_mode = config.graph_learning.mode
+
         self.graph_learning = GTS_Graph_Learning(self.config)
         self.graph_forecasting = GTS_Forecasting_Module(self.config)
 
@@ -30,7 +32,7 @@ class GTS_Model(nn.Module):
                                   init_edge_index[1, :][connect]])
         if self.undirected_adj:
             adj_matrix = to_undirected(adj_matrix)
-        batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size)
+        batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size, self.node_nums)
 
         return batch_adj_matrix, adj_matrix
 
@@ -38,9 +40,30 @@ class GTS_Model(nn.Module):
         batch_size = inputs.shape[0] // self.node_nums
 
         adj = self.graph_learning(entire_inputs, edge_index)
-        # batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
-        batch_adj_matrix, adj_matrix = adj, adj
 
-        outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
+        if self.graph_learning_mode == 'weight':
+            adj_matrix = adj
+            if self.undirected_adj:
+                mat = to_dense_adj(edge_index, edge_attr=adj).squeeze()
+                adj = (mat + mat.T) * 0.5
+                adj_matrix = adj
+                edge_self_loop = add_self_loops(edge_index)
+                edge_index = sort_edge_index(edge_self_loop[0])
+                adj = adj.view(-1, 1)
+                edge_index, adj = remove_self_loops(edge_index, adj)
+
+            batch_adj_matrix = build_batch_edge_index(edge_index, batch_size, self.node_nums)
+            batch_weight_matrix = build_batch_edge_weight(adj, batch_size)
+
+            print(batch_adj_matrix.shape)
+            print(batch_weight_matrix.shape)
+
+            outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix, weight_matrix=batch_weight_matrix)
+
+        elif self.graph_learning_mode == 'adj':
+            batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
+            outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
+        else:
+            raise ValueError("Invalid graph learning mode")
 
         return adj_matrix, outputs

@@ -21,15 +21,15 @@ class DCRNN(torch.nn.Module):
                 self.recurrent.append(
                     tgt_dcrnn(in_channels=self.hidden_dim, out_channels=self.hidden_dim, K=self.diffusion_k))
 
-    def forward(self, x, edge_index, hidden_state=None):
+    def forward(self, x, edge_index, hidden_state=None, weight_matrix=None):
         output = x
         hidden_state_list = []
 
         for layer_num, dcgru_layer in enumerate(self.recurrent):
             if hidden_state is None:
-                next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, H=hidden_state)
+                next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, edge_weight=weight_matrix, H=hidden_state)
             else:
-                next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, H=hidden_state[layer_num])
+                next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, edge_weight=weight_matrix, H=hidden_state[layer_num])
 
             hidden_state_list.append(next_hidden_state)
             output = next_hidden_state
