@@ -31,7 +31,7 @@ train:
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 32
+  batch_size : 1
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
@@ -41,7 +41,8 @@ hidden_dim: 16
 embedding_dim: 16
 
 graph_learning:
-  mode: weight # adj
+  sequence: 3
+  mode: adj # adj, weight
   to_symmetric: True
   kernel_size: [200, 80, 10]
   stride: [20, 10, 5]
