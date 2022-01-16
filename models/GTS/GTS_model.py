@@ -42,9 +42,7 @@ class GTS_Model(nn.Module):
     def forward(self, inputs, targets, entire_inputs, edge_index):
         batch_size = inputs.shape[0] // self.node_nums
         
-        print(edge_index.shape)
         adj = self.graph_learning(entire_inputs, edge_index)
-        print(adj.shape)
 
         if self.graph_learning_mode == 'weight':
             adj_matrix = adj
@@ -69,7 +67,7 @@ class GTS_Model(nn.Module):
             if self.graph_learning_sequence > 1:
                 for _ in range(self.graph_learning_sequence-1):
                     adj = self.graph_learning(entire_inputs, adj_matrix)
-                    print(adj.shape)
+
                 batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
 
             outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix)
