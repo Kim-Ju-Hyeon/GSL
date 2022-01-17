@@ -41,7 +41,7 @@ hidden_dim: 16
 embedding_dim: 16
 
 graph_learning:
-  sequence: 3
+  sequence: 5
   mode: adj # adj, weight
   to_symmetric: True
   kernel_size: [200, 80, 10]

@@ -74,6 +74,7 @@ class GTS_Model(nn.Module):
                 for _ in range(self.graph_learning_sequence-1):
                     adj = self.graph_learning(entire_inputs, adj_matrix)
                     batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, adj_matrix, batch_size)
+                    print(adj_matrix.shape)
         else:
             raise ValueError("Invalid graph learning mode")
 
