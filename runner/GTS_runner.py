@@ -147,7 +147,11 @@ class GTS_Runner(object):
             val_loss = np.stack(val_loss).mean()
 
             results['val_loss'] += [val_loss]
-            results['val_adj_matirix'] += [adj_matrix.detach().cpu()]
+
+            if type(adj_matrix) == dict:
+                results['val_adj_matirix'] += adj_matrix
+            else:
+                results['val_adj_matirix'] += [adj_matrix.detach().cpu()]
 
             logger.info("Avg. Validation Loss = {:.6}".format(val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
@@ -196,7 +200,7 @@ class GTS_Runner(object):
         test_loss = np.stack(test_loss).mean()
 
         results['test_loss'] += [test_loss]
-        results['adj_matrix'] = adj_matrix.cpu()
+        results['adj_matrix'] = adj_matrix
         results['prediction'] = output
         results['target'] = target
 

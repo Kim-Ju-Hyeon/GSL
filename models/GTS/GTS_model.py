@@ -22,8 +22,20 @@ class GTS_Model(nn.Module):
         self.graph_learning_mode = config.graph_learning.mode
         self.graph_learning_sequence = config.graph_learning.sequence
 
-        self.graph_learning = GTS_Graph_Learning(self.config)
         self.graph_forecasting = GTS_Forecasting_Module(self.config)
+
+        if self.graph_learning_mode == 'weight':
+            self.graph_learning = GTS_Graph_Learning(self.config, 1)
+
+        elif self.graph_learning_mode == 'adj':
+            self.graph_learning = GTS_Graph_Learning(self.config, 2)
+
+        elif self.graph_learning_mode == 'both':
+            self.graph_learning = GTS_Graph_Learning(self.config, 2)
+            self.weight_learning = GTS_Graph_Learning(self.config, 1)
+
+        else:
+            raise ValueError("Invalid graph learning mode")
 
         self.correlation_softmax = nn.Softmax(dim=1)
 
@@ -64,7 +76,8 @@ class GTS_Model(nn.Module):
         adj = self.graph_learning(entire_inputs, edge_index)
 
         if self.graph_learning_mode == 'weight':
-            batch_adj_matrix, batch_weight_matrix, adj_matrix = self._weight_matrix_construct(adj, edge_index, batch_size)
+            batch_adj_matrix, batch_weight_matrix, adj_matrix = self._weight_matrix_construct(adj, edge_index,
+                                                                                              batch_size)
 
         elif self.graph_learning_mode == 'adj':
             batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
@@ -74,7 +87,33 @@ class GTS_Model(nn.Module):
                 for _ in range(self.graph_learning_sequence-1):
                     adj = self.graph_learning(entire_inputs, adj_matrix)
                     batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, adj_matrix, batch_size)
-                    print(adj_matrix.shape)
+
+        elif self.graph_learning_mode == 'both':
+            batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
+
+            if self.graph_learning_sequence > 1:
+                for _ in range(self.graph_learning_sequence-1):
+                    adj = self.graph_learning(entire_inputs, adj_matrix)
+                    batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, adj_matrix, batch_size)
+
+            _weight = self.weight_learning(entire_inputs, adj_matrix)
+            _weight_mat = to_dense_adj(adj_matrix, edge_attr=_weight).squeeze()
+            _weight_mat = (_weight_mat + _weight_mat.T) * 0.5
+            _weight_mat = self.correlation_softmax(_weight_mat)
+
+            temp = []
+            for ii in range(adj_matrix.shape[1]):
+                row, col = adj_matrix[0, ii], adj_matrix[1, ii]
+                temp.append(_weight_mat[row, col])
+
+            _weight = torch.stack(temp).view(-1, 1)
+
+            batch_weight_matrix = build_batch_edge_weight(_weight, batch_size)
+
+            mat = to_dense_adj(adj_matrix)[0]
+
+            adj_matrix = {'adj_matrix': mat.detach().cpu(), 'weight_matrix': _weight_mat.detach().cpu()}
+
         else:
             raise ValueError("Invalid graph learning mode")
 

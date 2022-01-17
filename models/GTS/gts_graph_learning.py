@@ -5,7 +5,7 @@ from torch_geometric.nn import MessagePassing
 from models.message_passing.message_layer import MessageLayer
 
 class GTS_Graph_Learning(MessageLayer):
-    def __init__(self, config):
+    def __init__(self, config, out_dim):
         super(GTS_Graph_Learning, self).__init__()
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
@@ -43,12 +43,7 @@ class GTS_Graph_Learning(MessageLayer):
 
         self.fc_cat = nn.Linear(self.hidden_dim*2, self.hidden_dim)
 
-        if self.mode == 'weight':
-            self.fc_out = nn.Linear(self.hidden_dim, 1)
-        elif self.mode == 'adj':
-            self.fc_out = nn.Linear(self.hidden_dim, 2)
-        else:
-            raise ValueError("Invalid graph learning mode")
+        self.fc_out = nn.Linear(self.hidden_dim, out_dim)
 
         self.init_weights()
 
