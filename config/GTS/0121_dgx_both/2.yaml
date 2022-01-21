@@ -1,6 +1,6 @@
 ---
 exp_name: dgx_2
-exp_dir: ./exp/0121/both
+exp_dir: ./exp/0121/both/sigmoid
 use_gpu: True
 device: 0
 seed: 10105

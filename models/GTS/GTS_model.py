@@ -37,7 +37,8 @@ class GTS_Model(nn.Module):
         else:
             raise ValueError("Invalid graph learning mode")
 
-        self.correlation_softmax = nn.Softmax(dim=1)
+        # self.correlation_softmax = nn.Softmax(dim=1)
+        self.correlation_softmax = nn.Sigmoid()
 
     def _gumbel_softmax_structure_sampling(self, adj, init_edge_index, batch_size):
         edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)

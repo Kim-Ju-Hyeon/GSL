@@ -44,6 +44,7 @@ graph_learning:
   sequence: 3
   mode: both # adj, weight
   to_symmetric: True
+  correlation_act_fnc: sigmoid # softmax, relu ...
   kernel_size: [200, 80, 10]
   stride: [20, 10, 5]
   conv1_dim: 4
