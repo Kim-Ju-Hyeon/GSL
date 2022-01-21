@@ -64,12 +64,14 @@ class MakeDataset:
         return data, lam
 
     def make(self):
+        print('Make Dataset')
         data_dict = {'train': None,
                      'valid': None,
                      'test': None}
 
         if not self.load:
             for i, types in enumerate(list(data_dict.keys())):
+                print(types)
                 data, lam = self._split(i)
                 valid_sampling_locations = self._valid_sampling(i)
                 data_list = []
@@ -89,7 +91,7 @@ class MakeDataset:
                 elif types == 'test':
                     data_dict['test'] = data_list
 
-                pickle.dump(data_dict, open(self.save_dir, 'wb'))
+            pickle.dump(data_dict, open(self.save_dir, 'wb'))
 
             return data_dict
 

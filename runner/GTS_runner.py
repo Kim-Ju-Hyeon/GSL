@@ -52,7 +52,7 @@ class GTS_Runner(object):
             print("Load Spike Dataset")
             spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
-            self.entire_inputs = torch.FloatTensor(spike[:, :self.dataset_conf.total_time_length])
+            self.entire_inputs = torch.FloatTensor(spike[:, :self.dataset_conf.graph_learning_length])
 
             if self.use_gpu and (self.device != 'cpu'):
                 self.entire_inputs = self.entire_inputs.to(device=self.device)
@@ -121,7 +121,7 @@ class GTS_Runner(object):
                 iters += 1
 
                 # display loss
-                if (iters + 1) % 10 == 0:
+                if (iters + 1) % 100 == 0:
                     logger.info(
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iters + 1,
                                                                          float(loss.data.cpu().numpy())))
@@ -153,7 +153,7 @@ class GTS_Runner(object):
             else:
                 results['val_adj_matirix'] += [adj_matrix.detach().cpu()]
 
-            logger.info("Avg. Validation Loss = {:.6}".format(val_loss, 0))
+            logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             if val_loss < best_val_loss:

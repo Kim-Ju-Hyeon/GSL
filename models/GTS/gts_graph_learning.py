@@ -12,7 +12,7 @@ class GTS_Graph_Learning(MessageLayer):
 
         self.mode = config.graph_learning.mode
 
-        self.total_length = config.dataset.total_time_length
+        self.total_length = config.dataset.graph_learning_length
         self.kernel_size = config.graph_learning.kernel_size
         self.stride = config.graph_learning.stride
         self.conv1_dim = config.graph_learning.conv1_dim
