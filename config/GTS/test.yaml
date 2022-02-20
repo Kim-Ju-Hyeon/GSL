@@ -50,6 +50,7 @@ graph_learning:
   conv1_dim: 4
   conv2_dim: 4
   conv3_dim: 4
+  n_head: 16
 #  fc_dim: 256
 
 
