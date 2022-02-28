@@ -1,5 +1,6 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
+from models.GTS.self_attention_graph_learning import Attention_Graph_Learning
 from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
 import torch
@@ -34,11 +35,14 @@ class GTS_Model(nn.Module):
             self.graph_learning = GTS_Graph_Learning(self.config, 2)
             self.weight_learning = GTS_Graph_Learning(self.config, 1)
 
+        elif self.graph_learning_mode == 'attention':
+            self.graph_learning = Attention_Graph_Learning(self.config)
+
         else:
             raise ValueError("Invalid graph learning mode")
 
         # self.correlation_softmax = nn.Softmax(dim=1)
-        self.correlation_softmax = nn.Sigmoid()
+        self.correlation_act = nn.Sigmoid()
 
     def _gumbel_softmax_structure_sampling(self, adj, init_edge_index, batch_size):
         edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
@@ -60,7 +64,11 @@ class GTS_Model(nn.Module):
         else:
             adj = mat
 
-        adj = self.correlation_softmax(adj)
+        if self.graph_learning_mode == 'attention':
+            pass
+        else:
+            adj = self.correlation_act(adj)
+
         edge_self_loop = add_self_loops(init_edge_index)
         init_edge_index = sort_edge_index(edge_self_loop[0])
         adj = adj.view(-1, 1)
@@ -76,7 +84,7 @@ class GTS_Model(nn.Module):
         
         adj = self.graph_learning(entire_inputs, edge_index)
 
-        if self.graph_learning_mode == 'weight':
+        if (self.graph_learning_mode == 'weight') or (self.graph_learning_mode == 'attention'):
             batch_adj_matrix, batch_weight_matrix, adj_matrix = self._weight_matrix_construct(adj, edge_index,
                                                                                               batch_size)
 

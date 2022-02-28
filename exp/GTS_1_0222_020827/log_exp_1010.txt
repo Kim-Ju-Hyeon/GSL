@@ -1,0 +1,27 @@
+INFO  | File run_exp_local.py     | Line 16    | Writing log file to ./exp\GTS_1_0222_020827\log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 17    | Exp instance id = GTS_1_0222_020827
+ERROR | File run_exp_local.py     | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_local.py", line 21, in main
+    runner.train()
+  File "C:\Users\KimJuHyeon\GSL\runner\GTS_runner.py", line 109, in train
+    _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\GTS_model.py", line 85, in forward
+    adj = self.graph_learning(entire_inputs, edge_index)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\self_attention_graph_learning.py", line 78, in forward
+    outputs = self.attention_gl(x, x)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\Attention.py", line 70, in forward
+    outputs = self.output(attn)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (100x1600 and 100x1600)
+

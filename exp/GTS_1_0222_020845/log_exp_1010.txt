@@ -1,0 +1,23 @@
+INFO  | File run_exp_local.py     | Line 16    | Writing log file to ./exp\GTS_1_0222_020845\log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 17    | Exp instance id = GTS_1_0222_020845
+ERROR | File run_exp_local.py     | Line 25    | Traceback (most recent call last):
+  File "C:\Users\KimJuHyeon\GSL\run_exp_local.py", line 21, in main
+    runner.train()
+  File "C:\Users\KimJuHyeon\GSL\runner\GTS_runner.py", line 109, in train
+    _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch\nn\modules\module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\GTS_model.py", line 88, in forward
+    batch_adj_matrix, batch_weight_matrix, adj_matrix = self._weight_matrix_construct(adj, edge_index,
+  File "C:\Users\KimJuHyeon\GSL\models\GTS\GTS_model.py", line 60, in _weight_matrix_construct
+    mat = to_dense_adj(init_edge_index, edge_attr=adj).squeeze()
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_geometric\utils\to_dense_adj.py", line 53, in to_dense_adj
+    scatter(edge_attr, idx, dim=0, out=adj, reduce='add')
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_scatter\scatter.py", line 152, in scatter
+    return scatter_sum(src, index, dim, out, dim_size)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_scatter\scatter.py", line 11, in scatter_sum
+    index = broadcast(index, src, dim)
+  File "C:\Users\KimJuHyeon\anaconda3\envs\GraphStructureLEarning\lib\site-packages\torch_scatter\utils.py", line 12, in broadcast
+    src = src.expand_as(other)
+RuntimeError: The expanded size of the tensor (100) must match the existing size (9900) at non-singleton dimension 0.  Target sizes: [100, 100].  Tensor sizes: [9900, 1]
+

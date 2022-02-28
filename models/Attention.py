@@ -10,7 +10,7 @@ class GraphLearningScaledDotProductAttention(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, q, k, mask=None):
-        attn = torch.bmm(q, k.permute(0, 2, 1))
+        attn = torch.matmul(q, k.transpose(0, 1))
 
         dimention = torch.sqrt(torch.tensor(k.shape[-1]).to(torch.float32))
         attn = attn / dimention
@@ -25,11 +25,12 @@ class GraphLearningScaledDotProductAttention(nn.Module):
 
 
 class GraphLearningMultiHeadAttention(nn.Module):
-    def __init__(self, n_head, d_model, dropout_rate=0.5):
+    def __init__(self, n_head, d_model, num_nodes, dropout_rate=0.5):
         super(GraphLearningMultiHeadAttention, self).__init__()
 
         self.n_head = n_head
         self.d_model = d_model
+        self.num_nodes = num_nodes
 
         self.d_k = self.d_q = d_model // n_head
         self.dropout = nn.Dropout(p=dropout_rate)
@@ -41,7 +42,7 @@ class GraphLearningMultiHeadAttention(nn.Module):
 
         self.attention = GraphLearningScaledDotProductAttention()
 
-        self.output = nn.Linear(d_model, d_model * n_head)
+        self.output = nn.Linear(self.num_nodes * n_head, self.num_nodes)
 
         self.init_weights()
 
@@ -53,7 +54,7 @@ class GraphLearningMultiHeadAttention(nn.Module):
                 torch.nn.init.zeros_(p)
 
     def forward(self, q, k, mask=None):
-        batch_size, nodes_num, _ = q.shape
+        nodes_num, _ = q.shape
         _attns = []
         for i in range(self.n_head):
             qs = F.relu(self.q_layers[i](q))
@@ -65,7 +66,7 @@ class GraphLearningMultiHeadAttention(nn.Module):
             _attns.append(attn_dropout)
 
         attn = torch.stack(_attns)
-        attn = attn.reshape(batch_size, nodes_num, -1)
+        attn = attn.reshape(nodes_num, -1)
         outputs = self.output(attn)
 
-        return outputs, _attns
+        return outputs

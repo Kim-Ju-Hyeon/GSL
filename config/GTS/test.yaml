@@ -31,7 +31,7 @@ train:
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 1
+  batch_size : 2
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
@@ -42,7 +42,7 @@ embedding_dim: 16
 
 graph_learning:
   sequence: 3
-  mode: both # adj, weight
+  mode: attention # adj, weight
   to_symmetric: True
   correlation_act_fnc: sigmoid # softmax, relu ...
   kernel_size: [200, 80, 10]

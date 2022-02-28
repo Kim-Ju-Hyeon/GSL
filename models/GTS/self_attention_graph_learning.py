@@ -20,7 +20,9 @@ class Attention_Graph_Learning(nn.Module):
         self.conv3_dim = config.graph_learning.conv3_dim
         self.hidden_dim = config.hidden_dim
 
-        self.attention_gl = GraphLearningMultiHeadAttention(config.graph_learning.n_head, self.hidden_dim)
+        self.attention_gl = GraphLearningMultiHeadAttention(config.graph_learning.n_head,
+                                                            self.hidden_dim,
+                                                            self.num_nodes)
 
         out_size = 0
         for i in range(len(self.kernel_size)):
@@ -49,7 +51,7 @@ class Attention_Graph_Learning(nn.Module):
                 nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.fill_(0.1)
 
-    def forward(self, x):
+    def forward(self, x, edge_index):
         if len(x.shape) == 2:
             x = x.reshape(self.num_nodes, 1, -1)
 
@@ -72,6 +74,6 @@ class Attention_Graph_Learning(nn.Module):
         x = self.fc(x)
         x = F.relu(x)
 
-        outputs, attn = self.attention_gl(x)
+        outputs = self.attention_gl(x, x)
 
-        return outputs, attn
+        return outputs
