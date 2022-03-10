@@ -3,10 +3,8 @@ from runner.GTS_runner import GTS_Runner
 from utils.train_helper import get_config
 import traceback
 from utils.logger import setup_logging
-import datetime
 import os
 
-from utils.slack import slack_message, send_slack_message
 
 
 @click.command()

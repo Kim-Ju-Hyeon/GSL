@@ -1,0 +1,23 @@
+INFO  | File run_exp_local.py     | Line 16    | Writing log file to ./exp/GTS_1_0310_120537/log_exp_1010.txt
+INFO  | File run_exp_local.py     | Line 17    | Exp instance id = GTS_1_0310_120537
+ERROR | File run_exp_local.py     | Line 25    | Traceback (most recent call last):
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/run_exp_local.py", line 21, in main
+    runner.train()
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/runner/GTS_runner.py", line 109, in train
+    _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+  File "/opt/anaconda3/envs/GSL/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/GTS_model.py", line 90, in forward
+    batch_adj_matrix, batch_weight_matrix, adj_matrix = self._weight_matrix_construct(adj, edge_index,
+  File "/Users/juhyeonkim/Dropbox/내 Mac (JuHyeonui-iMac.local)/Documents/GraphStructureLearning/models/GTS/GTS_model.py", line 60, in _weight_matrix_construct
+    mat = to_dense_adj(init_edge_index, edge_attr=adj).squeeze()
+  File "/opt/anaconda3/envs/GSL/lib/python3.8/site-packages/torch_geometric/utils/to_dense_adj.py", line 53, in to_dense_adj
+    scatter(edge_attr, idx, dim=0, out=adj, reduce='add')
+  File "/opt/anaconda3/envs/GSL/lib/python3.8/site-packages/torch_scatter/scatter.py", line 152, in scatter
+    return scatter_sum(src, index, dim, out, dim_size)
+  File "/opt/anaconda3/envs/GSL/lib/python3.8/site-packages/torch_scatter/scatter.py", line 11, in scatter_sum
+    index = broadcast(index, src, dim)
+  File "/opt/anaconda3/envs/GSL/lib/python3.8/site-packages/torch_scatter/utils.py", line 12, in broadcast
+    src = src.expand_as(other)
+RuntimeError: The expanded size of the tensor (10000) must match the existing size (9900) at non-singleton dimension 0.  Target sizes: [10000].  Tensor sizes: [9900]
+

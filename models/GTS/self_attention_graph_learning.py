@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from models.Attention import GraphLearningMultiHeadAttention
+from torch_geometric.utils import dense_to_sparse
 
 
 class Attention_Graph_Learning(nn.Module):
@@ -76,4 +77,4 @@ class Attention_Graph_Learning(nn.Module):
 
         outputs = self.attention_gl(x, x)
 
-        return outputs
+        return dense_to_sparse(outputs)
