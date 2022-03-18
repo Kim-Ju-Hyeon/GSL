@@ -4,6 +4,7 @@ from tqdm import tqdm
 import pickle
 import torch
 from torch.nn import functional as F
+import torch.nn as nn
 
 from collections import defaultdict
 import torch.optim as optim
@@ -16,6 +17,8 @@ from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 from torch_geometric_temporal.dataset import METRLADatasetLoader, PemsBayDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
+
+from pytorch_forecasting.metrics import MAPE, RMSE
 
 
 
@@ -36,6 +39,17 @@ class GTS_Runner(object):
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
+
+        if self.train_conf.loss_function == 'MAE':
+            self.loss = nn.L1Loss()
+        elif self.train_conf.loss_function == 'RMSE':
+            self.loss = RMSE()
+        elif self.train_conf.loss_function == 'MAPE':
+            self.loss = MAPE()
+        elif self.train_conf.loss_function == 'Poisson':
+            self.loss = nn.PoissonNLLLoss()
+        else:
+            raise ValueError('Non-supported Loss Function')
 
         self.node_nums = config.nodes_num
 
@@ -64,9 +78,9 @@ class GTS_Runner(object):
             dataset_maker = MakeSpikeDataset(self.config)
             total_dataset = dataset_maker.make()
 
-            self.train_dataset = total_dataset['train']
-            self.valid_dataset = total_dataset['valid']
-            self.test_dataset = total_dataset['test']
+            self.train_dataset = DataLoader(total_dataset['train'], batch_size=self.train_conf.batch_size)
+            self.valid_dataset = DataLoader(total_dataset['valid'], batch_size=self.train_conf.batch_size)
+            self.test_dataset = DataLoader(total_dataset['test'], batch_size=self.train_conf.batch_size)
 
         elif self.dataset_conf.name == 'METR-LA':
             loader = METRLADatasetLoader(raw_data_dir='./data/METR-LA')
@@ -74,14 +88,11 @@ class GTS_Runner(object):
             self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
             self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
 
-
-
         elif self.dataset_conf.name == 'PEMS-BAY':
             loader = PemsBayDatasetLoader(raw_data_dir='./data/PEMS-BAY')
             dataset = loader.get_dataset(num_timesteps_in=12, num_timesteps_out=12)
             self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
             self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
-
 
         else:
             raise ValueError("Non-supported dataset!")
@@ -93,9 +104,6 @@ class GTS_Runner(object):
 
     def train(self):
         print('Train Start')
-        train_loader = DataLoader(self.train_dataset, batch_size=self.train_conf.batch_size)
-        valid_loader = DataLoader(self.valid_dataset, batch_size=self.train_conf.batch_size)
-
         # create optimizer
         params = filter(lambda p: p.requires_grad, self.model.parameters())
         if self.train_conf.optimizer == 'SGD':
@@ -120,14 +128,13 @@ class GTS_Runner(object):
             train_loss = []
 
             iters = 0
-            for data_batch in tqdm(train_loader):
+            for data_batch in tqdm(self.train_dataset):
 
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
                 _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
-
-                loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
+                loss = self.loss(outputs, data_batch.y)
 
                 # backward pass (accumulates gradients).
                 loss.backward()
@@ -152,7 +159,7 @@ class GTS_Runner(object):
             self.model.eval()
 
             val_loss = []
-            for data_batch in tqdm(valid_loader):
+            for data_batch in tqdm(self.validation_dataset):
 
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
@@ -160,7 +167,7 @@ class GTS_Runner(object):
                 with torch.no_grad():
                     adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
 
-                loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
+                loss = self.loss(outputs, data_batch.y)
                 val_loss += [float(loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()
@@ -185,7 +192,6 @@ class GTS_Runner(object):
 
     def test(self):
         print('Test Start')
-        test_loader = DataLoader(self.test_dataset, batch_size=self.train_conf.batch_size)
 
         self.best_model = GTS_Model(self.config)
         best_snapshot = load_model(self.best_model_dir)
@@ -202,7 +208,7 @@ class GTS_Runner(object):
         results = defaultdict(list)
         output = []
         target = []
-        for data_batch in tqdm(test_loader):
+        for data_batch in tqdm(self.test_dataset):
 
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
@@ -210,7 +216,7 @@ class GTS_Runner(object):
             with torch.no_grad():
                 adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
 
-            loss = F.poisson_nll_loss(outputs, data_batch.y, log_input=True)
+            loss = self.loss(outputs, data_batch.y)
 
             test_loss += [float(loss.data.cpu().numpy())]
             output += [outputs.cpu()]
