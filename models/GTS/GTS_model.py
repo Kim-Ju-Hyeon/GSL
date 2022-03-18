@@ -6,7 +6,7 @@ from utils.utils import build_batch_edge_index, build_batch_edge_weight
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.utils import to_undirected, to_dense_adj, add_self_loops, sort_edge_index, remove_self_loops, dense_to_sparse
+from torch_geometric.utils import to_undirected, to_dense_adj, dense_to_sparse
 
 
 class GTS_Model(nn.Module):
@@ -68,11 +68,6 @@ class GTS_Model(nn.Module):
             pass
         else:
             adj = self.correlation_act(adj)
-
-        # edge_self_loop = add_self_loops(init_edge_index)
-        # init_edge_index = sort_edge_index(edge_self_loop[0])
-        # adj = adj.view(-1, 1)
-        # init_edge_index, adj = remove_self_loops(init_edge_index, adj)
 
         init_edge_index, adj = dense_to_sparse(adj)
 
