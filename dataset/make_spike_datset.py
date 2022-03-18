@@ -7,9 +7,9 @@ import numpy
 from torch_geometric.data import Data
 
 
-class MakeDataset:
+class MakeSpikeDataset:
     def __init__(self, config):
-        super(MakeDataset, self).__init__()
+        super(MakeSpikeDataset, self).__init__()
 
         self.data_dir = config.dataset.root
         self.window_size = config.dataset.window_size

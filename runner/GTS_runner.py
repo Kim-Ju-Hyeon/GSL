@@ -11,9 +11,13 @@ from torch_geometric.loader import DataLoader
 
 from models.GTS.GTS_model import GTS_Model
 from utils.utils import build_fully_connected_edge_idx
-from dataset.make_datset import MakeDataset
+from dataset.make_spike_datset import MakeSpikeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
+from torch_geometric_temporal.dataset import METRLADatasetLoader, PemsBayDatasetLoader
+from torch_geometric_temporal.signal import temporal_signal_split
+
+
 
 logger = get_logger('exp_logger')
 
@@ -57,12 +61,27 @@ class GTS_Runner(object):
             if self.use_gpu and (self.device != 'cpu'):
                 self.entire_inputs = self.entire_inputs.to(device=self.device)
 
-            dataset_maker = MakeDataset(self.config)
+            dataset_maker = MakeSpikeDataset(self.config)
             total_dataset = dataset_maker.make()
 
             self.train_dataset = total_dataset['train']
             self.valid_dataset = total_dataset['valid']
             self.test_dataset = total_dataset['test']
+
+        elif self.dataset_conf.name == 'METR-LA':
+            loader = METRLADatasetLoader(raw_data_dir='./data/METR-LA')
+            dataset = loader.get_dataset(num_timesteps_in=12, num_timesteps_out=12)
+            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
+            self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
+
+
+
+        elif self.dataset_conf.name == 'PEMS-BAY':
+            loader = PemsBayDatasetLoader(raw_data_dir='./data/PEMS-BAY')
+            dataset = loader.get_dataset(num_timesteps_in=12, num_timesteps_out=12)
+            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
+            self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
+
 
         else:
             raise ValueError("Non-supported dataset!")
