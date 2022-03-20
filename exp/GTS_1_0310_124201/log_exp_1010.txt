@@ -1,9 +1,0 @@
-INFO  | File run_exp_local.py     | Line 16    | Writing log file to ./exp/GTS_1_0310_124201/log_exp_1010.txt
-INFO  | File run_exp_local.py     | Line 17    | Exp instance id = GTS_1_0310_124201
-INFO  | File GTS_runner.py        | Line 125   | Train Loss @ epoch 1 iteration 100 = 0.635879397392273
-INFO  | File GTS_runner.py        | Line 156   | Epoch 1 Avg. Validation Loss = 0.573544
-INFO  | File GTS_runner.py        | Line 157   | Current Best Validation Loss = inf
-INFO  | File GTS_runner.py        | Line 125   | Train Loss @ epoch 2 iteration 100 = 0.615880012512207
-INFO  | File GTS_runner.py        | Line 156   | Epoch 2 Avg. Validation Loss = 0.563092
-INFO  | File GTS_runner.py        | Line 157   | Current Best Validation Loss = 0.573544
-INFO  | File GTS_runner.py        | Line 207   | Avg. Test Loss = 0.555453

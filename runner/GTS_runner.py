@@ -39,7 +39,6 @@ class GTS_Runner(object):
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
-        print(config)
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
@@ -145,7 +144,7 @@ class GTS_Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+                _, outputs = self.model(data_batch.x[:,0,:], data_batch.y, self.entire_inputs, self.init_edge_index)
                 loss = self.loss(outputs, data_batch.y)
 
                 # backward pass (accumulates gradients).
@@ -164,6 +163,8 @@ class GTS_Runner(object):
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iters + 1,
                                                                          float(loss.data.cpu().numpy())))
 
+                break
+
             train_loss = np.stack(train_loss).mean()
             results['train_loss'] += [train_loss]
 
@@ -177,10 +178,11 @@ class GTS_Runner(object):
                     data_batch = data_batch.to(device=self.device)
 
                 with torch.no_grad():
-                    adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+                    adj_matrix, outputs = self.model(data_batch.x[:,0,:], data_batch.y, self.entire_inputs, self.init_edge_index)
 
                 loss = self.loss(outputs, data_batch.y)
                 val_loss += [float(loss.data.cpu().numpy())]
+                break
 
             val_loss = np.stack(val_loss).mean()
 
@@ -226,13 +228,14 @@ class GTS_Runner(object):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
-                adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+                adj_matrix, outputs = self.model(data_batch.x[:,0,:], data_batch.y, self.entire_inputs, self.init_edge_index)
 
             loss = self.loss(outputs, data_batch.y)
 
             test_loss += [float(loss.data.cpu().numpy())]
             output += [outputs.cpu()]
             target += [data_batch.y.cpu()]
+            break
 
         test_loss = np.stack(test_loss).mean()
 

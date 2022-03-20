@@ -10,7 +10,6 @@ import os
 @click.command()
 @click.option('--conf_file_path', type=str, default=None)
 def main(conf_file_path):
-    print(conf_file_path)
     config = get_config(conf_file_path)
 
     log_file = os.path.join(config.exp_dir, "log_exp_{}.txt".format(config.seed))

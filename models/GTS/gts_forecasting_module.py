@@ -148,6 +148,7 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
         super(GTS_Traffic_Forecasting_Module, self).__init__()
 
         self.config = config
+        self.use_gpu = config.use_gpu
 
         self.nodes_num = config.nodes_num
 

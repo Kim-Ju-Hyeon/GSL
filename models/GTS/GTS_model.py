@@ -1,5 +1,5 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
-from models.GTS.gts_forecasting_module import GTS_Forecasting_Module
+from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
 from models.GTS.self_attention_graph_learning import Attention_Graph_Learning
 from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
@@ -14,6 +14,7 @@ class GTS_Model(nn.Module):
         super(GTS_Model, self).__init__()
 
         self.config = config
+        self.dataset_conf = config.dataset
 
         self.node_nums = config.nodes_num
         self.tau = config.tau
@@ -23,7 +24,17 @@ class GTS_Model(nn.Module):
         self.graph_learning_mode = config.graph_learning.mode
         self.graph_learning_sequence = config.graph_learning.sequence
 
-        self.graph_forecasting = GTS_Forecasting_Module(self.config)
+        if self.dataset_conf.name == 'spike_lambda_bin100':
+            self.graph_forecasting = GTS_Forecasting_Module(self.config)
+        elif self.dataset_conf.name == 'METR-LA':
+            self.graph_forecasting = GTS_Traffic_Forecasting_Module(self.config)
+
+        elif self.dataset_conf.name == 'PEMS-BAY':
+            self.graph_forecasting = GTS_Traffic_Forecasting_Module(self.config)
+        else:
+            raise ValueError("Non-supported dataset!")
+
+
 
         if self.graph_learning_mode == 'weight':
             self.graph_learning = GTS_Graph_Learning(self.config, 1)
