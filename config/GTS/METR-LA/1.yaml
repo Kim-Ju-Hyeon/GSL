@@ -19,7 +19,7 @@ dataset:
 
 train:
   optimizer: Adam
-  epoch: 2
+  epoch: 50
   loss_function : MAE
   lr: 1.0e-3
   momentum: 0.9

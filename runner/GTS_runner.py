@@ -163,7 +163,6 @@ class GTS_Runner(object):
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iters + 1,
                                                                          float(loss.data.cpu().numpy())))
 
-                break
 
             train_loss = np.stack(train_loss).mean()
             results['train_loss'] += [train_loss]
@@ -182,7 +181,6 @@ class GTS_Runner(object):
 
                 loss = self.loss(outputs, data_batch.y)
                 val_loss += [float(loss.data.cpu().numpy())]
-                break
 
             val_loss = np.stack(val_loss).mean()
 
@@ -235,7 +233,7 @@ class GTS_Runner(object):
             test_loss += [float(loss.data.cpu().numpy())]
             output += [outputs.cpu()]
             target += [data_batch.y.cpu()]
-            break
+
 
         test_loss = np.stack(test_loss).mean()
 
