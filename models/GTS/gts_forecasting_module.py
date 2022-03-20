@@ -149,6 +149,7 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
 
         self.config = config
         self.use_gpu = config.use_gpu
+        self.device = config.device
 
         self.nodes_num = config.nodes_num
 
