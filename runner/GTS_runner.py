@@ -18,7 +18,7 @@ from utils.logger import get_logger
 from torch_geometric_temporal.dataset import METRLADatasetLoader, PemsBayDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
 
-from pytorch_forecasting.metrics import MAPE, RMSE
+# from pytorch_forecasting.metrics import MAPE, RMSE
 
 
 
@@ -42,10 +42,10 @@ class GTS_Runner(object):
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
-        elif self.train_conf.loss_function == 'RMSE':
-            self.loss = RMSE()
-        elif self.train_conf.loss_function == 'MAPE':
-            self.loss = MAPE()
+        # elif self.train_conf.loss_function == 'RMSE':
+        #     self.loss = RMSE()
+        # elif self.train_conf.loss_function == 'MAPE':
+        #     self.loss = MAPE()
         elif self.train_conf.loss_function == 'Poisson':
             self.loss = nn.PoissonNLLLoss()
         else:
