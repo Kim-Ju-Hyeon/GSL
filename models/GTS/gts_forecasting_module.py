@@ -80,7 +80,7 @@ class DecoderModel(nn.Module):
 
         output = prediction.view(inputs.shape[0], self.output_dim)
 
-        return output
+        return output, decoder_hidden_state
 
 
 class GTS_Forecasting_Module(nn.Module):
@@ -142,5 +142,47 @@ class GTS_Forecasting_Module(nn.Module):
 
         outputs = torch.cat(outputs, dim=-1)
         return outputs
+
+class GTS_Traffic_Forecasting_Module(nn.Module):
+    def __init__(self, config):
+        super(GTS_Traffic_Forecasting_Module, self).__init__()
+
+        self.config = config
+
+        self.nodes_num = config.nodes_num
+
+        self.nodes_feas = config.node_features
+
+        self.encoder_step = config.encoder_step
+        self.decoder_step = config.decoder_step
+
+        self.encoder_model = DCRNN(config)
+        self.decoder_model = DecoderModel(config)
+
+    def forward(self, inputs, targets, adj_matrix, weight_matrix=None):
+        # DCRNN encoder
+        encoder_hidden_state = None
+        for i in range(self.encoder_step):
+            encoder_hidden_state = self.encoder_model(inputs[:, i].unsqueeze(dim=-1), adj_matrix,
+                                                      encoder_hidden_state, weight_matrix)
+
+        # DCRNN decoder
+        outputs = []
+
+        decoder_input = torch.zeros((self.nodes_num, 1))
+        if self.use_gpu and (self.device != 'cpu'):
+            decoder_input = decoder_input.to(device=self.device)
+
+        decoder_hidden_state = encoder_hidden_state
+        for j in range(self.decoder_step):
+            output, decoder_hidden_state = self.decoder_model(decoder_input, adj_matrix, decoder_hidden_state,
+                                                              weight_matrix)
+            outputs.append(output)
+
+            decoder_input = targets[:, j].unsqueeze(dim=-1)
+
+        outputs = torch.cat(outputs, dim=-1)
+        return outputs
+
 
 

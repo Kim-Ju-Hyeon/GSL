@@ -1,8 +1,8 @@
 ---
 exp_name: METR_LA
-exp_dir: ./exp
-use_gpu: False
-device: cpu
+exp_dir: ./exp/METR_LA
+use_gpu: True
+device: 0
 seed: 1010
 
 model_name: GTS

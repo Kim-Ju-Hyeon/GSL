@@ -52,6 +52,7 @@ class GTS_Model(nn.Module):
                                   init_edge_index[1, :][connect]])
         if self.undirected_adj:
             adj_matrix = to_undirected(adj_matrix)
+
         batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size, self.node_nums)
 
         return batch_adj_matrix, adj_matrix
