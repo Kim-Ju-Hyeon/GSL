@@ -39,6 +39,7 @@ class GTS_Runner(object):
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
+        print(config)
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
