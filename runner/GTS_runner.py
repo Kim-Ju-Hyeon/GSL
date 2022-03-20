@@ -80,6 +80,7 @@ class GTS_Runner(object):
             self.test_dataset = DataLoader(total_dataset['test'], batch_size=self.train_conf.batch_size)
 
         elif self.dataset_conf.name == 'METR-LA':
+            print('METR-LA')
             self.entire_inputs = np.load('./data/METR-LA/node_values.npy')
             self.entire_inputs = np.moveaxis(self.entire_inputs, 0, 1)
             self.entire_inputs = torch.FloatTensor(self.entire_inputs[:, :self.dataset_conf.graph_learning_length, 0])
