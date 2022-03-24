@@ -30,7 +30,7 @@ train:
 
 nodes_num: 207
 node_features: 1
-hidden_dim: 32
+hidden_dim: 64
 embedding_dim: 1
 
 graph_learning:
@@ -43,13 +43,13 @@ graph_learning:
   conv1_dim: 16
   conv2_dim: 32
   conv3_dim: 64
-  n_head: 4
+  n_head: 8
 #  fc_dim: 256
 
 
 forecasting_module:
-  diffusion_k: 2
-  num_layer: 1
+  diffusion_k: 3
+  num_layer: 2
   use_teacher_forcing: True
   teacher_forcing_ratio: 0.5
 

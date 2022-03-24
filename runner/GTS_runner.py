@@ -81,8 +81,15 @@ class GTS_Runner(object):
 
         elif self.dataset_conf.name == 'METR-LA':
             print('METR-LA')
-            self.entire_inputs = np.load('./data/METR-LA/node_values.npy')
-            self.entire_inputs = np.moveaxis(self.entire_inputs, 0, 1)
+            self.entire_inputs = np.load('./data/METR-LA/node_values.npy').transpose((1,2,0))
+            self.entire_inputs = self.entire_inputs.astype(np.float32)
+
+            # Normalise as in DCRNN paper (via Z-Score Method)
+            means = np.mean(self.entire_inputs, axis=(0, 2))
+            self.entire_inputs = self.entire_inputs - means.reshape(1, -1, 1)
+            stds = np.std(self.entire_inputs, axis=(0, 2))
+            self.entire_inputs = self.entire_inputs / stds.reshape(1, -1, 1)
+
             self.entire_inputs = torch.FloatTensor(self.entire_inputs[:, :self.dataset_conf.graph_learning_length, 0])
 
             loader = METRLADatasetLoader(raw_data_dir='./data/METR-LA')
@@ -93,8 +100,15 @@ class GTS_Runner(object):
             self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
 
         elif self.dataset_conf.name == 'PEMS-BAY':
-            self.entire_inputs = np.load('./data/PEMS-BAY/node_values.npy')
-            self.entire_inputs = np.moveaxis(self.entire_inputs, 0, 1)
+            self.entire_inputs = np.load('./data/PEMS-BAY/node_values.npy').transpose((1,2,0))
+            self.entire_inputs = self.entire_inputs.astype(np.float32)
+
+            # Normalise as in DCRNN paper (via Z-Score Method)
+            means = np.mean(self.entire_inputs, axis=(0, 2))
+            self.entire_inputs = self.entire_inputs - means.reshape(1, -1, 1)
+            stds = np.std(self.entire_inputs, axis=(0, 2))
+            self.entire_inputs = self.entire_inputs / stds.reshape(1, -1, 1)
+
             self.entire_inputs = torch.FloatTensor(self.entire_inputs[:, :self.dataset_conf.graph_learning_length, 0])
 
             loader = PemsBayDatasetLoader(raw_data_dir='./data/PEMS-BAY')
