@@ -2,15 +2,17 @@ import os
 import zipfile
 import numpy as np
 import torch
-import os.path as osp
 from torch_geometric.utils import dense_to_sparse
 from six.moves import urllib
-from torch_geometric.data import Data
+from utils.utils import build_batch_edge_index
+from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
 
-class METRLADatasetLoader(object):
-    def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data")):
-        super(METRLADatasetLoader, self).__init__()
+
+class TrafficDatasetLoader(object):
+    def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data"), dataset_name: str = 'METR-LA'):
+        super(TrafficDatasetLoader, self).__init__()
         self.raw_data_dir = raw_data_dir
+        self._dataset_name = dataset_name
         self._read_web_data()
 
     def _download_url(self, url, save_path):  # pragma: no cover
@@ -19,30 +21,61 @@ class METRLADatasetLoader(object):
                 out_file.write(dl_file.read())
 
     def _read_web_data(self):
-        url = "https://graphmining.ai/temporal_datasets/METR-LA.zip"
+        if self._dataset_name == 'METR-LA':
+            url = "https://graphmining.ai/temporal_datasets/METR-LA.zip"
 
-        # Check if zip file is in data folder from working directory, otherwise download
-        if not os.path.isfile(
-                os.path.join(self.raw_data_dir, "METR-LA.zip")
-        ):  # pragma: no cover
-            if not os.path.exists(self.raw_data_dir):
-                os.makedirs(self.raw_data_dir)
-            self._download_url(url, os.path.join(self.raw_data_dir, "METR-LA.zip"))
+            # Check if zip file is in data folder from working directory, otherwise download
+            if not os.path.isfile(
+                    os.path.join(self.raw_data_dir, "METR-LA.zip")
+            ):  # pragma: no cover
+                if not os.path.exists(self.raw_data_dir):
+                    os.makedirs(self.raw_data_dir)
+                self._download_url(url, os.path.join(self.raw_data_dir, "METR-LA.zip"))
 
-        if not os.path.isfile(
-                os.path.join(self.raw_data_dir, "adj_mat.npy")
-        ) or not os.path.isfile(
-            os.path.join(self.raw_data_dir, "node_values.npy")
-        ):  # pragma: no cover
-            with zipfile.ZipFile(
-                    os.path.join(self.raw_data_dir, "METR-LA.zip"), "r"
-            ) as zip_fh:
-                zip_fh.extractall(self.raw_data_dir)
+            if not os.path.isfile(
+                    os.path.join(self.raw_data_dir, "adj_mat.npy")
+            ) or not os.path.isfile(
+                os.path.join(self.raw_data_dir, "node_values.npy")
+            ):  # pragma: no cover
+                with zipfile.ZipFile(
+                        os.path.join(self.raw_data_dir, "METR-LA.zip"), "r"
+                ) as zip_fh:
+                    zip_fh.extractall(self.raw_data_dir)
 
-        A = np.load(os.path.join(self.raw_data_dir, "adj_mat.npy"))
-        X = np.load(os.path.join(self.raw_data_dir, "node_values.npy")).transpose(
-            (1, 2, 0)
-        )
+            A = np.load(os.path.join(self.raw_data_dir, "adj_mat.npy"))
+            X = np.load(os.path.join(self.raw_data_dir, "node_values.npy")).transpose(
+                (1, 2, 0)
+            )
+
+        elif self._dataset_name == 'PEMS-BAY':
+            url = "https://graphmining.ai/temporal_datasets/PEMS-BAY.zip"
+
+            # Check if zip file is in data folder from working directory, otherwise download
+            if not os.path.isfile(
+                    os.path.join(self.raw_data_dir, "PEMS-BAY.zip")
+            ):  # pragma: no cover
+                if not os.path.exists(self.raw_data_dir):
+                    os.makedirs(self.raw_data_dir)
+                self._download_url(url, os.path.join(self.raw_data_dir, "PEMS-BAY.zip"))
+
+            if not os.path.isfile(
+                    os.path.join(self.raw_data_dir, "pems_adj_mat.npy")
+            ) or not os.path.isfile(
+                os.path.join(self.raw_data_dir, "pems_node_values.npy")
+            ):  # pragma: no cover
+                with zipfile.ZipFile(
+                        os.path.join(self.raw_data_dir, "PEMS-BAY.zip"), "r"
+                ) as zip_fh:
+                    zip_fh.extractall(self.raw_data_dir)
+
+            A = np.load(os.path.join(self.raw_data_dir, "pems_adj_mat.npy"))
+            X = np.load(os.path.join(self.raw_data_dir, "pems_node_values.npy")).transpose(
+                (1, 2, 0)
+            )
+
+        else:
+            raise ValueError("Invalid Dataset")
+
         X = X.astype(np.float32)
 
         # Normalise as in DCRNN paper (via Z-Score Method)
@@ -58,8 +91,8 @@ class METRLADatasetLoader(object):
         edge_indices, values = dense_to_sparse(self.A)
         edge_indices = edge_indices.numpy()
         values = values.numpy()
-        self.edges = edge_indices
-        self.edge_weights = values
+        self.edges = torch.LongTensor(edge_indices)
+        self.edge_weights = torch.FloatTensor(values)
 
     def _generate_task(self, num_timesteps_in: int = 12, num_timesteps_out: int = 12):
         """Uses the node features of the graph and generates a feature/target
@@ -83,22 +116,32 @@ class METRLADatasetLoader(object):
             features.append((self.X[:, :, i: i + num_timesteps_in]).numpy())
             target.append((self.X[:, 0, i + num_timesteps_in: j]).numpy())
 
-        self.features = features
-        self.targets = target
+        self.features = torch.FloatTensor(np.array(features))
+        self.targets = torch.FloatTensor(np.array(target))
 
     def get_dataset(
-            self, num_timesteps_in: int = 12, num_timesteps_out: int = 12
-            ):
+            self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32
+    ):
         self._get_edges_and_weights()
         self._generate_task(num_timesteps_in, num_timesteps_out)
 
-        data_list = []
-        for i in range(len(self.features)):
-            data_item = Data(x=torch.FloatTensor(self.features[i]), edge_index=self.edges, y=torch.FloatTensor(self.targets[i]))
-            data_list.append(data_item)
+        data_batch = self.features.shape[0] // batch_size
+        node_num, feature_dim = self.features.shape[1], self.features.shape[2]
 
-        return data_list
+        _batch = []
+        for batch_iter in range(batch_size):
+            _batch += [batch_iter] * node_num
+        _batch = np.array(_batch)
 
+        feature_Tensor = self.features[:data_batch * batch_size].reshape(data_batch, node_num * batch_size,
+                                                                         feature_dim, num_timesteps_in).numpy()
 
+        target_Tensor = self.targets[:data_batch * batch_size].reshape(data_batch, node_num * batch_size,
+                                                                       num_timesteps_out).numpy()
 
+        batch_edge = build_batch_edge_index(self.edges, num_graphs=batch_size, num_nodes=node_num)
 
+        dataset = StaticGraphTemporalSignalBatch(edge_index=batch_edge, edge_weight=None,
+                                                 features=feature_Tensor, targets=target_Tensor, batches=_batch)
+
+        return dataset, self.X

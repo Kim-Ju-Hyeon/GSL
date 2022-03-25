@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.nn import MessagePassing
 from models.message_passing.message_layer import MessageLayer
+
 
 class GTS_Graph_Learning(MessageLayer):
     def __init__(self, config, out_dim):
@@ -41,7 +41,7 @@ class GTS_Graph_Learning(MessageLayer):
         self.bn2 = torch.nn.BatchNorm1d(self.conv2_dim)
         self.bn3 = torch.nn.BatchNorm1d(self.conv3_dim)
 
-        self.fc_cat = nn.Linear(self.hidden_dim*2, self.hidden_dim)
+        self.fc_cat = nn.Linear(self.hidden_dim * 2, self.hidden_dim)
 
         self.fc_out = nn.Linear(self.hidden_dim, out_dim)
 

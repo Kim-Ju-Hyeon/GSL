@@ -15,11 +15,10 @@ from utils.utils import build_fully_connected_edge_idx
 from dataset.make_spike_datset import MakeSpikeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
-from torch_geometric_temporal.dataset import METRLADatasetLoader, PemsBayDatasetLoader
+from dataset.make_traffic_dataset import TrafficDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
 
 # from pytorch_forecasting.metrics import MAPE, RMSE
-
 
 
 logger = get_logger('exp_logger')
@@ -79,44 +78,16 @@ class GTS_Runner(object):
             self.valid_dataset = DataLoader(total_dataset['valid'], batch_size=self.train_conf.batch_size)
             self.test_dataset = DataLoader(total_dataset['test'], batch_size=self.train_conf.batch_size)
 
-        elif self.dataset_conf.name == 'METR-LA':
-            print('METR-LA')
-            self.entire_inputs = np.load('./data/METR-LA/node_values.npy').transpose((1,2,0))
-            self.entire_inputs = self.entire_inputs.astype(np.float32)
-
-            # Normalise as in DCRNN paper (via Z-Score Method)
-            means = np.mean(self.entire_inputs, axis=(0, 2))
-            self.entire_inputs = self.entire_inputs - means.reshape(1, -1, 1)
-            stds = np.std(self.entire_inputs, axis=(0, 2))
-            self.entire_inputs = self.entire_inputs / stds.reshape(1, -1, 1)
-
-            self.entire_inputs = torch.FloatTensor(self.entire_inputs[:, :self.dataset_conf.graph_learning_length, 0])
-
-            loader = METRLADatasetLoader(raw_data_dir='./data/METR-LA')
-            dataset = loader.get_dataset(num_timesteps_in=self.config.encoder_step,
-                                         num_timesteps_out=self.config.decoder_step)
+        elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
+            loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name)
+            dataset, self.entire_inputs = loader.get_dataset(num_timesteps_in=self.config.encoder_step,
+                                                             num_timesteps_out=self.config.decoder_step,
+                                                             batch_size=self.train_conf.batch_size)
 
             self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
             self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
 
-        elif self.dataset_conf.name == 'PEMS-BAY':
-            self.entire_inputs = np.load('./data/PEMS-BAY/node_values.npy').transpose((1,2,0))
-            self.entire_inputs = self.entire_inputs.astype(np.float32)
-
-            # Normalise as in DCRNN paper (via Z-Score Method)
-            means = np.mean(self.entire_inputs, axis=(0, 2))
-            self.entire_inputs = self.entire_inputs - means.reshape(1, -1, 1)
-            stds = np.std(self.entire_inputs, axis=(0, 2))
-            self.entire_inputs = self.entire_inputs / stds.reshape(1, -1, 1)
-
-            self.entire_inputs = torch.FloatTensor(self.entire_inputs[:, :self.dataset_conf.graph_learning_length, 0])
-
-            loader = PemsBayDatasetLoader(raw_data_dir='./data/PEMS-BAY')
-            dataset = loader.get_dataset(num_timesteps_in=self.config.encoder_step,
-                                         num_timesteps_out=self.config.decoder_step)
-
-            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
-            self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
+            self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
 
         else:
             raise ValueError("Non-supported dataset!")
@@ -158,7 +129,7 @@ class GTS_Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                _, outputs = self.model(data_batch.x[:,0,:], data_batch.y, self.entire_inputs, self.init_edge_index)
+                _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
                 loss = self.loss(outputs, data_batch.y)
 
                 # backward pass (accumulates gradients).
@@ -172,11 +143,10 @@ class GTS_Runner(object):
                 iters += 1
 
                 # display loss
-                if (iters + 1) % 100 == 0:
+                if (iters + 1) % 500 == 0:
                     logger.info(
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iters + 1,
                                                                          float(loss.data.cpu().numpy())))
-
 
             train_loss = np.stack(train_loss).mean()
             results['train_loss'] += [train_loss]
@@ -191,7 +161,8 @@ class GTS_Runner(object):
                     data_batch = data_batch.to(device=self.device)
 
                 with torch.no_grad():
-                    adj_matrix, outputs = self.model(data_batch.x[:,0,:], data_batch.y, self.entire_inputs, self.init_edge_index)
+                    adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs,
+                                                     self.init_edge_index)
 
                 loss = self.loss(outputs, data_batch.y)
                 val_loss += [float(loss.data.cpu().numpy())]
@@ -240,14 +211,14 @@ class GTS_Runner(object):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
-                adj_matrix, outputs = self.model(data_batch.x[:,0,:], data_batch.y, self.entire_inputs, self.init_edge_index)
+                adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs,
+                                                 self.init_edge_index)
 
             loss = self.loss(outputs, data_batch.y)
 
             test_loss += [float(loss.data.cpu().numpy())]
             output += [outputs.cpu()]
             target += [data_batch.y.cpu()]
-
 
         test_loss = np.stack(test_loss).mean()
 

@@ -4,10 +4,10 @@ from torch.nn import functional as F
 
 
 class GraphLearningScaledDotProductAttention(nn.Module):
-    def __init__(self, dropout=0):
+    def __init__(self, dropout=0.4):
         super(GraphLearningScaledDotProductAttention, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
-        self.softmax = nn.Softmax(dim=-1)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, q, k, mask=None):
         attn = torch.matmul(q, k.transpose(0, 1))
