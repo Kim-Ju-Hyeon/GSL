@@ -165,7 +165,7 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
         # DCRNN encoder
         encoder_hidden_state = None
         for i in range(self.encoder_step):
-            encoder_hidden_state = self.encoder_model(inputs[:, i].unsqueeze(dim=-1), adj_matrix,
+            encoder_hidden_state = self.encoder_model(inputs[:, :, i], adj_matrix,
                                                       encoder_hidden_state, weight_matrix)
 
         # DCRNN decoder

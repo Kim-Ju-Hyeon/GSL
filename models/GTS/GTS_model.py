@@ -6,7 +6,7 @@ from utils.utils import build_batch_edge_index, build_batch_edge_weight
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.utils import to_undirected, to_dense_adj, dense_to_sparse
+from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
 
 class GTS_Model(nn.Module):
@@ -39,8 +39,8 @@ class GTS_Model(nn.Module):
                 self.graph_learning = GTS_Graph_Learning(self.config, 2)
 
         elif self.graph_learning_mode == 'attention':
-            self.graph_learning = Attention_Graph_Learning(self.config)
-
+            self.graph_learning_connect = Attention_Graph_Learning(self.config)
+            self.graph_learning_disconnect = Attention_Graph_Learning(self.config)
         else:
             raise ValueError("Invalid graph learning mode")
 
@@ -57,8 +57,9 @@ class GTS_Model(nn.Module):
 
         elif self.graph_learning_mode == 'attention':
             edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
-
-            adj_matrix = dense_to_sparse(adj)
+            adj_matrix, _ = dense_to_sparse(edge_probability[:,:,0])
+        else:
+            raise ValueError('Invalid Graph Learning mode')
 
         batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size, self.node_nums)
 
@@ -86,8 +87,14 @@ class GTS_Model(nn.Module):
 
     def forward(self, inputs, targets, entire_inputs, edge_index):
         batch_size = self.config.train.batch_size
-        
-        adj = self.graph_learning(entire_inputs, edge_index)
+
+        if self.graph_learning_mode == 'attention':
+            connect = self.graph_learning_connect(entire_inputs, edge_index)
+            disconnect = self.graph_learning_disconnect(entire_inputs, edge_index)
+
+            adj = torch.stack([connect,disconnect], dim=-1)
+        else:
+            adj = self.graph_learning(entire_inputs, edge_index)
 
         if self.sampling_mode:
             batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(adj, edge_index, batch_size)
