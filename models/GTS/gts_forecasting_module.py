@@ -170,10 +170,7 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
 
         # DCRNN decoder
         outputs = []
-        print(encoder_hidden_state.shape)
-        print(targets.shape)
         decoder_input = torch.zeros((self.nodes_num*self.config.train.batch_size, 1))
-        print(decoder_input.shape)
 
         if self.use_gpu and (self.device != 'cpu'):
             decoder_input = decoder_input.to(device=self.device)
