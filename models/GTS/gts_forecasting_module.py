@@ -61,7 +61,7 @@ class DecoderModel(nn.Module):
         self.output_dim = config.dataset.pred_step
         self.hidden_dim = config.hidden_dim
 
-        self.decoder_dcrnn = DCRNN(config)
+        self.decoder_dcrnn = DCRNN(config, 'Decoder')
         self.prediction_layer = nn.Linear(self.hidden_dim, self.output_dim)
 
         self.init_weights()
@@ -158,7 +158,7 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
         self.encoder_step = config.encoder_step
         self.decoder_step = config.decoder_step
 
-        self.encoder_model = DCRNN(config)
+        self.encoder_model = DCRNN(config, 'Encoder')
         self.decoder_model = DecoderModel(config)
 
     def forward(self, inputs, targets, adj_matrix, weight_matrix=None):

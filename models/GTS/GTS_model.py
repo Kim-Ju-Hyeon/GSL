@@ -34,9 +34,9 @@ class GTS_Model(nn.Module):
 
         if self.graph_learning_mode == 'GTS':
             if self.sampling_mode:
-                self.graph_learning = GTS_Graph_Learning(self.config, 1)
-            else:
                 self.graph_learning = GTS_Graph_Learning(self.config, 2)
+            else:
+                self.graph_learning = GTS_Graph_Learning(self.config, 1)
 
         elif self.graph_learning_mode == 'attention':
             self.graph_learning_connect = Attention_Graph_Learning(self.config)
@@ -92,7 +92,7 @@ class GTS_Model(nn.Module):
             connect = self.graph_learning_connect(entire_inputs, edge_index)
             disconnect = self.graph_learning_disconnect(entire_inputs, edge_index)
 
-            adj = torch.stack([connect,disconnect], dim=-1)
+            adj = torch.stack([connect, disconnect], dim=-1)
         else:
             adj = self.graph_learning(entire_inputs, edge_index)
 

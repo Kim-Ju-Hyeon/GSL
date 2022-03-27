@@ -4,9 +4,14 @@ import torch.nn as nn
 
 
 class DCRNN(torch.nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, en_de_type: str):
         super(DCRNN, self).__init__()
-        self.embedding_dim = config.embedding_dim
+        if en_de_type == 'Encoder':
+            self.embedding_dim = config.encoder_embedding_dim
+        elif en_de_type == 'Decoder':
+            self.embedding_dim = config.decoder_embedding_dim
+        else:
+            raise ValueError('Invalid Type Encoder or Decoder')
         self.hidden_dim = config.hidden_dim
 
         self.num_layer = config.forecasting_module.num_layer
