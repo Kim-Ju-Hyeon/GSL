@@ -1,6 +1,6 @@
 ---
 exp_name: PEMS_BAY
-exp_dir: ./exp
+exp_dir: ../exp
 use_gpu: False
 device: cpu
 seed: 1010

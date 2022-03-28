@@ -1,6 +1,6 @@
 ---
 exp_name: METR_LA
-exp_dir: ./exp/METR_LA
+exp_dir: ../exp/METR_LA
 use_gpu: True
 device: 0
 seed: 1010
