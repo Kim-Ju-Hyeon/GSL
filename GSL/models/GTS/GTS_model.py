@@ -56,7 +56,7 @@ class GTS_Model(nn.Module):
 
         elif self.graph_learning_mode == 'attention':
             edge_probability = F.gumbel_softmax(adj, tau=self.tau, hard=True)
-            adj_matrix, _ = dense_to_sparse(edge_probability[:,:,0])
+            adj_matrix, _ = dense_to_sparse(edge_probability[:, :, 0])
         else:
             raise ValueError('Invalid Graph Learning mode')
 

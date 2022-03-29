@@ -211,7 +211,7 @@ class GTS_Runner(object):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
-                adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs,
+                adj_matrix, outputs = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
                                                  self.init_edge_index)
 
             loss = self.loss(outputs, data_batch.y)
