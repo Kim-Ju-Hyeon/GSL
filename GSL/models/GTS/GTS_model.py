@@ -39,8 +39,7 @@ class GTS_Model(nn.Module):
                 self.graph_learning = GTS_Graph_Learning(self.config, 1)
 
         elif self.graph_learning_mode == 'attention':
-            self.graph_learning_connect = Attention_Graph_Learning(self.config)
-            self.graph_learning_disconnect = Attention_Graph_Learning(self.config)
+            self.graph_learning = Attention_Graph_Learning(self.config)
         else:
             raise ValueError("Invalid graph learning mode")
 
@@ -89,10 +88,8 @@ class GTS_Model(nn.Module):
         batch_size = self.config.train.batch_size
 
         if self.graph_learning_mode == 'attention':
-            connect = self.graph_learning_connect(entire_inputs, edge_index)
-            disconnect = self.graph_learning_disconnect(entire_inputs, edge_index)
+            adj = self.graph_learning(entire_inputs, edge_index)
 
-            adj = torch.stack([connect, disconnect], dim=-1)
         else:
             adj = self.graph_learning(entire_inputs, edge_index)
 

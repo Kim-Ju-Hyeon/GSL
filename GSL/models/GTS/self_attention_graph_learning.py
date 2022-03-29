@@ -49,6 +49,8 @@ class Attention_Graph_Learning(nn.Module):
             self.feature_batchnorm.append(nn.BatchNorm1d(self.conv_dim[i]))
         self.feature_batchnorm.append(nn.BatchNorm1d(self.hidden_dim))
 
+        self.gumbel_trick = nn.Linear(1, 2)
+
 
     def init_weights(self):
         for m in self.modules():
@@ -75,5 +77,7 @@ class Attention_Graph_Learning(nn.Module):
 
         if self.symmetric:
             outputs = (outputs + outputs.T) * 0.5
+
+        outputs = self.gumbel_trick(outputs.unsqueeze(dim=-1))
 
         return outputs
