@@ -17,3 +17,5 @@ LNP_spk_all.pickle
 
 */exp/*
 exp
+
+*/__pycache__/*
