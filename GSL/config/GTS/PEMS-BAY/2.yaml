@@ -3,7 +3,7 @@ exp_name: PEMS_BAY
 exp_dir: ../exp/PEMS_BAY
 use_gpu: True
 device: 0
-seed: 1010
+seed: 10101
 
 model_name: GTS
 
@@ -30,7 +30,7 @@ train:
 
 nodes_num: 325
 node_features: 2
-hidden_dim: 32
+hidden_dim: 128
 encoder_embedding_dim: 2
 decoder_embedding_dim: 1
 
@@ -47,13 +47,13 @@ graph_learning:
 
 
 forecasting_module:
-  diffusion_k: 2
+  diffusion_k: 3
   num_layer: 1
   use_teacher_forcing: True
   teacher_forcing_ratio: 0.5
 
-encoder_step: 12
-decoder_step: 3
+encoder_step: 288
+decoder_step: 60
 
 tau: 0.3
 
