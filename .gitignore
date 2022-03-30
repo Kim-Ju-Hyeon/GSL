@@ -19,3 +19,15 @@ LNP_spk_all.pickle
 exp
 
 */__pycache__/*
+
+# Byte-compiled / optimized / DLL files
+
+__pycache__/
+
+*.py[cod]
+
+JupyterNoteBook/
+!Result_Visualization.ipynb
+
+.Trash-0
+*/.Trash-0/*

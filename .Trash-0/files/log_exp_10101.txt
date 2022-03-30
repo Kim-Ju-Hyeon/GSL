@@ -1,0 +1,35 @@
+INFO  | File run_exp_dgx.py       | Line 17    | Writing log file to ../exp/PEMS_BAY/GTS_PEMS_BAY_0328_183728/log_exp_10101.txt
+INFO  | File run_exp_dgx.py       | Line 18    | Exp instance id = GTS_PEMS_BAY_0328_183728
+ERROR | File run_exp_dgx.py       | Line 26    | Traceback (most recent call last):
+  File "run_exp_dgx.py", line 22, in main
+    runner.train()
+  File "/workspace/GSL/runner/GTS_runner.py", line 132, in train
+    _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+  File "/opt/conda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/workspace/GSL/models/GTS/GTS_model.py", line 112, in forward
+    outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix, weight_matrix=batch_weight_matrix)
+  File "/opt/conda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/workspace/GSL/models/GTS/gts_forecasting_module.py", line 168, in forward
+    encoder_hidden_state = self.encoder_model(inputs[:, :, i], adj_matrix,
+  File "/opt/conda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/workspace/GSL/models/GTS/DCRNN.py", line 37, in forward
+    next_hidden_state = dcgru_layer(X=output, edge_index=edge_index, edge_weight=weight_matrix, H=hidden_state[layer_num])
+  File "/opt/conda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/opt/conda/lib/python3.8/site-packages/torch_geometric_temporal/nn/recurrent/dcrnn.py", line 215, in forward
+    Z = self._calculate_update_gate(X, edge_index, edge_weight, H)
+  File "/opt/conda/lib/python3.8/site-packages/torch_geometric_temporal/nn/recurrent/dcrnn.py", line 174, in _calculate_update_gate
+    Z = self.conv_x_z(Z, edge_index, edge_weight)
+  File "/opt/conda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/opt/conda/lib/python3.8/site-packages/torch_geometric_temporal/nn/recurrent/dcrnn.py", line 86, in forward
+    Tx_1_o = self.propagate(edge_index, x=X, norm=norm_out, size=None)
+  File "/opt/conda/lib/python3.8/site-packages/torch_geometric/nn/conv/message_passing.py", line 317, in propagate
+    out = self.message(**msg_kwargs)
+  File "/opt/conda/lib/python3.8/site-packages/torch_geometric_temporal/nn/recurrent/dcrnn.py", line 40, in message
+    return norm.view(-1, 1) * x_j
+RuntimeError: CUDA out of memory. Tried to allocate 842.00 MiB (GPU 0; 23.70 GiB total capacity; 19.02 GiB already allocated; 149.81 MiB free; 20.32 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+

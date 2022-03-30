@@ -1,0 +1,55 @@
+dataset:
+  graph_learning_length: 52105
+  name: PEMS-BAY
+  pred_step: 1
+  root: ./data/PEMS-BAY
+decoder_embedding_dim: 1
+decoder_step: 60
+device: 0
+encoder_embedding_dim: 2
+encoder_step: 288
+exp_dir: ../exp/PEMS_BAY/GTS_PEMS_BAY_0328_183728
+exp_name: GTS_PEMS_BAY_0328_183728
+forecasting_module:
+  diffusion_k: 3
+  num_layer: 1
+  teacher_forcing_ratio: 0.5
+  use_teacher_forcing: true
+graph_forecasting_module: GTS
+graph_learning:
+  conv_dim:
+  - 8
+  - 16
+  hidden_dim: 128
+  kernel_size:
+  - 10
+  - 10
+  mode: attention
+  n_head: 4
+  sampling: true
+  sequence: 1
+  stride:
+  - 1
+  - 1
+  to_symmetric: false
+graph_learning_module: GTS
+hidden_dim: 128
+initial_edge_index: Fully Connected
+model_name: GTS
+model_save: ../exp/PEMS_BAY/GTS_PEMS_BAY_0328_183728/model_save
+node_features: 2
+nodes_num: 325
+seed: 10101
+tau: 0.3
+train:
+  batch_size: 32
+  epoch: 100
+  loss_function: MAE
+  lr: 0.001
+  lr_decay: 0.1
+  lr_decay_steps:
+  - 10000
+  momentum: 0.9
+  optimizer: Adam
+  wd: 0.0
+use_gpu: true
