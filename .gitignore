@@ -26,7 +26,8 @@ __pycache__/
 
 *.py[cod]
 
-JupyterNoteBook/
+*/JupyterNoteBook/*
+/Jupyter
 !Result_Visualization.ipynb
 
 .Trash-0
