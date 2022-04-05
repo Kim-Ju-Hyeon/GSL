@@ -9,11 +9,11 @@ from torch.nn import init
 import torch.nn.functional as F
 
 
-class GraphConstructor(nn.Module):
+class MTGNN_Graph_Learning(nn.Module):
     def __init__(
-        self, num_nodes: int, k: int, dim: int, alpha: float, xd: Optional[int] = None
+            self, num_nodes: int, k: int, dim: int, alpha: float, xd: Optional[int] = None
     ):
-        super(GraphConstructor, self).__init__()
+        super(MTGNN_Graph_Learning, self).__init__()
         if xd is not None:
             self._static_feature_dim = xd
             self._linear1 = nn.Linear(xd, dim)
@@ -37,9 +37,8 @@ class GraphConstructor(nn.Module):
                 nn.init.uniform_(p)
 
     def forward(
-        self, idx: torch.LongTensor, FE: Optional[torch.FloatTensor] = None
+            self, idx: torch.LongTensor, FE: Optional[torch.FloatTensor] = None
     ) -> torch.FloatTensor:
-
 
         if FE is None:
             nodevec1 = self._embedding1(idx)
