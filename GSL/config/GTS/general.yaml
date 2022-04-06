@@ -38,6 +38,7 @@ graph_learning:
   sampling: False # Gumbel_softmax, Top_k, False
   tau: 0.3
   top_k: 10
+  alpha: 10
   to_symmetric: False
   initial_edge_index: Fully Connected
   sequence: 1

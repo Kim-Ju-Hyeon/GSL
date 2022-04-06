@@ -1,4 +1,4 @@
-from models.GTS.gts_graph_learning import GTS_Graph_Learning
+from models.GTS.gts_graph_learning2 import GTS_Graph_Learning
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
 from models.GTS.self_attention_graph_learning import Attention_Graph_Learning
 from models.MTGNN.mtgnn_graph_learning import MTGNN_Graph_Learning
@@ -28,18 +28,49 @@ class My_Model(nn.Module):
         elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
             self.graph_forecasting = GTS_Traffic_Forecasting_Module(self.config)
         else:
-            raise ValueError("Non-supported dataset!")
+            raise ValueError("Non-supported Forecasting Module!")
 
         if self.graph_learning_mode == 'GTS':
-            if self.sampling_mode == 'Gumbel_softmax':
-                self.graph_learning = GTS_Graph_Learning(self.config, 2)
-            else:
-                self.graph_learning = GTS_Graph_Learning(self.config, 1)
-
+            self.graph_learning = GTS_Graph_Learning(self.config)
         elif self.graph_learning_mode == 'attention':
             self.graph_learning = Attention_Graph_Learning(self.config)
-
         elif self.graph_learning_mode == 'MTGNN':
-            self.graph_learning = MTGNN_Graph_Learning(num_nodes=self.node_nums, k=self.graph_learning_parameter.top_k, dim=self.graph_learning_parameter.hidden_dim)
+            self.graph_learning = MTGNN_Graph_Learning(self.config)
+        elif self.graph_learning_mode == 'GDN':
+            pass
+        elif self.graph_learning_mode == 'ProbSparse_Attention':
+            pass
         else:
             raise ValueError("Invalid graph learning mode")
+
+    def forward(self, inputs, targets, entire_inputs, edge_index):
+        batch_size = self.config.train.batch_size
+
+        theta = self.graph_learning(entire_inputs, edge_index)
+
+        if self.sampling_mode == 'Gumbel_softmax':
+            pass
+        elif self.sampling_mode == 'Top_k':
+            pass
+        elif self.sampling_mode == 'False':
+            pass
+        else:
+            ValueError("Invalid graph sampling mode")
+
+
+        if self.sampling_mode:
+            batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(theta, edge_index, batch_size)
+            batch_weight_matrix = None
+
+            if (self.graph_learning_mode == 'GTS') and (self.graph_learning_sequence > 1):
+                for _ in range(self.graph_learning_sequence-1):
+                    theta = self.graph_learning(entire_inputs, adj_matrix)
+                    batch_adj_matrix, adj_matrix = self._gumbel_softmax_structure_sampling(theta, adj_matrix, batch_size)
+
+        else:
+            batch_adj_matrix, batch_weight_matrix, adj_matrix = self._weight_matrix_construct(theta, edge_index,
+                                                                                              batch_size)
+
+        outputs = self.graph_forecasting(inputs, targets, batch_adj_matrix, weight_matrix=batch_weight_matrix)
+
+        return adj_matrix, outputs

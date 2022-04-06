@@ -10,22 +10,22 @@ import torch.nn.functional as F
 
 
 class MTGNN_Graph_Learning(nn.Module):
-    def __init__(
-            self, num_nodes: int, k: int, dim: int, alpha: float, xd: Optional[int] = None
-    ):
+    def __init__(self, config):
         super(MTGNN_Graph_Learning, self).__init__()
-        if xd is not None:
-            self._static_feature_dim = xd
-            self._linear1 = nn.Linear(xd, dim)
-            self._linear2 = nn.Linear(xd, dim)
-        else:
-            self._embedding1 = nn.Embedding(num_nodes, dim)
-            self._embedding2 = nn.Embedding(num_nodes, dim)
-            self._linear1 = nn.Linear(dim, dim)
-            self._linear2 = nn.Linear(dim, dim)
 
-        self._k = k
-        self._alpha = alpha
+        num_nodes = config.nodes_num
+        dim = config.graph_learning.hidden_dim
+        self.sampling = config.graph_learning.sampling
+
+        self._embedding1 = nn.Embedding(num_nodes, dim)
+        self._embedding2 = nn.Embedding(num_nodes, dim)
+        self._linear1 = nn.Linear(dim, dim)
+        self._linear2 = nn.Linear(dim, dim)
+
+        if self.sampling == 'Gumbel_softmax':
+            self.gumbel_trick = nn.Linear(1, 2)
+
+        self._alpha = config.graph_learning.alpha
 
         self._reset_parameters()
 
@@ -36,28 +36,18 @@ class MTGNN_Graph_Learning(nn.Module):
             else:
                 nn.init.uniform_(p)
 
-    def forward(
-            self, idx: torch.LongTensor, FE: Optional[torch.FloatTensor] = None
-    ) -> torch.FloatTensor:
-
-        if FE is None:
-            nodevec1 = self._embedding1(idx)
-            nodevec2 = self._embedding2(idx)
-        else:
-            assert FE.shape[1] == self._static_feature_dim
-            nodevec1 = FE[idx, :]
-            nodevec2 = nodevec1
+    def forward(self) -> torch.FloatTensor:
+        nodevec1 = self._embedding1.weight
+        nodevec2 = self._embedding2.weight
 
         nodevec1 = torch.tanh(self._alpha * self._linear1(nodevec1))
         nodevec2 = torch.tanh(self._alpha * self._linear2(nodevec2))
 
-        a = torch.mm(nodevec1, nodevec2.transpose(1, 0)) - torch.mm(
+        outputs = torch.mm(nodevec1, nodevec2.transpose(1, 0)) - torch.mm(
             nodevec2, nodevec1.transpose(1, 0)
         )
-        A = F.relu(torch.tanh(self._alpha * a))
-        mask = torch.zeros(idx.size(0), idx.size(0)).to(A.device)
-        mask.fill_(float("0"))
-        s1, t1 = A.topk(self._k, 1)
-        mask.scatter_(1, t1, s1.fill_(1))
-        A = A * mask
-        return A
+
+        if self.sampling == 'Gumbel_softmax':
+            outputs = self.gumbel_trick(outputs.unsqueeze(dim=-1))
+
+        return outputs

@@ -1,28 +1,27 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.utils import dense_to_sparse
-from models.Attention import GraphLearningMultiHeadAttention
+from models.message_passing.message_layer import MessageLayer
+from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
 
-class Attention_Graph_Learning(nn.Module):
+class GTS_Graph_Learning(MessageLayer):
     def __init__(self, config):
-        super(Attention_Graph_Learning, self).__init__()
-
+        super(GTS_Graph_Learning, self).__init__()
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
 
         self.symmetric = config.graph_learning.to_symmetric
-        self.sampling = config.graph_learning.sampling
         self.total_length = config.dataset.graph_learning_length
         self.kernel_size = config.graph_learning.kernel_size
         self.stride = config.graph_learning.stride
         self.conv_dim = config.graph_learning.conv_dim
         self.hidden_dim = config.graph_learning.hidden_dim
 
-        self.attention_gl = GraphLearningMultiHeadAttention(config.graph_learning.n_head,
-                                                            self.hidden_dim,
-                                                            self.num_nodes)
+        if config.graph_learning.sampling == 'Gumbel_softmax':
+            out_dim = 2
+        else:
+            out_dim = 1
 
         out_size = 0
         for i in range(len(self.kernel_size)):
@@ -30,9 +29,6 @@ class Attention_Graph_Learning(nn.Module):
                 out_size = int(((self.total_length - self.kernel_size[i]) / self.stride[i]) + 1)
             else:
                 out_size = int(((out_size - self.kernel_size[i]) / self.stride[i]) + 1)
-
-        self.fc_concat = nn.Linear(out_size*self.conv_dim[-1], self.hidden_dim)
-        self.hidden_drop = nn.Dropout(0.4)
 
         self.feature_extracotr = nn.ModuleList()
         self.feature_batchnorm = nn.ModuleList()
@@ -52,8 +48,12 @@ class Attention_Graph_Learning(nn.Module):
             self.feature_batchnorm.append(nn.BatchNorm1d(self.conv_dim[i]))
         self.feature_batchnorm.append(nn.BatchNorm1d(self.hidden_dim))
 
-        if self.sampling == 'Gumbel_softmax':
-            self.gumbel_trick = nn.Linear(1, 2)
+        self.fc_concat = nn.Linear(out_size*self.conv_dim[-1], self.hidden_dim)
+
+        self.fc_cat = nn.Linear(self.hidden_dim*2, self.hidden_dim)
+        self.fc_out = nn.Linear(self.hidden_dim, out_dim)
+
+        self.init_weights()
 
     def init_weights(self):
         for m in self.modules():
@@ -61,7 +61,7 @@ class Attention_Graph_Learning(nn.Module):
                 nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.fill_(0.1)
 
-    def forward(self, x):
+    def forward(self, x, edge_index):
         if len(x.shape) == 2:
             x = x.reshape(self.num_nodes, self.nodes_feas, -1)
 
@@ -76,12 +76,19 @@ class Attention_Graph_Learning(nn.Module):
         x = F.relu(x)
         x = self.feature_batchnorm[-1](x)
 
-        outputs = self.attention_gl(x, x)
+        _, x = self.propagate(edge_index, x=x)
 
         if self.symmetric:
-            outputs = (outputs + outputs.T) * 0.5
+            mat = to_dense_adj(edge_index, edge_attr=x).squeeze()
+            adj = (mat + mat.T) * 0.5
+            _, x = dense_to_sparse(adj)
+        else:
+            pass
 
-        if self.sampling == 'Gumbel_softmax':
-            outputs = self.gumbel_trick(outputs.unsqueeze(dim=-1))
+        return x
 
-        return outputs
+    def message(self, x_i, x_j):
+        x = torch.cat([x_i, x_j], dim=-1)
+        x = F.relu(self.fc_cat(x))
+        x = F.relu(self.fc_out(x))
+        return x
