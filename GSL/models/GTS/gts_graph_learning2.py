@@ -11,7 +11,6 @@ class GTS_Graph_Learning(MessageLayer):
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
 
-        self.symmetric = config.graph_learning.to_symmetric
         self.total_length = config.dataset.graph_learning_length
         self.kernel_size = config.graph_learning.kernel_size
         self.stride = config.graph_learning.stride
@@ -77,13 +76,6 @@ class GTS_Graph_Learning(MessageLayer):
         x = self.feature_batchnorm[-1](x)
 
         _, x = self.propagate(edge_index, x=x)
-
-        if self.symmetric:
-            mat = to_dense_adj(edge_index, edge_attr=x).squeeze()
-            adj = (mat + mat.T) * 0.5
-            _, x = dense_to_sparse(adj)
-        else:
-            pass
 
         return x
 

@@ -12,7 +12,6 @@ class Attention_Graph_Learning(nn.Module):
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
 
-        self.symmetric = config.graph_learning.to_symmetric
         self.sampling = config.graph_learning.sampling
         self.total_length = config.dataset.graph_learning_length
         self.kernel_size = config.graph_learning.kernel_size
@@ -77,9 +76,6 @@ class Attention_Graph_Learning(nn.Module):
         x = self.feature_batchnorm[-1](x)
 
         outputs = self.attention_gl(x, x)
-
-        if self.symmetric:
-            outputs = (outputs + outputs.T) * 0.5
 
         if self.sampling == 'Gumbel_softmax':
             outputs = self.gumbel_trick(outputs.unsqueeze(dim=-1))

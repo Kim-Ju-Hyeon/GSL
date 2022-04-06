@@ -15,6 +15,7 @@ class MTGNN_Graph_Learning(nn.Module):
 
         num_nodes = config.nodes_num
         dim = config.graph_learning.hidden_dim
+
         self.sampling = config.graph_learning.sampling
 
         self._embedding1 = nn.Embedding(num_nodes, dim)
