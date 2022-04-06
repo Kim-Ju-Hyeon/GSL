@@ -32,11 +32,11 @@ train:
   lr_decay_steps: [10000]
 
 graph_learning:
-  mode: attention # GTS, attention
-  sampling: None # Gumbel_softmax, Top_k, None
+  mode: MTGNN # GTS, attention, MTGNN
+  sampling: Top_k # Gumbel_softmax, Top_k, None
   tau: 0.3
   top_k: 10
-  alpha: 10
+  alpha: 200
   to_symmetric: False
   initial_edge_index: Fully Connected
   sequence: 1

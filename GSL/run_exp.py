@@ -1,5 +1,7 @@
 import click
 from runner.GTS_runner import GTS_Runner
+from runner.runner import Runner
+
 from utils.train_helper import get_config
 import traceback
 from utils.logger import setup_logging
@@ -18,7 +20,7 @@ def main(conf_file_path):
     logger.info("Exp instance id = {}".format(config.exp_name))
 
     try:
-        runner = GTS_Runner(config=config)
+        runner = Runner(config=config)
         runner.train()
         runner.test()
 

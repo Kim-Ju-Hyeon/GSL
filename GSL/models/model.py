@@ -73,7 +73,7 @@ class My_Model(nn.Module):
                                                                      symmetric=self.symmetric)
             batch_weight_matrix = None
 
-        elif self.sampling_mode == 'False':
+        elif self.sampling_mode == 'None':
             batch_edge_index, batch_weight_matrix, adj_matrix = weight_matrix_construct(theta, batch_size, self.node_nums, self.symmetric)
         else:
             raise ValueError("Invalid graph sampling mode")
