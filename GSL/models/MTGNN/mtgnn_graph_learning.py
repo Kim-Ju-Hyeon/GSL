@@ -37,7 +37,7 @@ class MTGNN_Graph_Learning(nn.Module):
             else:
                 nn.init.uniform_(p)
 
-    def forward(self) -> torch.FloatTensor:
+    def forward(self) -> torch.Tensor:
         nodevec1 = self._embedding1.weight
         nodevec2 = self._embedding2.weight
 
@@ -50,5 +50,7 @@ class MTGNN_Graph_Learning(nn.Module):
 
         if self.sampling == 'Gumbel_softmax':
             outputs = self.gumbel_trick(outputs.unsqueeze(dim=-1))
+
+        outputs = F.relu(torch.tanh(self._alpha * outputs))
 
         return outputs

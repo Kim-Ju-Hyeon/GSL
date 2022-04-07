@@ -37,15 +37,17 @@ def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: b
     if symmetric:
         theta = (theta + theta.T) * 0.5
 
-    weight_matrix = theta
-    init_edge_index = build_fully_connected_edge_idx(node_nums)
-    batch_adj_matrix = build_batch_edge_index(init_edge_index, batch_size, node_nums)
-    batch_weight_matrix = build_batch_edge_weight(theta, batch_size)
+    # weight_matrix = theta
+    # init_edge_index = build_fully_connected_edge_idx(node_nums)
+
+    new_edge_index, weight_matrix = dense_to_sparse(theta)
+    batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
+    batch_weight_matrix = build_batch_edge_weight(weight_matrix, batch_size)
 
     return batch_adj_matrix, batch_weight_matrix, weight_matrix
 
 
-def top_k_structure_construct(theta, batch_size: int, alpha: float, k: int, node_nums: int, symmetric: bool):
+def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, symmetric: bool):
     if theta.shape[0] == node_nums * node_nums:
         theta = theta.view(node_nums, node_nums)
     elif theta.shape[0] == node_nums:
@@ -54,13 +56,14 @@ def top_k_structure_construct(theta, batch_size: int, alpha: float, k: int, node
     if symmetric:
         theta = (theta + theta.T) * 0.5
 
-    A = F.relu(torch.tanh(alpha * theta))
     mask = torch.zeros(node_nums, node_nums)
-    mask.fill_(float("0"))
-    s1, t1 = A.topk(k, 1)
-    mask.scatter_(1, t1, s1.fill_(1))
-    adj_matrix = A * mask
 
-    batch_adj_matrix = build_batch_edge_index(adj_matrix, batch_size, node_nums)
+    mask.fill_(float("0"))
+    s1, t1 = theta.topk(k, 1)
+    mask.scatter_(1, t1, s1.fill_(1))
+    adj_matrix = theta * mask
+    new_edge_index, _ = dense_to_sparse(adj_matrix)
+
+    batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
 
     return batch_adj_matrix, adj_matrix

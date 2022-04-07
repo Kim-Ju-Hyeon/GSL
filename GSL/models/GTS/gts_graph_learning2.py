@@ -5,9 +5,9 @@ from models.message_passing.message_layer import MessageLayer
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
 
-class GTS_Graph_Learning(MessageLayer):
+class GTS_Graph_Learning2(MessageLayer):
     def __init__(self, config):
-        super(GTS_Graph_Learning, self).__init__()
+        super(GTS_Graph_Learning2, self).__init__()
         self.num_nodes = config.nodes_num
         self.nodes_feas = config.node_features
 

@@ -23,6 +23,7 @@ class MessageLayer(MessagePassing):
     def __init__(self):
         super(MessageLayer, self).__init__()
         self.total_message = None
+        self.__explain__ = False
 
     def propagate(self, edge_index: Adj, size: Size = None, **kwargs):
         r"""The initial call to start propagating messages.
@@ -53,7 +54,8 @@ class MessageLayer(MessagePassing):
             **kwargs: Any additional data which is needed to construct and
                 aggregate messages, and to update node embeddings.
         """
-        decomposed_layers = 1 if self.__explain__ else self.decomposed_layers
+
+        decomposed_layers = 1   # if self.__explain__ else self.decomposed_layers
 
         for hook in self._propagate_forward_pre_hooks.values():
             res = hook(self, (edge_index, size, kwargs))

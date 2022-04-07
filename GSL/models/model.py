@@ -1,4 +1,4 @@
-from models.GTS.gts_graph_learning2 import GTS_Graph_Learning
+from models.GTS.gts_graph_learning2 import GTS_Graph_Learning2
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
 from models.GTS.self_attention_graph_learning import Attention_Graph_Learning
 from models.MTGNN.mtgnn_graph_learning import MTGNN_Graph_Learning
@@ -33,7 +33,7 @@ class My_Model(nn.Module):
             raise ValueError("Non-supported Forecasting Module!")
 
         if self.graph_learning_mode == 'GTS':
-            self.graph_learning = GTS_Graph_Learning(self.config)
+            self.graph_learning = GTS_Graph_Learning2(self.config)
         elif self.graph_learning_mode == 'attention':
             self.graph_learning = Attention_Graph_Learning(self.config)
         elif self.graph_learning_mode == 'MTGNN':
@@ -67,7 +67,6 @@ class My_Model(nn.Module):
 
         elif self.sampling_mode == 'Top_k':
             batch_edge_index, adj_matrix = top_k_structure_construct(theta, batch_size,
-                                                                     alpha=self.graph_learning_parameter.alpha,
                                                                      k=self.graph_learning_parameter.top_k,
                                                                      node_nums=self.node_nums,
                                                                      symmetric=self.symmetric)

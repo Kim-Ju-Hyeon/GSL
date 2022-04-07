@@ -33,7 +33,7 @@ train:
 
 graph_learning:
   mode: MTGNN # GTS, attention, MTGNN
-  sampling: Top_k # Gumbel_softmax, Top_k, None
+  sampling: None # Gumbel_softmax, Top_k, None
   tau: 0.3
   top_k: 10
   alpha: 200
