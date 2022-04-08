@@ -9,14 +9,14 @@ do
     sleep 3
 done
 
-export CUDA_VISIBLE_DEVICES=3
-for i in 1
-do
-#    python3 run_exp.py --conf_file_path ./config/0407_Exp/attention_weight.yaml &
+#export CUDA_VISIBLE_DEVICES=3
+#for i in 1
+#do
+##    python3 run_exp.py --conf_file_path ./config/0407_Exp/attention_weight.yaml &
+##    sleep 3
+#    python3 run_exp.py --conf_file_path ./config/0407_Exp/GTS_Gumbel.yaml &
 #    sleep 3
-    python3 run_exp.py --conf_file_path ./config/0407_Exp/GTS_Gumbel.yaml &
-    sleep 3
-done
+#done
 
 export CUDA_VISIBLE_DEVICES=2
 for i in 1

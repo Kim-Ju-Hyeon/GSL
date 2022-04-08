@@ -16,6 +16,7 @@ class My_Model(nn.Module):
         super(My_Model, self).__init__()
 
         self.config = config
+        self.device = config.device
         self.dataset_conf = config.dataset
         self.node_nums = config.nodes_num
 
@@ -69,7 +70,8 @@ class My_Model(nn.Module):
             batch_edge_index, adj_matrix = top_k_structure_construct(theta, batch_size,
                                                                      k=self.graph_learning_parameter.top_k,
                                                                      node_nums=self.node_nums,
-                                                                     symmetric=self.symmetric)
+                                                                     symmetric=self.symmetric,
+                                                                     device=self.device)
             batch_weight_matrix = None
 
         elif self.sampling_mode == 'None':

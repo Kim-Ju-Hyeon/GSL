@@ -47,7 +47,7 @@ def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: b
     return batch_adj_matrix, batch_weight_matrix, weight_matrix
 
 
-def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, symmetric: bool):
+def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
     if theta.shape[0] == node_nums * node_nums:
         theta = theta.view(node_nums, node_nums)
     elif theta.shape[0] == node_nums:
@@ -56,7 +56,7 @@ def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, sy
     if symmetric:
         theta = (theta + theta.T) * 0.5
 
-    mask = torch.zeros(node_nums, node_nums)
+    mask = torch.zeros(node_nums, node_nums).to(device=device)
 
     mask.fill_(float("0"))
     s1, t1 = theta.topk(k, 1)
