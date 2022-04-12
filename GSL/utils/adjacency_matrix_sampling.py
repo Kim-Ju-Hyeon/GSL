@@ -44,7 +44,7 @@ def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: b
     batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
     batch_weight_matrix = build_batch_edge_weight(weight_matrix, batch_size)
 
-    return batch_adj_matrix, batch_weight_matrix, weight_matrix
+    return batch_adj_matrix, batch_weight_matrix, theta
 
 
 def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
@@ -62,8 +62,9 @@ def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, sy
     s1, t1 = theta.topk(k, 1)
     mask.scatter_(1, t1, s1.fill_(1))
     adj_matrix = theta * mask
-    new_edge_index, _ = dense_to_sparse(adj_matrix)
+    new_edge_index, new_weight_index = dense_to_sparse(adj_matrix)
 
     batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
+    batch_weight_matrix = build_batch_edge_weight(new_weight_index, batch_size)
 
     return batch_adj_matrix, adj_matrix

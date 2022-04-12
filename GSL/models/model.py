@@ -67,12 +67,11 @@ class My_Model(nn.Module):
             batch_weight_matrix = None
 
         elif self.sampling_mode == 'Top_k':
-            batch_edge_index, adj_matrix = top_k_structure_construct(theta, batch_size,
+            batch_edge_index, batch_weight_matrix, adj_matrix = top_k_structure_construct(theta, batch_size,
                                                                      k=self.graph_learning_parameter.top_k,
                                                                      node_nums=self.node_nums,
                                                                      symmetric=self.symmetric,
                                                                      device=self.device)
-            batch_weight_matrix = None
 
         elif self.sampling_mode == 'None':
             batch_edge_index, batch_weight_matrix, adj_matrix = weight_matrix_construct(theta, batch_size, self.node_nums, self.symmetric)
