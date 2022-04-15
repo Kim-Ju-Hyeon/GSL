@@ -13,7 +13,7 @@ from torch_geometric.loader import DataLoader
 from models.model import My_Model
 from utils.utils import build_fully_connected_edge_idx
 from dataset.make_spike_datset import MakeSpikeDataset
-from utils.train_helper import model_snapshot, load_model
+from utils.train_helper import model_snapshot, load_model, save_yaml
 from utils.logger import get_logger
 from dataset.make_traffic_dataset import TrafficDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
@@ -35,6 +35,7 @@ class Runner(object):
 
         self.best_model_dir = os.path.join(self.model_save, 'best.pth')
         self.ck_dir = os.path.join(self.exp_dir, 'training.ck')
+        self.best_gumbel_tau = np.inf
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
@@ -111,6 +112,7 @@ class Runner(object):
         results = defaultdict(list)
         best_val_loss = np.inf
 
+        tau = self.model.graph_learning_parameter.tau
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
@@ -124,7 +126,7 @@ class Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                _, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+                _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
                 loss = self.loss(outputs, data_batch.y)
 
                 # backward pass (accumulates gradients).
@@ -156,8 +158,8 @@ class Runner(object):
                     data_batch = data_batch.to(device=self.device)
 
                 with torch.no_grad():
-                    adj_matrix, outputs = self.model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                     self.init_edge_index)
+                    adj_matrix, outputs, attention_matrix = self.model(data_batch.x, data_batch.y, self.entire_inputs,
+                                                                       self.init_edge_index)
 
                 loss = self.loss(outputs, data_batch.y)
                 val_loss += [float(loss.data.cpu().numpy())]
@@ -165,6 +167,7 @@ class Runner(object):
             val_loss = np.stack(val_loss).mean()
 
             results['val_loss'] += [val_loss]
+            results['attention_matrix'] = attention_matrix
 
             if type(adj_matrix) == dict:
                 results['val_adj_matirix'] += adj_matrix
@@ -177,8 +180,14 @@ class Runner(object):
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
+                save_yaml(self.config)
+                self.best_gumbel_tau = self.model.graph_learning_parameter.tau
 
             model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
+
+            self.model.graph_learning_parameter.tau = self.model.graph_learning_parameter.tau * 0.8
+            if (epoch == self.train_conf.epoch // 3) or (epoch == self.train_conf.epoch // 3 * 2):
+                self.model.graph_learning_parameter.tau = tau
 
         pickle.dump(results, open(os.path.join(self.config.exp_dir, 'training_result.pickle'), 'wb'))
 
@@ -186,6 +195,7 @@ class Runner(object):
 
         self.best_model = My_Model(self.config)
         best_snapshot = load_model(self.best_model_dir)
+        self.model.graph_learning_parameter.tau = self.best_gumbel_tau
 
         self.best_model.load_state_dict(best_snapshot)
 
@@ -205,8 +215,8 @@ class Runner(object):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
-                adj_matrix, outputs = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                 self.init_edge_index)
+                adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
+                                                      self.init_edge_index)
 
             loss = self.loss(outputs, data_batch.y)
 
@@ -220,6 +230,7 @@ class Runner(object):
         results['adj_matrix'] = adj_matrix
         results['prediction'] = output
         results['target'] = target
+        results['attention_matrix'] = attention_matrix
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
 

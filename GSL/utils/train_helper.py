@@ -36,6 +36,12 @@ def get_config(config_file):
 
     return config
 
+
+def save_yaml(config):
+    save_name = os.path.join(config.exp_dir, f'{config.exp_name}_config.yaml')
+    yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
+
+
 def set_seed(seed=None):
     # type: (Optional[int]) -> int
     """
@@ -50,6 +56,7 @@ def set_seed(seed=None):
     np.random.seed(seed)
 
     return seed
+
 
 def load_model(exp_dir):
     if os.path.exists(exp_dir):
@@ -67,6 +74,7 @@ def model_snapshot(epoch, model, optimizer, best_valid_loss, exp_dir):
         'best_valid_loss': best_valid_loss
     }
     torch.save(ck, exp_dir)
+
 
 def save_config(config):
     save_name = os.path.join(config.exp_dir, f'{config.exp_name}_config.yaml')

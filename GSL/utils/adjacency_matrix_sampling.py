@@ -1,8 +1,8 @@
 import torch
 from torch.nn import functional as F
-from torch_geometric.utils import to_dense_adj, dense_to_sparse, to_undirected
+from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
-from utils.utils import build_batch_edge_index, build_batch_edge_weight, build_fully_connected_edge_idx
+from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
 
 def gumbel_softmax_structure_sampling(theta, edge_index, batch_size: int, tau: float, node_nums: int, symmetric: bool):
@@ -30,15 +30,12 @@ def gumbel_softmax_structure_sampling(theta, edge_index, batch_size: int, tau: f
 
 def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: bool):
     if theta.shape[0] == node_nums * node_nums:
-        theta = theta.view(node_nums, node_nums)
+        theta = to_dense_adj(theta).squeeze(dim=0)
     elif theta.shape[0] == node_nums:
         pass
 
     if symmetric:
         theta = (theta + theta.T) * 0.5
-
-    # weight_matrix = theta
-    # init_edge_index = build_fully_connected_edge_idx(node_nums)
 
     new_edge_index, weight_matrix = dense_to_sparse(theta)
     batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
@@ -47,9 +44,9 @@ def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: b
     return batch_adj_matrix, batch_weight_matrix, theta
 
 
-def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
+def top_k_adj_masking_zero(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
     if theta.shape[0] == node_nums * node_nums:
-        theta = theta.view(node_nums, node_nums)
+        theta = to_dense_adj(theta).squeeze(dim=0)
     elif theta.shape[0] == node_nums:
         pass
 
@@ -66,5 +63,25 @@ def top_k_structure_construct(theta, batch_size: int, k: int, node_nums: int, sy
 
     batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
     batch_weight_matrix = build_batch_edge_weight(new_weight_index, batch_size)
+
+    return batch_adj_matrix, batch_weight_matrix, adj_matrix
+
+def top_k_adj(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
+    if theta.shape[0] == node_nums * node_nums:
+        theta = to_dense_adj(theta).squeeze(dim=0)
+    elif theta.shape[0] == node_nums:
+        pass
+
+    if symmetric:
+        theta = (theta + theta.T) * 0.5
+
+    topk_indices_ji = torch.topk(theta, k, dim=-1)[1]
+
+    gated_i = torch.arange(0, node_nums).T.unsqueeze(1).repeat(1, k).flatten().to(device).unsqueeze(0)
+    gated_j = topk_indices_ji.flatten().unsqueeze(0)
+    new_edge_index = torch.cat((gated_j, gated_i), dim=0)
+    adj_matrix = to_dense_adj(theta).squeeze(dim=0)
+
+    batch_adj_matrix = build_batch_edge_index(new_edge_index, batch_size, node_nums)
 
     return batch_adj_matrix, adj_matrix

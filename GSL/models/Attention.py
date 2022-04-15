@@ -69,4 +69,4 @@ class GraphLearningMultiHeadAttention(nn.Module):
         attn = attn.reshape(nodes_num, -1)
         outputs = self.output(attn)
 
-        return outputs
+        return outputs, _attns

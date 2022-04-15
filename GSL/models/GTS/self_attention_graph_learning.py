@@ -75,9 +75,9 @@ class Attention_Graph_Learning(nn.Module):
         x = F.relu(x)
         x = self.feature_batchnorm[-1](x)
 
-        outputs = self.attention_gl(x, x)
+        outputs, attention_matrix = self.attention_gl(x, x)
 
         if self.sampling == 'Gumbel_softmax':
             outputs = self.gumbel_trick(outputs.unsqueeze(dim=-1))
 
-        return outputs
+        return outputs, attention_matrix
