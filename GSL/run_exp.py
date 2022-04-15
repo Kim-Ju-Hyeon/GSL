@@ -7,12 +7,19 @@ import traceback
 from utils.logger import setup_logging
 import os
 
+from utils.slack import slack_message
+import datetime
+
 
 
 @click.command()
 @click.option('--conf_file_path', type=str, default=None)
 def main(conf_file_path):
+    start = datetime.datetime.now()
+    start = start + datetime.timedelta(hours=9)
+
     config = get_config(conf_file_path)
+    config.train.batch_size = 32
 
     log_file = os.path.join(config.exp_dir, "log_exp_{}.txt".format(config.seed))
     logger = setup_logging('INFO', log_file)
@@ -24,8 +31,11 @@ def main(conf_file_path):
         runner.train()
         runner.test()
 
+        slack_message(start, f"{config.exp_name}: Training Success")
+
     except:
         logger.error(traceback.format_exc())
+        slack_message(start, f"{config.exp_name}: Error \n {traceback.format_exc()}")
 
 
 if __name__ == '__main__':
