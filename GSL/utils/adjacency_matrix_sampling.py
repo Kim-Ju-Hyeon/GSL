@@ -30,7 +30,7 @@ def gumbel_softmax_structure_sampling(theta, edge_index, batch_size: int, tau: f
 
 def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: bool):
     if theta.shape[0] == node_nums * node_nums:
-        theta = to_dense_adj(theta).squeeze(dim=0)
+        theta = theta.view(node_nums, node_nums)
     elif theta.shape[0] == node_nums:
         pass
 
@@ -46,7 +46,8 @@ def weight_matrix_construct(theta, batch_size: int, node_nums: int, symmetric: b
 
 def top_k_adj_masking_zero(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
     if theta.shape[0] == node_nums * node_nums:
-        theta = to_dense_adj(theta).squeeze(dim=0)
+        # theta = to_dense_adj(theta).squeeze(dim=0)
+        theta = theta.view(node_nums, node_nums)
     elif theta.shape[0] == node_nums:
         pass
 
@@ -68,7 +69,8 @@ def top_k_adj_masking_zero(theta, batch_size: int, k: int, node_nums: int, symme
 
 def top_k_adj(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, device):
     if theta.shape[0] == node_nums * node_nums:
-        theta = to_dense_adj(theta).squeeze(dim=0)
+        # theta = to_dense_adj(theta).squeeze(dim=0)
+        theta = theta.view(node_nums, node_nums)
     elif theta.shape[0] == node_nums:
         pass
 
