@@ -16,6 +16,8 @@ class MTGNN_Graph_Learning(nn.Module):
         self.num_nodes = config.nodes_num
         dim = config.graph_learning.hidden_dim
 
+        self.device = config.device
+
         self.sampling = config.graph_learning.sampling
 
         self._embedding1 = nn.Embedding(self.num_nodes, dim)
@@ -39,8 +41,8 @@ class MTGNN_Graph_Learning(nn.Module):
                 nn.init.uniform_(p)
 
     def forward(self) -> torch.Tensor:
-        nodevec1 = self._embedding1(torch.arange(self.num_nodes))
-        nodevec2 = self._embedding2(torch.arange(self.num_nodes))
+        nodevec1 = self._embedding1(torch.arange(self.num_nodes).to(self.device))
+        nodevec2 = self._embedding2(torch.arange(self.num_nodes).to(self.device))
 
         nodevec1 = torch.tanh(self._alpha * self._linear1(nodevec1))
         nodevec2 = torch.tanh(self._alpha * self._linear2(nodevec2))
