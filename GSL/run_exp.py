@@ -19,7 +19,6 @@ def main(conf_file_path):
     start = start + datetime.timedelta(hours=9)
 
     config = get_config(conf_file_path)
-    config.train.batch_size = 32
 
     log_file = os.path.join(config.exp_sub_dir, "log_exp_{}.txt".format(config.seed))
     logger = setup_logging('INFO', log_file)
