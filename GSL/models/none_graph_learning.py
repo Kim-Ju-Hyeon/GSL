@@ -19,8 +19,8 @@ class None_Graph_Learning(nn.Module):
             _edge_attr = None
 
         elif self.graph_mode == 'no_graph':
-            _edge_index = erdos_renyi_graph(num_nodes=self.nodes_num, edge_prob=0.001)
-            _edge_index = _edge_index[:, :1]
+            _edge_index = torch.arange(0, self.nodes_num, dtype=torch.long)
+            _edge_index = _edge_index.unsqueeze(0).repeat(2, 1)
             _edge_attr = None
 
         elif self.graph_mode == 'ground_truth':

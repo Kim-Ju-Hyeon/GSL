@@ -40,7 +40,7 @@ def get_config(config_file):
 
 
 def save_yaml(config):
-    save_name = os.path.join(config.exp_sub_dir_dir, 'config.yaml')
+    save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
 
