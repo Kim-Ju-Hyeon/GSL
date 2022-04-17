@@ -2,7 +2,7 @@
 exp_name: no_graph_learning # 0417
 exp_dir: ../exp
 use_gpu: True
-device: 2
+device: 0
 seed: 1010
 model_name: ground_truth  # GTS_Top_k_Masking_model, ...
 
