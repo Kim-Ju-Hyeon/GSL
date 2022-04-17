@@ -76,7 +76,7 @@ class My_Model(nn.Module):
                                                                              symmetric=self.symmetric)
             batch_weight_matrix = None
 
-        elif self.sampling_mode == 'Top_k_Masking':
+        elif self.sampling_mode == 'Top_K_Masking':
             batch_edge_index, batch_weight_matrix, adj_matrix = top_k_adj_masking_zero(theta, batch_size,
                                                                                        k=self.graph_learning_parameter.top_k,
                                                                                        node_nums=self.node_nums,

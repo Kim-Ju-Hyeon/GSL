@@ -36,7 +36,7 @@ graph_learning:
   graph_mode: ground_truth # no_graph, ground_truth
   edge_prob: 0.01 # Use this probability when graph_mode is random_graph
 
-  sampling: None # Gumbel_softmax, Top_k_Masking, , Top_K, Weight, None
+  sampling: None # Gumbel_softmax, Top_K_Masking, , Top_K, Weight, None
   tau: 10
   top_k: 10
   alpha: 200
