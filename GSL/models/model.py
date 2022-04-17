@@ -3,8 +3,10 @@ from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffi
 from models.GTS.self_attention_graph_learning import Attention_Graph_Learning
 from models.MTGNN.mtgnn_graph_learning import MTGNN_Graph_Learning
 from models.GDN.gdn_graph_learning import GDN_Graph_Learning
+from models.none_graph_learning import None_Graph_Learning
 from utils.adjacency_matrix_sampling import gumbel_softmax_structure_sampling, weight_matrix_construct, \
     top_k_adj_masking_zero, top_k_adj
+from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
 import torch
 import torch.nn as nn
@@ -45,6 +47,9 @@ class My_Model(nn.Module):
             self.graph_learning = GDN_Graph_Learning(self.config)
         elif self.graph_learning_mode == 'ProbSparse_Attention':
             pass
+        elif self.graph_learning_mode == 'None':
+            self.graph_learning = None_Graph_Learning(self.config)
+            self.sampling_mode = 'None'
         else:
             raise ValueError("Invalid graph learning mode")
 
@@ -59,6 +64,8 @@ class My_Model(nn.Module):
         elif (self.graph_learning_mode == 'MTGNN') or (self.graph_learning_mode == 'GDN'):
             theta = self.graph_learning()
             attention_matrix = [theta]
+        elif self.graph_learning_mode == 'None':
+            theta, attention_matrix = self.graph_learning()
         else:
             raise ValueError("Invalid graph learning mode")
 
@@ -84,9 +91,19 @@ class My_Model(nn.Module):
 
             batch_weight_matrix = None
 
-        elif self.sampling_mode == 'None':
+        elif self.sampling_mode == 'Weight':
             batch_edge_index, batch_weight_matrix, adj_matrix = weight_matrix_construct(theta, batch_size,
                                                                                         self.node_nums, self.symmetric)
+
+        elif self.sampling_mode == 'None':
+            batch_edge_index = build_batch_edge_index(theta, num_graphs=batch_size, num_nodes=self.node_nums)
+            adj_matrix = to_dense_adj(theta).squeeze(dim=0)
+
+            if attention_matrix is None:
+                batch_weight_matrix = None
+            else:
+                batch_weight_matrix = build_batch_edge_weight(attention_matrix, num_graphs=batch_size)
+
         else:
             raise ValueError("Invalid graph sampling mode")
 

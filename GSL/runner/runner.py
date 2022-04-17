@@ -34,7 +34,7 @@ class Runner(object):
         self.device = config.device
 
         self.best_model_dir = os.path.join(self.model_save, 'best.pth')
-        self.ck_dir = os.path.join(self.exp_dir, 'training.ck')
+        self.ck_dir = os.path.join(self.model_save, 'training.ck')
         self.best_gumbel_tau = np.inf
 
         self.dataset_conf = config.dataset

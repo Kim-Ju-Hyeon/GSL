@@ -1,4 +1,4 @@
----
+general.yaml---
 exp_name: exp_name # 0417
 exp_dir: ../exp
 use_gpu: False

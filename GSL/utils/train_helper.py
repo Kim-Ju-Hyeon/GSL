@@ -16,34 +16,35 @@ def get_config(config_file):
 
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
 
-    if config.seed is not None:
-        _ = set_seed(config.seed)
-    else:
-        config.seed = set_seed()
+    # if config.seed is not None:
+    #     _ = set_seed(config.seed)
+    # else:
+    #     config.seed = set_seed()
 
-    config.exp_name = '_'.join([
-        config.model_name, str(config.exp_name), now.strftime('%m%d_%H%M%S')
+    config.seed = set_seed()
+
+    config.sub_dir = '_'.join([
+        config.model_name, now.strftime('%m%d_%H%M%S')
     ])
 
     config.exp_dir = os.path.join(config.exp_dir, config.exp_name)
-    config.model_save = os.path.join(config.exp_dir, "model_save")
+    config.exp_sub_dir = os.path.join(config.exp_dir, config.sub_dir)
+    config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
-    mkdir(config.exp_dir)
     mkdir(config.model_save)
 
-    save_name = os.path.join(config.exp_dir, f'{config.exp_name}_config.yaml')
+    save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
     return config
 
 
 def save_yaml(config):
-    save_name = os.path.join(config.exp_dir, f'{config.exp_name}_config.yaml')
+    save_name = os.path.join(config.expexp_sub_dir_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
 
 def set_seed(seed=None):
-    # type: (Optional[int]) -> int
     """
     set the random seed using the required value (`seed`)
     or a random value if `seed` is `None`
@@ -77,7 +78,7 @@ def model_snapshot(epoch, model, optimizer, best_valid_loss, exp_dir):
 
 
 def save_config(config):
-    save_name = os.path.join(config.exp_dir, f'{config.exp_name}_config.yaml')
+    save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
 

@@ -21,7 +21,7 @@ def main(conf_file_path):
     config = get_config(conf_file_path)
     config.train.batch_size = 32
 
-    log_file = os.path.join(config.exp_dir, "log_exp_{}.txt".format(config.seed))
+    log_file = os.path.join(config.exp_sub_dir, "log_exp_{}.txt".format(config.seed))
     logger = setup_logging('INFO', log_file)
     logger.info("Writing log file to {}".format(log_file))
     logger.info("Exp instance id = {}".format(config.exp_name))
