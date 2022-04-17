@@ -79,7 +79,7 @@ def top_k_adj(theta, batch_size: int, k: int, node_nums: int, symmetric: bool, d
 
     topk_indices_ji = torch.topk(theta, k, dim=-1)[1]
 
-    gated_i = torch.arange(0, node_nums).transpose(0, 1).unsqueeze(1).repeat(1, k).flatten().to(device).unsqueeze(0)
+    gated_i = torch.arange(0, node_nums).unsqueeze(1).repeat(1, k).flatten().to(device).unsqueeze(0)
     gated_j = topk_indices_ji.flatten().unsqueeze(0)
     new_edge_index = torch.cat((gated_j, gated_i), dim=0)
     adj_matrix = to_dense_adj(new_edge_index).squeeze(dim=0)
