@@ -75,7 +75,8 @@ class DecoderModel(nn.Module):
     def forward(self, inputs, adj, hidden_state, weight_matrix=None):
         decoder_hidden_state = hidden_state
 
-        decoder_hidden_state = self.decoder_dcrnn(inputs, adj, hidden_state=decoder_hidden_state, weight_matrix=weight_matrix)
+        decoder_hidden_state = self.decoder_dcrnn(inputs, adj, hidden_state=decoder_hidden_state,
+                                                  weight_matrix=weight_matrix)
         prediction = self.prediction_layer(decoder_hidden_state[-1].view(-1, self.hidden_dim))
 
         output = prediction.view(inputs.shape[0], self.output_dim)
@@ -143,6 +144,7 @@ class GTS_Forecasting_Module(nn.Module):
         outputs = torch.cat(outputs, dim=-1)
         return outputs
 
+
 class GTS_Traffic_Forecasting_Module(nn.Module):
     def __init__(self, config):
         super(GTS_Traffic_Forecasting_Module, self).__init__()
@@ -170,7 +172,7 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
 
         # DCRNN decoder
         outputs = []
-        decoder_input = torch.zeros((self.nodes_num*self.config.train.batch_size, 1))
+        decoder_input = torch.zeros((self.nodes_num * self.config.train.batch_size, 1))
 
         if self.use_gpu and (self.device != 'cpu'):
             decoder_input = decoder_input.to(device=self.device)
@@ -185,6 +187,3 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
 
         outputs = torch.cat(outputs, dim=-1)
         return outputs
-
-
-

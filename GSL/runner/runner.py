@@ -174,14 +174,14 @@ class Runner(object):
             else:
                 results['val_adj_matirix'] += [adj_matrix.detach().cpu()]
 
-            logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
-            logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
-
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
                 save_yaml(self.config)
                 self.best_gumbel_tau = self.model.graph_learning_parameter.tau
+
+            logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
+            logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
 
