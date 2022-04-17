@@ -32,7 +32,10 @@ class None_Graph_Learning(nn.Module):
                 raise ValueError("No Ground truth Graph")
 
             _edge_index, _edge_attr = dense_to_sparse(torch.Tensor(adj_matrix))
+            _edge_attr = _edge_attr.to(self.config.device)
         else:
             raise ValueError("Invalid graph mode")
+
+        _edge_index = _edge_index.to(self.config.device)
 
         return _edge_index, _edge_attr
