@@ -1,10 +1,10 @@
-general.yaml---
-exp_name: exp_name # 0417
+---
+exp_name: no_graph_learning # 0417
 exp_dir: ../exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: 1010
-model_name: model_name  # GTS_Top_k_Masking_model, ...
+model_name: no_graph  # GTS_Top_k_Masking_model, ...
 
 nodes_num: 207
 node_features: 2
@@ -22,18 +22,18 @@ dataset:
 
 train:
   optimizer: Adam
-  epoch: 2
+  epoch: 100
   loss_function : MAE
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 2
+  batch_size : 32
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
 graph_learning:
   mode: None # GTS, attention, MTGNN, GDN, None
-  graph_mode: ground_truth # no_graph, ground_truth
+  graph_mode: no_graph # no_graph, ground_truth
   edge_prob: 0.01 # Use this probability when graph_mode is random_graph
 
   sampling: None # Gumbel_softmax, Top_k_Masking, , Top_K, Weight, None
