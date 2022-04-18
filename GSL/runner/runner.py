@@ -189,7 +189,7 @@ class Runner(object):
             if (epoch == self.train_conf.epoch // 3) or (epoch == self.train_conf.epoch // 3 * 2):
                 self.model.graph_learning_parameter.tau = tau
 
-        pickle.dump(results, open(os.path.join(self.config.exp_dir, 'training_result.pickle'), 'wb'))
+        pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
 
@@ -234,4 +234,4 @@ class Runner(object):
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
 
-        pickle.dump(results, open(os.path.join(self.config.exp_dir, 'test_result.pickle'), 'wb'))
+        pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))
