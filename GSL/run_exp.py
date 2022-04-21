@@ -2,7 +2,7 @@ import click
 from runner.GTS_runner import GTS_Runner
 from runner.runner import Runner
 
-from utils.train_helper import get_config
+from utils.train_helper import get_config, save_yaml
 import traceback
 from utils.logger import setup_logging
 import os
@@ -19,6 +19,12 @@ def main(conf_file_path):
     start = start + datetime.timedelta(hours=9)
 
     config = get_config(conf_file_path)
+
+    config.hidden_dim = 128
+    config.encoder_step = 12*24
+    config.decoder_step = 60
+    config.train.batch_size = 32
+    save_yaml(config)
 
     log_file = os.path.join(config.exp_sub_dir, "log_exp_{}.txt".format(config.seed))
     logger = setup_logging('INFO', log_file)
