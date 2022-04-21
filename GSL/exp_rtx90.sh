@@ -7,10 +7,10 @@ do
     sleep 3
 done
 
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=3
 for i in 1
 do
-    python3 run_exp.py --conf_file_path ./config/Top_K/MTGNN_Top_k.yaml &
+    python3 run_exp.py --conf_file_path ./config/0416/attention_Gumbel.yaml &
     sleep 3
 done
 

@@ -23,7 +23,7 @@ def main(conf_file_path):
     config.hidden_dim = 128
     config.encoder_step = 12*24
     config.decoder_step = 60
-    config.train.batch_size = 32
+    config.train.batch_size = 16
     save_yaml(config)
 
     log_file = os.path.join(config.exp_sub_dir, "log_exp_{}.txt".format(config.seed))
