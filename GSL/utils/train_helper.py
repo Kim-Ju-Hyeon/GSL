@@ -27,7 +27,7 @@ def get_config(config_file):
         config.model_name, now.strftime('%m%d_%H%M%S')
     ])
 
-    config.exp_dir = os.path.join(config.exp_dir, config.exp_name)
+    config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))
     config.exp_sub_dir = os.path.join(config.exp_dir, config.sub_dir)
     config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
