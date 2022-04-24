@@ -1,10 +1,10 @@
 ---
-exp_name: 0425 # 0417
+exp_name: 0425
 exp_dir: ../exp
 use_gpu: True
 device: 0
 seed: 1010
-model_name: ground_truth  # GTS_Top_k_Masking_model, ...
+model_name: Attention_Gumbel
 
 nodes_num: 207
 node_features: 2
@@ -27,16 +27,13 @@ train:
   lr: 1.0e-3
   momentum: 0.9
   wd: 0.0e-4
-  batch_size : 128
+  batch_size : 8
   lr_decay: 0.1
   lr_decay_steps: [10000]
 
 graph_learning:
-  mode: None # GTS, attention, MTGNN, GDN, None
-  graph_mode: ground_truth # no_graph, ground_truth
-  edge_prob: 0.01 # Use this probability when graph_mode is random_graph
-
-  sampling: None # Gumbel_softmax, Top_k_Masking, , Top_K, Weight, None
+  mode: attention # GTS, attention, MTGNN
+  sampling: Gumbel_softmax # Gumbel_softmax, Top_k, None
   tau: 10
   top_k: 10
   alpha: 200
