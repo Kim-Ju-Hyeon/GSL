@@ -1,6 +1,6 @@
 from models.GTS.gts_graph_learning2 import GTS_Graph_Learning2
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
-from models.GTS.self_attention_graph_learning import Attention_Graph_Learning
+from models.self_attention_graph_learning import Attention_Graph_Learning
 from models.MTGNN.mtgnn_graph_learning import MTGNN_Graph_Learning
 from models.GDN.gdn_graph_learning import GDN_Graph_Learning
 from models.none_graph_learning import None_Graph_Learning
@@ -8,9 +8,7 @@ from utils.adjacency_matrix_sampling import gumbel_softmax_structure_sampling, w
     top_k_adj_masking_zero, top_k_adj
 from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
-import torch
 import torch.nn as nn
-from torch.nn import functional as F
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
 
