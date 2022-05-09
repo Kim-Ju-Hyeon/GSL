@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from typing import Tuple
+from utils.utils import squeeze_last_dim
+from models.N_BEATS.B_Block import Block
 
 
 ACTIVATIONS = ['ReLU',
@@ -13,20 +15,31 @@ ACTIVATIONS = ['ReLU',
                'Sigmoid']
 
 
-class _StaticFeaturesEncoder(nn.Module):
-    def __init__(self, in_features, out_features):
-        super(_StaticFeaturesEncoder, self).__init__()
-        layers = [nn.Dropout(p=0.5),
-                  nn.Linear(in_features=in_features, out_features=out_features),
-                  nn.ReLU()]
-        self.encoder = nn.Sequential(*layers)
+class NHITSBlock(Block):
+    def __init__(self, n_theta_hidden, thetas_dim, pooling_mode, n_pool_kernel_size, backcast_length=10, forecast_length=5, activation='ReLU'):
+        self.l_out = int(((backcast_length - n_pool_kernel_size) / n_pool_kernel_size) + 1)
+        super(NHITSBlock, self).__init__(n_theta_hidden, thetas_dim, self.l_out, forecast_length, activation)
+        assert (pooling_mode in ['max', 'average'])
+        self.n_pool_kernel_size = n_pool_kernel_size
+
+        if pooling_mode == 'max':
+            self.pooling_layer = nn.MaxPool1d(kernel_size=self.n_pool_kernel_size,
+                                              stride=self.n_pool_kernel_size, ceil_mode=True)
+        elif pooling_mode == 'average':
+            self.pooling_layer = nn.AvgPool1d(kernel_size=self.n_pool_kernel_size,
+                                              stride=self.n_pool_kernel_size, ceil_mode=True)
+
 
     def forward(self, x):
-        x = self.encoder(x)
-        return x
+        x = squeeze_last_dim(x)
+        x = self.pooling_layer(x)
+        x = super(NHITSBlock, self).forward(x)
+
+        theta_b = self.theta_b_fc(x)
+        theta_f = self.theta_f_fc(x)
 
 
-class _NHITSBlock(nn.Module):
+class NHITSBlock(nn.Module):
     """
     N-HiTS block which takes a basis function as an argument.
     """
@@ -48,9 +61,12 @@ class _NHITSBlock(nn.Module):
 
         self.n_time_in = n_time_in
         self.n_time_out = n_time_out
+
         self.n_s = n_s
         self.n_s_hidden = n_s_hidden
+
         self.n_x = n_x
+
         self.n_pool_kernel_size = n_pool_kernel_size
         self.batch_normalization = batch_normalization
         self.dropout_prob = dropout_prob

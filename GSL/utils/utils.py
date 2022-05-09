@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from torch_geometric.utils import to_undirected, to_dense_adj, add_self_loops, sort_edge_index, remove_self_loops
+from torch_geometric.utils import add_self_loops, sort_edge_index
 
 
 def build_fully_connected_edge_idx(num_nodes):
@@ -42,3 +42,8 @@ def build_dynamic_batch_edge_index(edge_index):
 
     else:
         return edge_index[0]
+
+def squeeze_last_dim(tensor):
+    if len(tensor.shape) == 3 and tensor.shape[-1] == 1:  # (128, 10, 1) => (128, 10).
+        return tensor[..., 0]
+    return tensor
