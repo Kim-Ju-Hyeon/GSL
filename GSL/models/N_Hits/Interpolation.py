@@ -14,8 +14,7 @@ class IdentityBasis(nn.Module):
         self.backcast_size = backcast_size
         self.interpolation_mode = interpolation_mode
 
-    def forward(self, theta: torch.Tensor, insample_x_t: torch.Tensor, outsample_x_t: torch.Tensor) -> Tuple[
-        torch.Tensor, torch.Tensor]:
+    def forward(self, theta: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
 
         backcast = theta[:, :self.backcast_size]
         knots = theta[:, self.backcast_size:]
