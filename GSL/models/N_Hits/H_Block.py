@@ -39,6 +39,8 @@ class NHITSBlock(Block):
         theta_f = self.theta_f_fc(x)
 
 
+
+
 class NHITSBlock(nn.Module):
     """
     N-HiTS block which takes a basis function as an argument.
