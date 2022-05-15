@@ -17,11 +17,10 @@ class MixProp(nn.Module):
         alpha (float): Ratio of retaining the root nodes's original states, a value between 0 and 1.
     """
 
-    def __init__(self, c_in: int, c_out: int, gdep: int, dropout: float, alpha: float):
+    def __init__(self, c_in: int, c_out: int, gdep: int, alpha: float):
         super(MixProp, self).__init__()
         self._mlp = Linear((gdep + 1) * c_in, c_out)
         self._gdep = gdep
-        self._dropout = dropout
         self._alpha = alpha
 
         self._reset_parameters()

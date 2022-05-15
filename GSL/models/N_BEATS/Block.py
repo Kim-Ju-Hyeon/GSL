@@ -106,14 +106,13 @@ class GenericBlock(Block):
         self.forecast_fc = nn.Linear(thetas_dim, forecast_length)
 
     def forward(self, x):
-        # no constraint for generic arch.
         x = super(GenericBlock, self).forward(x)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)
 
-        backcast = self.backcast_fc(theta_b)  # generic. 3.3.
-        forecast = self.forecast_fc(theta_f)  # generic. 3.3.
+        backcast = self.backcast_fc(theta_b)
+        forecast = self.forecast_fc(theta_f)
 
         return backcast, forecast
 
