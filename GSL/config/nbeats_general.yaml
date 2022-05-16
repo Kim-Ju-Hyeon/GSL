@@ -1,0 +1,67 @@
+---
+exp_name: exp_name # 0417
+exp_dir: ../exp
+use_gpu: False
+device: cpu
+seed: 1010
+model_name: model_name  # GTS_Top_k_Masking_model, ...
+
+nodes_num: 207
+node_features: 2
+hidden_dim: 32
+encoder_embedding_dim: 2
+decoder_embedding_dim: 1
+encoder_step: 12
+decoder_step: 3
+
+dataset:
+  root: ./data/METR-LA
+  name: METR-LA
+  graph_learning_length: 34272
+  pred_step: 1
+
+train:
+  optimizer: Adam
+  epoch: 2
+  loss_function : MAE
+  lr: 1.0e-3
+  momentum: 0.9
+  wd: 0.0e-4
+  batch_size : 2
+  lr_decay: 0.1
+  lr_decay_steps: [10000]
+
+graph_learning:
+  mode: None # GTS, attention, MTGNN, GDN, None
+  graph_mode: ground_truth # no_graph, ground_truth
+  edge_prob: 0.01 # Use this probability when graph_mode is random_graph
+
+  sampling: None # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
+  tau: 10
+  top_k: 10
+  alpha: 200
+  to_symmetric: False
+  initial_edge_index: Fully Connected
+  sequence: 1
+
+  kernel_size: [10, 10]
+  stride: [1, 1]
+  conv_dim: [8, 16]
+  n_head: 4
+  hidden_dim: 128
+
+
+forecasting_module:
+  stack_types: (GENERIC_BLOCK, GENERIC_BLOCK)
+   activ: 'ReLU'
+   num_blocks_per_stack: 3
+   forecast_length: 5
+   backcast_length: 10
+   n_theta_hidden: [16, 16, 16]
+   thetas_dim: [64, 16]
+   share_weights_in_stack: True
+   pooling_mode: max
+   n_pool_kernel_size: 2
+
+
+

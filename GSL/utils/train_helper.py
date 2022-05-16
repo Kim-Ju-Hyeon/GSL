@@ -97,3 +97,7 @@ def edict2dict(edict_obj):
 def mkdir(folder):
     if not os.path.isdir(folder):
         os.makedirs(folder)
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)

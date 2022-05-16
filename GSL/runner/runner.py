@@ -18,9 +18,6 @@ from utils.logger import get_logger
 from dataset.make_traffic_dataset import TrafficDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
 
-# from pytorch_forecasting.metrics import MAPE, RMSE
-
-
 logger = get_logger('exp_logger')
 
 
@@ -42,10 +39,6 @@ class Runner(object):
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
-        # elif self.train_conf.loss_function == 'RMSE':
-        #     self.loss = RMSE()
-        # elif self.train_conf.loss_function == 'MAPE':
-        #     self.loss = MAPE()
         elif self.train_conf.loss_function == 'Poisson':
             self.loss = nn.PoissonNLLLoss()
         else:
@@ -178,16 +171,16 @@ class Runner(object):
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
                 save_yaml(self.config)
-                self.best_gumbel_tau = self.model.graph_learning_parameter.tau
+                # self.best_gumbel_tau = self.model.graph_learning_parameter.tau
 
             logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
 
-            self.model.graph_learning_parameter.tau = self.model.graph_learning_parameter.tau * 0.8
-            if (epoch == self.train_conf.epoch // 3) or (epoch == self.train_conf.epoch // 3 * 2):
-                self.model.graph_learning_parameter.tau = tau
+            # self.model.graph_learning_parameter.tau = self.model.graph_learning_parameter.tau * 0.8
+            # if (epoch == self.train_conf.epoch // 3) or (epoch == self.train_conf.epoch // 3 * 2):
+            #     self.model.graph_learning_parameter.tau = tau
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
@@ -195,7 +188,7 @@ class Runner(object):
 
         self.best_model = My_Model(self.config)
         best_snapshot = load_model(self.best_model_dir)
-        self.model.graph_learning_parameter.tau = self.best_gumbel_tau
+        # self.model.graph_learning_parameter.tau = self.best_gumbel_tau
 
         self.best_model.load_state_dict(best_snapshot)
 
@@ -216,7 +209,7 @@ class Runner(object):
 
             with torch.no_grad():
                 adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                      self.init_edge_index)
+                                                                        self.init_edge_index)
 
             loss = self.loss(outputs, data_batch.y)
 
