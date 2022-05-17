@@ -10,7 +10,7 @@ class None_Graph_Learning(nn.Module):
         self.config = config
 
         self.graph_mode = config.graph_learning.graph_mode
-        self.nodes_num = config.nodes_num
+        self.nodes_num = config.dataset.nodes_num
         self.edge_prob = config.graph_learning.edge_prob
 
     def forward(self):

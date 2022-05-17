@@ -52,6 +52,7 @@ graph_learning:
 
 
 forecasting_module:
+  name: s2s_dcrnn_traffic
   diffusion_k: 2
   num_layer: 1
   use_teacher_forcing: True

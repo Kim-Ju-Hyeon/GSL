@@ -16,12 +16,7 @@ def get_config(config_file):
 
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
 
-    # if config.seed is not None:
-    #     _ = set_seed(config.seed)
-    # else:
-    #     config.seed = set_seed()
-
-    config.seed = set_seed()
+    config.seed = set_seed(config.seed)
 
     config.sub_dir = '_'.join([
         config.model_name, now.strftime('%m%d_%H%M%S')
@@ -50,8 +45,9 @@ def set_seed(seed=None):
     or a random value if `seed` is `None`
     :return: the newly set seed
     """
-    if seed is None:
+    if seed == 'None':
         seed = random.randint(1, 10000)
+
     random.seed(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -67,11 +63,12 @@ def load_model(exp_dir):
         return None
 
 
-def model_snapshot(epoch, model, optimizer, best_valid_loss, exp_dir):
+def model_snapshot(epoch, model, optimizer, scheduler, best_valid_loss, exp_dir):
     ck = {
         'epoch': epoch,
         'model': model.state_dict(),
         'optimizer': optimizer.state_dict(),
+        'scheduler': scheduler.state_dict(),
         'best_valid_loss': best_valid_loss
     }
     torch.save(ck, exp_dir)

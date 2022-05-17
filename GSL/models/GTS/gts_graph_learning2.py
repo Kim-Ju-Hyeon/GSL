@@ -8,8 +8,8 @@ from torch_geometric.utils import to_dense_adj, dense_to_sparse
 class GTS_Graph_Learning2(MessageLayer):
     def __init__(self, config):
         super(GTS_Graph_Learning2, self).__init__()
-        self.num_nodes = config.nodes_num
-        self.nodes_feas = config.node_features
+        self.num_nodes = config.dataset.nodes_num
+        self.nodes_feas = config.dataset.node_features
 
         self.total_length = config.dataset.graph_learning_length
         self.kernel_size = config.graph_learning.kernel_size

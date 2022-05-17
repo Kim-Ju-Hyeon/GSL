@@ -3,22 +3,29 @@ import numpy as np
 from tqdm import tqdm
 import pickle
 import torch
-from torch.nn import functional as F
 import torch.nn as nn
 
 from collections import defaultdict
 import torch.optim as optim
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch_geometric.loader import DataLoader
 
 from models.model import My_Model
 from utils.utils import build_fully_connected_edge_idx
 from dataset.make_spike_datset import MakeSpikeDataset
-from utils.train_helper import model_snapshot, load_model, save_yaml
+from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 from dataset.make_traffic_dataset import TrafficDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
 
 logger = get_logger('exp_logger')
+
+
+def get_dataset_length(_dataset):
+    length = 0
+    for _ in _dataset:
+        length += 1
+    return length
 
 
 class Runner(object):
@@ -43,17 +50,23 @@ class Runner(object):
         else:
             raise ValueError('Non-supported Loss Function')
 
-        self.node_nums = config.nodes_num
+        self.nodes_num = self.dataset_conf.nodes_num
         self.initial_edge_index = config.graph_learning.initial_edge_index
-
         if self.initial_edge_index == 'Fully Connected':
-            self.init_edge_index = build_fully_connected_edge_idx(self.config.nodes_num)
+            self.init_edge_index = build_fully_connected_edge_idx(self.nodes_num)
         else:
             raise ValueError("Non-supported Edge Index!")
+        
+        self.get_dataset()
+
+        self.model = My_Model(self.config)
 
         if self.use_gpu and (self.device != 'cpu'):
+            self.model = self.model.to(device=self.device)
             self.init_edge_index = self.init_edge_index.to(device=self.device)
-
+            self.entire_inputs = self.entire_inputs.to(device=self.device)
+            
+    def get_dataset(self):
         if self.dataset_conf.name == 'spike_lambda_bin100':
             spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
 
@@ -68,23 +81,17 @@ class Runner(object):
 
         elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
             loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name)
-            dataset, self.entire_inputs = loader.get_dataset(num_timesteps_in=self.config.encoder_step,
-                                                             num_timesteps_out=self.config.decoder_step,
+            dataset, self.entire_inputs = loader.get_dataset(num_timesteps_in=self.config.forecasting_module.backcast_length,
+                                                             num_timesteps_out=self.config.forecasting_module.forecast_length,
                                                              batch_size=self.train_conf.batch_size)
 
             self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
-            self.validation_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
+            self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
 
             self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
 
         else:
             raise ValueError("Non-supported dataset!")
-
-        self.model = My_Model(self.config)
-
-        if self.use_gpu and (self.device != 'cpu'):
-            self.model = self.model.to(device=self.device)
-            self.entire_inputs = self.entire_inputs.to(device=self.device)
 
     def train(self):
         # create optimizer
@@ -92,17 +99,30 @@ class Runner(object):
         if self.train_conf.optimizer == 'SGD':
             optimizer = optim.SGD(
                 params,
-                lr=self.train_conf.lr)
+                lr=self.train_conf.lr,
+                momentum=self.train_conf.momentum)
         elif self.train_conf.optimizer == 'Adam':
             optimizer = optim.Adam(
                 params,
-                lr=self.train_conf.lr)
+                lr=self.train_conf.lr,
+                weight_decay=self.train_conf.wd)
         else:
             raise ValueError("Non-supported optimizer!")
+
+        scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=self.train_conf.T_0, T_mult=self.train_conf.T_mult)
 
         results = defaultdict(list)
         best_val_loss = np.inf
 
+        if self.config.train_resume:
+            checkpoint = load_model(self.ck_dir)
+            self.model.load_state_dict(checkpoint['model'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            scheduler.load_state_dict(checkpoint['scheduler'])
+            best_val_loss = checkpoint['best_valid_loss']
+            self.train_conf.epoch -= checkpoint['epoch']
+
+        length = get_dataset_length(self.train_dataset)
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
@@ -110,14 +130,20 @@ class Runner(object):
 
             train_loss = []
 
-            iters = 0
-            for data_batch in tqdm(self.train_dataset):
+            for i, data_batch in enumerate(tqdm(self.train_dataset)):
 
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
                 _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
-                loss = self.loss(outputs, data_batch.y)
+
+                if type(outputs) == defaultdict:
+                    forecast = outputs['forecast']
+                    outputs = defaultdict(list)
+                else:
+                    forecast = outputs
+
+                loss = self.loss(forecast, data_batch.y)
 
                 # backward pass (accumulates gradients).
                 loss.backward()
@@ -125,14 +151,15 @@ class Runner(object):
                 # performs a single update step.
                 optimizer.step()
                 optimizer.zero_grad()
+                temp = int(epoch + i / length)
+                scheduler.step(temp)
 
                 train_loss += [float(loss.data.cpu().numpy())]
-                iters += 1
 
                 # display loss
-                if (iters + 1) % 500 == 0:
+                if (i + 1) % 500 == 0:
                     logger.info(
-                        "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, iters + 1,
+                        "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, i + 1,
                                                                          float(loss.data.cpu().numpy())))
 
             train_loss = np.stack(train_loss).mean()
@@ -142,7 +169,7 @@ class Runner(object):
             self.model.eval()
 
             val_loss = []
-            for data_batch in tqdm(self.validation_dataset):
+            for data_batch in tqdm(self.valid_dataset):
 
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
@@ -150,8 +177,12 @@ class Runner(object):
                 with torch.no_grad():
                     adj_matrix, outputs, attention_matrix = self.model(data_batch.x, data_batch.y, self.entire_inputs,
                                                                        self.init_edge_index)
+                if type(outputs) == defaultdict:
+                    forecast = outputs['forecast']
+                else:
+                    forecast = outputs
 
-                loss = self.loss(outputs, data_batch.y)
+                loss = self.loss(forecast, data_batch.y)
                 val_loss += [float(loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()
@@ -171,12 +202,11 @@ class Runner(object):
             logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
-            model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
+            model_snapshot(epoch, self.model, optimizer, scheduler, best_val_loss, self.ck_dir)
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-
         self.best_model = My_Model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 
@@ -201,10 +231,17 @@ class Runner(object):
                 adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
                                                                         self.init_edge_index)
 
-            loss = self.loss(outputs, data_batch.y)
+            if type(outputs) == defaultdict:
+                forecast = outputs['forecast']
+                results['stack_per_outputs'] = outputs['stack_per_outputs']
+                results['backcast'] = outputs['backcast']
+            else:
+                forecast = outputs
+
+            loss = self.loss(forecast, data_batch.y)
 
             test_loss += [float(loss.data.cpu().numpy())]
-            output += [outputs.cpu()]
+            output += [forecast.cpu()]
             target += [data_batch.y.cpu()]
 
         test_loss = np.stack(test_loss).mean()

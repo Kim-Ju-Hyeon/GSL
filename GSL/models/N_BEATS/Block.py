@@ -68,11 +68,11 @@ class Inter_Correlation_Block(nn.Module):
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, edge_weight=None):
         x = squeeze_last_dim(x)
 
         for layer in self.Correlation_stack:
-            x = layer(x, edge_index)
+            x = layer(x, edge_index, edge_weight)
             x = self.activ(x)
 
         return x
@@ -83,8 +83,8 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
         super(GNN_SeasonalityBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length,
                                                    activation)
 
-    def forward(self, x, edge_index):
-        x = super(GNN_SeasonalityBlock, self).forward(x, edge_index)
+    def forward(self, x, edge_index, edge_weight=None):
+        x = super(GNN_SeasonalityBlock, self).forward(x, edge_index, edge_weight)
         backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace)
         forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace)
         return backcast, forecast
@@ -94,8 +94,8 @@ class GNN_TrendBlock(Inter_Correlation_Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(GNN_TrendBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
 
-    def forward(self, x, edge_index):
-        x = super(GNN_TrendBlock, self).forward(x, edge_index)
+    def forward(self, x, edge_index, edge_weight=None):
+        x = super(GNN_TrendBlock, self).forward(x, edge_index, edge_weight)
         backcast = trend_model(self.theta_b_fc(x), self.backcast_linspace)
         forecast = trend_model(self.theta_f_fc(x), self.forecast_linspace)
         return backcast, forecast
@@ -105,11 +105,11 @@ class GNN_GenericBlock(Inter_Correlation_Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(GNN_GenericBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
 
-        self.backcast_fc = nn.Linear(thetas_dim, backcast_length)
-        self.forecast_fc = nn.Linear(thetas_dim, forecast_length)
+        self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
+        self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
-    def forward(self, x, edge_index):
-        x = super(GNN_GenericBlock, self).forward(x, edge_index)
+    def forward(self, x, edge_index, edge_weight=None):
+        x = super(GNN_GenericBlock, self).forward(x, edge_index, edge_weight)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)
@@ -141,10 +141,10 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
             self.pooling_layer = nn.AvgPool1d(kernel_size=self.n_pool_kernel_size,
                                               stride=self.n_pool_kernel_size, ceil_mode=True)
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, edge_weight=None):
         x = squeeze_last_dim(x)
         x = self.pooling_layer(x)
-        x = super(GNN_NHITSBlock, self).forward(x, edge_index)
+        x = super(GNN_NHITSBlock, self).forward(x, edge_index, edge_weight)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)

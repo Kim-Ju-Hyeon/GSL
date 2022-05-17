@@ -8,37 +8,25 @@ class N_model(nn.Module):
     GENERIC_BLOCK = 'generic'
     N_HITS_BLOCK = 'n_hits'
 
-    def __init__(self, stack_types=(GENERIC_BLOCK, GENERIC_BLOCK, GENERIC_BLOCK),
-                 activ='ReLU',
-                 num_blocks_per_stack=3,
-                 forecast_length=5,
-                 backcast_length=10,
-                 n_theta_hidden=None,
-                 thetas_dim=None,
-                 share_weights_in_stack=True,
-                 pooling_mode=None,
-                 n_pool_kernel_size=None):
+    def __init__(self, config):
         super(N_model, self).__init__()
+        self.activation = config.activ
+        self.stack_types = config.stack_types
+        self.forecast_length = config.forecast_length
+        self.backcast_length = config.backcast_length
+        self.n_theta_hidden = config.n_theta_hidden
+        self.num_blocks_per_stack = config.num_blocks_per_stack
+        self.thetas_dim = config.thetas_dim
+        self.share_weights_in_stack = config.share_weights_in_stack
 
-        if thetas_dim is None:
-            thetas_dim = [64, 8]
-        if n_theta_hidden is None:
-            n_theta_hidden = [32, 32, 32]
-
-        self.activation = activ
-        self.stack_types = stack_types
-        self.forecast_length = forecast_length
-        self.backcast_length = backcast_length
-        self.n_theta_hidden = n_theta_hidden
-        self.num_blocks_per_stack = num_blocks_per_stack
-        self.thetas_dim = thetas_dim
-        self.share_weights_in_stack = share_weights_in_stack
-
-        self.pooling_mode = pooling_mode
-        self.n_pool_kernel_size = n_pool_kernel_size
+        self.pooling_mode = config.pooling_mode
+        self.n_pool_kernel_size = config.n_pool_kernel_size
 
         self.stacks = []
         self.parameters = []
+
+        self.per_stack_backcast = []
+        self.per_stack_forecast = []
 
         for stack_id in range(len(self.stack_types)):
             self.stacks.append(self.create_stack(stack_id))
@@ -78,14 +66,17 @@ class N_model(nn.Module):
         else:
             raise ValueError("Invalid block type")
 
-    def forward(self, backcast, edge_index):
+    def forward(self, backcast, edge_index, edge_weight=None):
         device = backcast.device
         forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
 
         for stack_id in range(len(self.stacks)):
+            stacks_forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
             for block_id in range(len(self.stacks[stack_id])):
-                b, f = self.stacks[stack_id][block_id](backcast, edge_index)
+                b, f = self.stacks[stack_id][block_id](backcast, edge_index, edge_weight)
                 backcast = backcast.to(device=device) - b
                 forecast = forecast.to(device=device) + f
+                stacks_forecast += f
+            self.per_stack_backcast.append(backcast)
+            self.per_stack_forecast.append(stacks_forecast)
         return backcast, forecast
-
