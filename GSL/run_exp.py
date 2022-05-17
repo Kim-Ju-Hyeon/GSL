@@ -1,5 +1,4 @@
 import click
-from runner.GTS_runner import GTS_Runner
 from runner.runner import Runner
 
 from utils.train_helper import get_config, save_yaml
