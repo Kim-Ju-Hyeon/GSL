@@ -47,7 +47,7 @@ graph_learning:
 
 forecasting_module:
     name: n_beats
-    stack_types: [generic, generic, generic] # seasonality, trend, generic, n_hits
+    stack_types: [seasonality, trend] # seasonality, trend, generic, n_hits
     activ: 'ReLU'
     num_blocks_per_stack: 3
     forecast_length: 3
