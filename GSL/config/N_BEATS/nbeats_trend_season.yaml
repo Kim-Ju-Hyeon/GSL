@@ -2,7 +2,7 @@
 exp_name: 0517_N_BEATS # 0417
 exp_dir: ../exp
 use_gpu: True
-device: [0]
+device: 0
 seed: None # If you want to reproduce set the seed that you want
 model_name: N_BEATS_generic  # GTS_Top_k_Masking_model, ...
 train_resume: False
