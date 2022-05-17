@@ -32,7 +32,6 @@ class Runner(object):
 
         self.best_model_dir = os.path.join(self.model_save, 'best.pth')
         self.ck_dir = os.path.join(self.model_save, 'training.ck')
-        self.best_gumbel_tau = np.inf
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
@@ -45,7 +44,6 @@ class Runner(object):
             raise ValueError('Non-supported Loss Function')
 
         self.node_nums = config.nodes_num
-
         self.initial_edge_index = config.graph_learning.initial_edge_index
 
         if self.initial_edge_index == 'Fully Connected':
@@ -105,7 +103,6 @@ class Runner(object):
         results = defaultdict(list)
         best_val_loss = np.inf
 
-        tau = self.model.graph_learning_parameter.tau
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
@@ -170,17 +167,11 @@ class Runner(object):
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
-                save_yaml(self.config)
-                # self.best_gumbel_tau = self.model.graph_learning_parameter.tau
 
             logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             model_snapshot(epoch, self.model, optimizer, best_val_loss, self.ck_dir)
-
-            # self.model.graph_learning_parameter.tau = self.model.graph_learning_parameter.tau * 0.8
-            # if (epoch == self.train_conf.epoch // 3) or (epoch == self.train_conf.epoch // 3 * 2):
-            #     self.model.graph_learning_parameter.tau = tau
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
@@ -188,7 +179,6 @@ class Runner(object):
 
         self.best_model = My_Model(self.config)
         best_snapshot = load_model(self.best_model_dir)
-        # self.model.graph_learning_parameter.tau = self.best_gumbel_tau
 
         self.best_model.load_state_dict(best_snapshot)
 

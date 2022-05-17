@@ -53,15 +53,15 @@ graph_learning:
 
 forecasting_module:
   stack_types: (GENERIC_BLOCK, GENERIC_BLOCK)
-   activ: 'ReLU'
-   num_blocks_per_stack: 3
-   forecast_length: 5
-   backcast_length: 10
-   n_theta_hidden: [16, 16, 16]
-   thetas_dim: [64, 16]
-   share_weights_in_stack: True
-   pooling_mode: max
-   n_pool_kernel_size: 2
+  activ: 'ReLU'
+  num_blocks_per_stack: 3
+  forecast_length: 5
+  backcast_length: 10
+  n_theta_hidden: [16, 16, 16]
+  thetas_dim: [64, 16]
+  share_weights_in_stack: True
+  pooling_mode: max
+  n_pool_kernel_size: 2
 
 
 
