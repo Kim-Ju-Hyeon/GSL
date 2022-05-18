@@ -137,7 +137,7 @@ class My_Model(nn.Module):
         self.attention_matrix = attention_matrix
         return batch_edge_index, batch_weight_matrix
 
-    def forward(self, inputs, targets, entire_inputs, edge_index):
+    def forward(self, inputs, targets, entire_inputs, edge_index, interpretability=False):
         batch_edge_index, batch_weight_matrix = self.graph_learning_process(entire_inputs, edge_index)
 
         if self.config.forecasting_module.name == 's2s_dcrnn_traffic':
@@ -147,11 +147,12 @@ class My_Model(nn.Module):
             inputs = inputs.permute(0, 2, 1)
             inputs = self.preprocess_layer(inputs)
             backcast, forecast = self.graph_forecasting(backcast=inputs.squeeze(), edge_index=batch_edge_index,
-                                                        edge_weight=batch_weight_matrix)
+                                                        edge_weight=batch_weight_matrix, interpretability=interpretability)
             outputs['backcast'] = backcast
             outputs['forecast'] = forecast
-            outputs['stack_per_outputs'] = [self.graph_forecasting.per_stack_backcast,
-                                            self.graph_forecasting.per_stack_forecast]
+            if interpretability:
+                outputs['stack_per_backcast'] = self.graph_forecasting.per_stack_backcast
+                outputs['stack_per_forecast'] = self.graph_forecasting.per_stack_forecast
         else:
             raise ValueError('None supported forecasting module')
 

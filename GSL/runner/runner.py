@@ -135,7 +135,7 @@ class Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index)
+                _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index, interpretability=False)
 
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
@@ -176,7 +176,7 @@ class Runner(object):
 
                 with torch.no_grad():
                     adj_matrix, outputs, attention_matrix = self.model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                                       self.init_edge_index)
+                                                                       self.init_edge_index, interpretability=False)
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
                 else:
@@ -229,12 +229,13 @@ class Runner(object):
 
             with torch.no_grad():
                 adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                                        self.init_edge_index)
+                                                                        self.init_edge_index, interpretability=True)
 
             if type(outputs) == defaultdict:
                 forecast = outputs['forecast']
-                results['stack_per_outputs'] = outputs['stack_per_outputs']
-                results['backcast'] = outputs['backcast']
+                results['stack_per_backcast']=outputs['stack_per_backcast']
+                results['stack_per_forecast']=outputs['stack_per_forecast']
+                results['backcast'] = outputs['backcast'].cpu()
             else:
                 forecast = outputs
 

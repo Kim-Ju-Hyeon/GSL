@@ -150,9 +150,9 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
         theta_f = self.theta_f_fc(x)
 
         backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
-                                 mode='linear', align_corners=False).squeeze()
+                                 mode='linear', align_corners=False).squeeze(dim=1)
         forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
-                                 mode='linear', align_corners=False).squeeze()
+                                 mode='linear', align_corners=False).squeeze(dim=1)
 
         return backcast, forecast
 

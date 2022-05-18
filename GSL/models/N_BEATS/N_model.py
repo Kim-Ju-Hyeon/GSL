@@ -66,17 +66,20 @@ class N_model(nn.Module):
         else:
             raise ValueError("Invalid block type")
 
-    def forward(self, backcast, edge_index, edge_weight=None):
+    def forward(self, backcast, edge_index, edge_weight=None, interpretability=False):
         device = backcast.device
         forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
-
+        self.per_stack_backcast = []
+        self.per_stack_forecast = []
         for stack_id in range(len(self.stacks)):
             stacks_forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
             for block_id in range(len(self.stacks[stack_id])):
                 b, f = self.stacks[stack_id][block_id](backcast, edge_index, edge_weight)
                 backcast = backcast.to(device=device) - b
                 forecast = forecast.to(device=device) + f
+
                 stacks_forecast += f
-            self.per_stack_backcast.append(backcast)
-            self.per_stack_forecast.append(stacks_forecast)
+            if interpretability:
+                self.per_stack_backcast.append(backcast.cpu())
+                self.per_stack_forecast.append(stacks_forecast.cpu())
         return backcast, forecast
