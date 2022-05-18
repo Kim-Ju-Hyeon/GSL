@@ -46,6 +46,16 @@ class N_model(nn.Module):
                     block = block_init(self.n_theta_hidden, self.thetas_dim, self.pooling_mode,
                                        self.n_pool_kernel_size,
                                        self.backcast_length, self.forecast_length, self.activation)
+                elif stack_type == N_model.TREND_BLOCK:
+                    self.thetas_dim[0], self.thetas_dim[1] = 3, 3
+                    block = block_init(self.n_theta_hidden, self.thetas_dim,
+                                       self.backcast_length, self.forecast_length, self.activation)
+                elif stack_type == N_model.SEASONALITY_BLOCK:
+                    self.thetas_dim[0] = 2 * int(self.backcast_length / 2 - 1) + 1
+                    self.thetas_dim[1] = 2 * int(self.forecast_length / 2 - 1) + 1
+
+                    block = block_init(self.n_theta_hidden, self.thetas_dim,
+                                       self.backcast_length, self.forecast_length, self.activation)
                 else:
                     block = block_init(self.n_theta_hidden, self.thetas_dim,
                                        self.backcast_length, self.forecast_length, self.activation)

@@ -15,28 +15,47 @@ ACTIVATIONS = ['ReLU',
                'Sigmoid']
 
 
-def seasonality_model(thetas, t):
-    device = thetas.device
-    p = thetas.size()[-1]
-    assert p <= thetas.shape[1], 'thetas_dim is too big.'
-    p1, p2 = (p // 2, p // 2) if p % 2 == 0 else (p // 2, p // 2 + 1)
-    s1 = torch.tensor([np.cos(2 * np.pi * i * t) for i in range(p1)]).float()  # H/2-1
-    s2 = torch.tensor([np.sin(2 * np.pi * i * t) for i in range(p2)]).float()
-    S = torch.cat([s1, s2])
-    return thetas.mm(S.to(device))
+class _TrendGenerator(nn.Module):
+    def __init__(self, expansion_coefficient_dim, target_length):
+        super().__init__()
+
+        # basis is of size (expansion_coefficient_dim, target_length)
+        basis = torch.stack(
+            [
+                (torch.arange(target_length) / target_length) ** i
+                for i in range(expansion_coefficient_dim)
+            ],
+            dim=1,
+        ).T
+
+        self.basis = nn.Parameter(basis, requires_grad=False)
+
+    def forward(self, x):
+        return torch.matmul(x, self.basis)
 
 
-def trend_model(thetas, t):
-    device = thetas.device
-    p = thetas.size()[-1]
-    assert p <= 4, 'thetas_dim is too big.'
-    T = torch.tensor([t ** i for i in range(p)]).float()
-    return thetas.mm(T.to(device))
+class _SeasonalityGenerator(nn.Module):
+    def __init__(self, target_length):
+        super().__init__()
+        half_minus_one = int(target_length / 2 - 1)
+        cos_vectors = [
+            torch.cos(torch.arange(target_length) / target_length * 2 * np.pi * i)
+            for i in range(1, half_minus_one + 1)
+        ]
+        sin_vectors = [
+            torch.sin(torch.arange(target_length) / target_length * 2 * np.pi * i)
+            for i in range(1, half_minus_one + 1)
+        ]
 
+        # basis is of size (2 * int(target_length / 2 - 1) + 1, target_length)
+        basis = torch.stack(
+            [torch.ones(target_length)] + cos_vectors + sin_vectors, dim=1
+        ).T
 
-def linear_space(backcast_length, forecast_length, is_forecast=True):
-    horizon = forecast_length if is_forecast else backcast_length
-    return np.arange(0, horizon) / horizon
+        self.basis = nn.Parameter(basis, requires_grad=False)
+
+    def forward(self, x):
+        return torch.matmul(x, self.basis)
 
 
 class Inter_Correlation_Block(nn.Module):
@@ -52,9 +71,6 @@ class Inter_Correlation_Block(nn.Module):
 
         self.backcast_length = backcast_length
         self.forecast_length = forecast_length
-
-        self.backcast_linspace = linear_space(backcast_length, forecast_length, is_forecast=False)
-        self.forecast_linspace = linear_space(backcast_length, forecast_length, is_forecast=True)
 
         self.Correlation_stack = nn.ModuleList()
         for i in range(self.n_layers):
@@ -82,22 +98,26 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(GNN_SeasonalityBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length,
                                                    activation)
+        self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
+        self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_SeasonalityBlock, self).forward(x, edge_index, edge_weight)
-        backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace)
-        forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace)
+        backcast = self.backcast_seasonality_model(self.theta_b_fc(x), self.backcast_linspace)
+        forecast = self.forecast_seasonality_model(self.theta_f_fc(x), self.forecast_linspace)
         return backcast, forecast
 
 
 class GNN_TrendBlock(Inter_Correlation_Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(GNN_TrendBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
+        self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
+        self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_TrendBlock, self).forward(x, edge_index, edge_weight)
-        backcast = trend_model(self.theta_b_fc(x), self.backcast_linspace)
-        forecast = trend_model(self.theta_f_fc(x), self.forecast_linspace)
+        backcast = self.backcast_trend_model(self.theta_b_fc(x))
+        forecast = self.forecast_trend_model(self.theta_f_fc(x))
         return backcast, forecast
 
 
@@ -170,9 +190,6 @@ class Block(nn.Module):
         self.backcast_length = backcast_length
         self.forecast_length = forecast_length
 
-        self.backcast_linspace = linear_space(backcast_length, forecast_length, is_forecast=False)
-        self.forecast_linspace = linear_space(backcast_length, forecast_length, is_forecast=True)
-
         self.MLP_stack = nn.ModuleList()
         for i in range(self.n_layers):
             if i == 0:
@@ -194,22 +211,26 @@ class Block(nn.Module):
 class SeasonalityBlock(Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(SeasonalityBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
+        self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
+        self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
 
     def forward(self, x):
         x = super(SeasonalityBlock, self).forward(x)
-        backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace)
-        forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace)
+        backcast = self.backcast_seasonality_model(self.theta_b_fc(x), self.backcast_linspace)
+        forecast = self.forecast_seasonality_model(self.theta_f_fc(x), self.forecast_linspace)
         return backcast, forecast
 
 
 class TrendBlock(Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(TrendBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
+        self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
+        self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x):
         x = super(TrendBlock, self).forward(x)
-        backcast = trend_model(self.theta_b_fc(x), self.backcast_linspace)
-        forecast = trend_model(self.theta_f_fc(x), self.forecast_linspace)
+        backcast = self.backcast_trend_model(self.theta_b_fc(x))
+        forecast = self.forecast_trend_model(self.theta_f_fc(x))
         return backcast, forecast
 
 
