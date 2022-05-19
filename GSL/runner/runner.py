@@ -222,6 +222,7 @@ class Runner(object):
         results = defaultdict(list)
         output = []
         target = []
+        inputs = []
         for data_batch in tqdm(self.test_dataset):
 
             if self.use_gpu and (self.device != 'cpu'):
@@ -244,6 +245,7 @@ class Runner(object):
             test_loss += [float(loss.data.cpu().numpy())]
             output += [forecast.cpu()]
             target += [data_batch.y.cpu()]
+            inputs += [data_batch.x.cpu()]
 
         test_loss = np.stack(test_loss).mean()
 
@@ -251,6 +253,7 @@ class Runner(object):
         results['adj_matrix'] = adj_matrix
         results['prediction'] = output
         results['target'] = target
+        results['Inputs'] = inputs
         results['attention_matrix'] = attention_matrix
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
