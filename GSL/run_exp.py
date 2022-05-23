@@ -17,38 +17,12 @@ import yaml
 
 @click.command()
 @click.option('--conf_file_path', type=click.STRING, default=None)
-@click.option('--graph_learning_mode', type=click.STRING, default=None)
-@click.option('--num_blocks_per_stack', type=int, default=None)
-@click.option('--n_theta_hidden', type=click.STRING, default=None)
-@click.option('--thetas_dim', type=click.STRING, default=None)
-def main(conf_file_path, graph_learning_mode, num_blocks_per_stack, n_theta_hidden, thetas_dim):
-    n_theta_hidden = n_theta_hidden.split(',')
-    n_theta_hidden = [int(i.strip()) for i in n_theta_hidden]
-    thetas_dim = thetas_dim.split(',')
-    thetas_dim = [int(j.strip() )for j in thetas_dim]
-
-    hyperparameter = f'num_blocks_per_stack_{num_blocks_per_stack}__n_theta_hidden_{n_theta_hidden}__thetas_dim_{thetas_dim}'
-
+def main(conf_file_path):
     start = datetime.datetime.now()
     start = start + datetime.timedelta(hours=9)
 
-    config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
-    config.seed = set_seed(config.seed)
-
-    config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))
-    config.exp_sub_dir = os.path.join(config.exp_dir, config.model_name, graph_learning_mode, hyperparameter)
-    config.model_save = os.path.join(config.exp_sub_dir, "model_save")
-
-    mkdir(config.model_save)
-
-    config.graph_learning.graph_learning_mode = graph_learning_mode
-    config.forecasting_module.num_blocks_per_stack = num_blocks_per_stack
-    config.forecasting_module.n_theta_hidden = n_theta_hidden
-    config.forecasting_module.thetas_dim = thetas_dim
-
-    save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
-    yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
+    config = get_config(conf_file_path)
 
     log_file = os.path.join(config.exp_sub_dir, "log_exp_{}.txt".format(config.seed))
     logger = setup_logging('INFO', log_file)
@@ -60,11 +34,11 @@ def main(conf_file_path, graph_learning_mode, num_blocks_per_stack, n_theta_hidd
         runner.train()
         runner.test()
 
-        slack_message(start, f"{config.exp_name}: Training Success")
+        # slack_message(start, f"{config.exp_name}: Training Success")
 
     except:
         logger.error(traceback.format_exc())
-        slack_message(start, f"{config.exp_name}: Error \n {traceback.format_exc()}")
+        # slack_message(start, f"{config.exp_name}: Error \n {traceback.format_exc()}")
 
 
 if __name__ == '__main__':

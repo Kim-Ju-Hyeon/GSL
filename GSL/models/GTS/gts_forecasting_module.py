@@ -183,7 +183,8 @@ class GTS_Traffic_Forecasting_Module(nn.Module):
                                                               weight_matrix)
             outputs.append(output)
 
-            decoder_input = targets[:, j].unsqueeze(dim=-1)
+            # decoder_input = targets[:, j].unsqueeze(dim=-1) -- Teacher Forcing
+            decoder_input = output
 
         outputs = torch.cat(outputs, dim=-1)
         return outputs
