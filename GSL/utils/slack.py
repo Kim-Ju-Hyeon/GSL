@@ -1,8 +1,14 @@
 import requests
 import datetime
 
+def get_slack_token():
+        token_file = open('../slack_token', 'r')
+        token = token_file.read()
+        return token
+
 def send_slack_message(message):
-        myToken = "xoxb-1878415793027-2563831293013-WFZU6aANrL6MMaAiF6LFE82a"
+        token = get_slack_token()
+        myToken = str(token)
         channel_id = "C02GNPARJBU"
 
         data = {'content-Type': 'application/x-www-form-urlencoded',
