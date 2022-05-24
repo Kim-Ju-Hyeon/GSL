@@ -17,10 +17,10 @@ import yaml
 
 @click.command()
 @click.option('--conf_file_path', type=click.STRING, default=None)
-@click.option('--graph_learning_mode', type=click.STRING, default=None)
-@click.option('--num_blocks_per_stack', type=int, default=None)
-@click.option('--n_theta_hidden', type=click.STRING, default=None)
-@click.option('--thetas_dim', type=click.STRING, default=None)
+@click.option('--graph_learning_mode', type=click.STRING, default='no_graph')
+@click.option('--num_blocks_per_stack', type=int, default=1)
+@click.option('--n_theta_hidden', type=click.STRING, default='16,16')
+@click.option('--thetas_dim', type=click.STRING, default='4,4')
 def main(conf_file_path, graph_learning_mode, num_blocks_per_stack, n_theta_hidden, thetas_dim):
     n_theta_hidden = n_theta_hidden.split(',')
     n_theta_hidden = [int(i.strip()) for i in n_theta_hidden]
@@ -60,11 +60,11 @@ def main(conf_file_path, graph_learning_mode, num_blocks_per_stack, n_theta_hidd
         runner.train()
         runner.test()
 
-        slack_message(start, f"{config.exp_name}: Training Success")
+        # slack_message(start, f"{config.exp_name}: Training Success")
 
     except:
         logger.error(traceback.format_exc())
-        slack_message(start, f"{config.exp_name}: Error \n {traceback.format_exc()}")
+        # slack_message(start, f"{config.exp_name}: Error \n {traceback.format_exc()}")
 
 
 if __name__ == '__main__':

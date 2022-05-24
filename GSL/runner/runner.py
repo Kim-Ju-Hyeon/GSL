@@ -18,6 +18,8 @@ from utils.logger import get_logger
 from dataset.make_traffic_dataset import TrafficDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
 
+from utils.score import MAPE, MAE
+
 logger = get_logger('exp_logger')
 
 
@@ -56,7 +58,7 @@ class Runner(object):
             self.init_edge_index = build_fully_connected_edge_idx(self.nodes_num)
         else:
             raise ValueError("Non-supported Edge Index!")
-        
+
         self.get_dataset()
 
         self.model = My_Model(self.config)
@@ -65,7 +67,7 @@ class Runner(object):
             self.model = self.model.to(device=self.device)
             self.init_edge_index = self.init_edge_index.to(device=self.device)
             self.entire_inputs = self.entire_inputs.to(device=self.device)
-            
+
     def get_dataset(self):
         if self.dataset_conf.name == 'spike_lambda_bin100':
             spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
@@ -81,14 +83,16 @@ class Runner(object):
 
         elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
             loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name)
-            dataset, self.entire_inputs = loader.get_dataset(num_timesteps_in=self.config.forecasting_module.backcast_length,
-                                                             num_timesteps_out=self.config.forecasting_module.forecast_length,
-                                                             batch_size=self.train_conf.batch_size)
+            dataset, self.entire_inputs = loader.get_dataset(
+                num_timesteps_in=self.config.forecasting_module.backcast_length,
+                num_timesteps_out=self.config.forecasting_module.forecast_length,
+                batch_size=self.train_conf.batch_size)
 
-            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.8)
-            self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.5)
+            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.7)
+            self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.33)
 
             self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
+            self.scaler = loader.get_scaler()
 
         else:
             raise ValueError("Non-supported dataset!")
@@ -109,7 +113,7 @@ class Runner(object):
         else:
             raise ValueError("Non-supported optimizer!")
 
-        scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=self.train_conf.T_0, T_mult=self.train_conf.T_mult)
+        # scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=self.train_conf.T_0, T_mult=self.train_conf.T_mult)
 
         results = defaultdict(list)
         best_val_loss = np.inf
@@ -118,11 +122,11 @@ class Runner(object):
             checkpoint = load_model(self.ck_dir)
             self.model.load_state_dict(checkpoint['model'])
             optimizer.load_state_dict(checkpoint['optimizer'])
-            scheduler.load_state_dict(checkpoint['scheduler'])
+            # scheduler.load_state_dict(checkpoint['scheduler'])
             best_val_loss = checkpoint['best_valid_loss']
             self.train_conf.epoch -= checkpoint['epoch']
 
-        length = get_dataset_length(self.train_dataset)
+        # length = get_dataset_length(self.train_dataset)
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
@@ -135,15 +139,17 @@ class Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index, interpretability=False)
+                _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index,
+                                           interpretability=False)
 
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
                     outputs = defaultdict(list)
                 else:
                     forecast = outputs
+                target = data_batch.y
 
-                loss = self.loss(forecast, data_batch.y)
+                loss = self.loss(forecast, target)
 
                 # backward pass (accumulates gradients).
                 loss.backward()
@@ -151,8 +157,8 @@ class Runner(object):
                 # performs a single update step.
                 optimizer.step()
                 optimizer.zero_grad()
-                temp = int(epoch + i / length)
-                scheduler.step(temp)
+                # temp = int(epoch + i / length)
+                # scheduler.step(temp)
 
                 train_loss += [float(loss.data.cpu().numpy())]
 
@@ -202,7 +208,9 @@ class Runner(object):
             logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
-            model_snapshot(epoch, self.model, optimizer, scheduler, best_val_loss, self.ck_dir)
+            # model_snapshot(epoch, self.model, optimizer, scheduler, best_val_loss, self.ck_dir)
+            model_snapshot(epoch=epoch, model=self.model, optimizer=optimizer, scheduler=None,
+                           best_valid_loss=best_val_loss, exp_dir=self.ck_dir)
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
@@ -223,6 +231,7 @@ class Runner(object):
         output = []
         target = []
         inputs = []
+        score = []
         for data_batch in tqdm(self.test_dataset):
 
             if self.use_gpu and (self.device != 'cpu'):
@@ -234,22 +243,38 @@ class Runner(object):
 
             if type(outputs) == defaultdict:
                 forecast = outputs['forecast']
-                results['stack_per_backcast']=outputs['stack_per_backcast']
-                results['stack_per_forecast']=outputs['stack_per_forecast']
+                results['stack_per_backcast'] = outputs['stack_per_backcast']
+                results['stack_per_forecast'] = outputs['stack_per_forecast']
                 results['backcast'] = outputs['backcast'].cpu()
             else:
                 forecast = outputs
 
             loss = self.loss(forecast, data_batch.y)
 
+            _score = 0
+            # y = forecast.detach().numpy().reshape(-1)
+            # y_hat = data_batch.y.detach().numpy().reshape(-1)
+            #
+            # _broadcast = np.zeros(size=y.size())
+            # _y = np.stack([y, _broadcast])
+            # _y_hat = np.stack([y_hat, _broadcast])
+            #
+            # y = self.scaler.inverse_transform(_y)
+            # y_hat = self.scaler.inverse_transform(_y_hat)
+            # 
+            # _score = MAE(y[:, 0], y_hat[:, 0])
+
             test_loss += [float(loss.data.cpu().numpy())]
+            score += [_score]
             output += [forecast.cpu()]
             target += [data_batch.y.cpu()]
             inputs += [data_batch.x.cpu()]
 
         test_loss = np.stack(test_loss).mean()
+        score = np.stack(score).mean()
 
-        results['test_loss'] += [test_loss]
+        results['test_loss'] = test_loss
+        results['score'] = score
         results['adj_matrix'] = adj_matrix
         results['prediction'] = output
         results['target'] = target
@@ -257,5 +282,6 @@ class Runner(object):
         results['attention_matrix'] = attention_matrix
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
+        logger.info("Avg. Score = {:.6}".format(score, 0))
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))

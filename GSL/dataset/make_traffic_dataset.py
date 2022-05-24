@@ -3,6 +3,8 @@ import zipfile
 import numpy as np
 import torch
 from torch_geometric.utils import dense_to_sparse
+from sklearn.preprocessing import StandardScaler
+
 from six.moves import urllib
 from utils.utils import build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
@@ -69,20 +71,17 @@ class TrafficDatasetLoader(object):
                     zip_fh.extractall(self.raw_data_dir)
 
             A = np.load(os.path.join(self.raw_data_dir, "pems_adj_mat.npy"))
-            X = np.load(os.path.join(self.raw_data_dir, "pems_node_values.npy")).transpose(
-                (1, 2, 0)
-            )
+            X = np.load(os.path.join(self.raw_data_dir, "pems_node_values.npy"))
 
         else:
             raise ValueError("Invalid Dataset")
 
         X = X.astype(np.float32)
+        shape = X.shape
 
-        # Normalise as in DCRNN paper (via Z-Score Method)
-        means = np.mean(X, axis=(0, 2))
-        X = X - means.reshape(1, -1, 1)
-        stds = np.std(X, axis=(0, 2))
-        X = X / stds.reshape(1, -1, 1)
+        self.scaler = StandardScaler()
+        self.scaler.fit(X.reshape(-1, 2))
+        X = self.scaler.transform(X.reshape(-1, 2)).reshape(shape)
 
         self.A = torch.from_numpy(A)
         self.X = torch.from_numpy(X)
@@ -145,3 +144,6 @@ class TrafficDatasetLoader(object):
                                                  features=feature_Tensor, targets=target_Tensor, batches=_batch)
 
         return dataset, self.X
+
+    def get_scaler(self):
+        return self.scaler

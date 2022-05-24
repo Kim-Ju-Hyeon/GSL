@@ -64,14 +64,23 @@ def load_model(exp_dir):
 
 
 def model_snapshot(epoch, model, optimizer, scheduler, best_valid_loss, exp_dir):
-    ck = {
-        'epoch': epoch,
-        'model': model.state_dict(),
-        'optimizer': optimizer.state_dict(),
-        'scheduler': scheduler.state_dict(),
-        'best_valid_loss': best_valid_loss
-    }
-    torch.save(ck, exp_dir)
+    if scheduler is not None:
+        ck = {
+            'epoch': epoch,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'scheduler': scheduler.state_dict(),
+            'best_valid_loss': best_valid_loss
+        }
+        torch.save(ck, exp_dir)
+    else:
+        ck = {
+            'epoch': epoch,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'best_valid_loss': best_valid_loss
+        }
+        torch.save(ck, exp_dir)
 
 
 def save_config(config):
