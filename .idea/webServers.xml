@@ -16,6 +16,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="aabc43f6-3a94-4713-8c77-ff9a1a2b44ad" name="rtx90_gsl">
+        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.39" port="22" sshConfigId="711308d6-ee2b-48e4-8d17-28d0f45549b8" sshConfig="JuHyeon@166.104.35.39:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

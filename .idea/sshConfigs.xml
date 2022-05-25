@@ -4,6 +4,7 @@
     <configs>
       <sshConfig authType="PASSWORD" host="192.168.1.10" id="07403b2d-87d3-47cf-aa65-cd9c349b20b2" port="22" nameFormat="DESCRIPTIVE" username="nvidia" />
       <sshConfig authType="PASSWORD" host="166.104.115.40" id="cae4c3c3-9470-49a4-8073-82a496af19e2" port="5523" nameFormat="DESCRIPTIVE" username="nvidia" />
+      <sshConfig authType="PASSWORD" host="166.104.35.39" id="711308d6-ee2b-48e4-8d17-28d0f45549b8" port="22" nameFormat="DESCRIPTIVE" username="JuHyeon" />
     </configs>
   </component>
 </project>
