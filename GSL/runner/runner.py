@@ -18,7 +18,7 @@ from utils.logger import get_logger
 from dataset.make_traffic_dataset import TrafficDatasetLoader
 from torch_geometric_temporal.signal import temporal_signal_split
 
-from utils.score import MAPE, MAE
+from utils.score import get_score
 
 logger = get_logger('exp_logger')
 
@@ -194,7 +194,7 @@ class Runner(object):
             val_loss = np.stack(val_loss).mean()
 
             results['val_loss'] += [val_loss]
-            results['attention_matrix'] = attention_matrix
+            results['attention_matrix'] = attention_matrix.detach().cpu()
 
             if type(adj_matrix) == dict:
                 results['val_adj_matirix'] += adj_matrix
@@ -227,11 +227,10 @@ class Runner(object):
         self.best_model.eval()
 
         test_loss = []
-        results = defaultdict(list)
+        results = defaultdict()
         output = []
         target = []
         inputs = []
-        score = []
         for data_batch in tqdm(self.test_dataset):
 
             if self.use_gpu and (self.device != 'cpu'):
@@ -251,37 +250,27 @@ class Runner(object):
 
             loss = self.loss(forecast, data_batch.y)
 
-            _score = 0
-            # y = forecast.detach().numpy().reshape(-1)
-            # y_hat = data_batch.y.detach().numpy().reshape(-1)
-            #
-            # _broadcast = np.zeros(size=y.size())
-            # _y = np.stack([y, _broadcast])
-            # _y_hat = np.stack([y_hat, _broadcast])
-            #
-            # y = self.scaler.inverse_transform(_y)
-            # y_hat = self.scaler.inverse_transform(_y_hat)
-            # 
-            # _score = MAE(y[:, 0], y_hat[:, 0])
-
             test_loss += [float(loss.data.cpu().numpy())]
-            score += [_score]
-            output += [forecast.cpu()]
-            target += [data_batch.y.cpu()]
-            inputs += [data_batch.x.cpu()]
+            output += [forecast.cpu().numpy()]
+            target += [data_batch.y.cpu().numpy()]
+            inputs += [data_batch.x.cpu().numpy()]
 
         test_loss = np.stack(test_loss).mean()
-        score = np.stack(score).mean()
+        output = np.stack(output)
+        target = np.stack(target)
+        inputs = np.stack(inputs)
+
+        score = get_score(target.reshape(-1), output.reshape(-1), scaler=self.scaler)
 
         results['test_loss'] = test_loss
         results['score'] = score
-        results['adj_matrix'] = adj_matrix
+        results['adj_matrix'] = adj_matrix.cpu()
         results['prediction'] = output
         results['target'] = target
         results['Inputs'] = inputs
         results['attention_matrix'] = attention_matrix
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
-        logger.info("Avg. Score = {:.6}".format(score, 0))
+        logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))

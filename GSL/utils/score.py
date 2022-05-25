@@ -1,6 +1,25 @@
 import numpy as np
 
 
+def get_score(target, prediction, scaler=None):
+    score = dict()
+
+    if scaler is None:
+        pass
+    else:
+        target = scaler.inverse_transform(np.stack([target, target], axis=-1))[:, 0]
+        prediction = scaler.inverse_transform(np.stack([prediction, prediction], axis=-1))[:, 0]
+
+    mae = MAE(target, prediction)
+    mape = MAPE(target, prediction)
+    rmse = RMSE(target, prediction)
+
+    score['MAE'] = mae
+    score['MAPE'] = mape
+    score['RMSE'] = rmse
+
+    return score
+
 def MAPE(v, v_, axis=None):
     mape = (np.abs(v_ - v) / np.abs(v)+1e-5).astype(np.float64)
     mape = np.where(mape > 5, 5, mape)
@@ -14,7 +33,7 @@ def RMSE(v, v_, axis=None):
     :param axis: axis to do calculation.
     :return: int, RMSE averages on all elements of input.
     '''
-    return np.sqrt(np.mean((v_ - v) ** 2, axis)).astype(np.float64)
+    return np.sqrt(np.mean((v_ - v) ** 2, axis)+1e-5).astype(np.float64)
 
 
 def MAE(v, v_, axis=None):

@@ -120,6 +120,8 @@ class My_Model(nn.Module):
             else:
                 batch_weight_matrix = build_batch_edge_weight(attention_matrix, num_graphs=self.batch_size)
 
+            attention_matrix = to_dense_adj(theta, edge_attr=attention_matrix).squeeze(dim=0)
+
         else:
             raise ValueError("Invalid graph sampling mode")
 
