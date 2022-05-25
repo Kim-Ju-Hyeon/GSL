@@ -29,7 +29,7 @@ def main(conf_file_path, stack_type, num_blocks_per_stack, n_theta_hidden, theta
     stack_type = stack_type.split(',')
     stack_type = [j.strip() for j in stack_type]
 
-    hyperparameter = f'stack_type_{stack_type}__num_blocks_per_stack_{num_blocks_per_stack}__n_theta_hidden_{n_theta_hidden}__thetas_dim_{thetas_dim}'
+    hyperparameter = f'stacks_{len(stack_type)}__num_blocks_per_stack_{num_blocks_per_stack}__n_theta_hidden_{n_theta_hidden}__thetas_dim_{thetas_dim}'
 
     start = datetime.datetime.now()
     start = start + datetime.timedelta(hours=9)
