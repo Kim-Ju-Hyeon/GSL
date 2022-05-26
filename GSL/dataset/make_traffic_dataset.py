@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from six.moves import urllib
 from utils.utils import build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
-
+import random
 
 class TrafficDatasetLoader(object):
     def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data"), dataset_name: str = 'METR-LA'):
@@ -45,9 +45,7 @@ class TrafficDatasetLoader(object):
                     zip_fh.extractall(self.raw_data_dir)
 
             A = np.load(os.path.join(self.raw_data_dir, "adj_mat.npy"))
-            X = np.load(os.path.join(self.raw_data_dir, "node_values.npy")).transpose(
-                (1, 2, 0)
-            )
+            X = np.load(os.path.join(self.raw_data_dir, "node_values.npy"))
 
         elif self._dataset_name == 'PEMS-BAY':
             url = "https://graphmining.ai/temporal_datasets/PEMS-BAY.zip"
@@ -84,7 +82,7 @@ class TrafficDatasetLoader(object):
         X = self.scaler.transform(X.reshape(-1, 2)).reshape(shape)
 
         self.A = torch.from_numpy(A)
-        self.X = torch.from_numpy(X)
+        self.X = torch.from_numpy(X.transpose(1, 2, 0))
 
     def _get_edges_and_weights(self):
         edge_indices, values = dense_to_sparse(self.A)
@@ -108,6 +106,7 @@ class TrafficDatasetLoader(object):
             (i, i + (num_timesteps_in + num_timesteps_out))
             for i in range(self.X.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
         ]
+        random.shuffle(indices)
 
         # Generate observations
         features, target = [], []

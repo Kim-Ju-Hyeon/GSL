@@ -23,7 +23,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 1
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None
@@ -50,8 +50,8 @@ forecasting_module:
     stack_types: [trend, seasonality] # seasonality, trend, generic, n_hits
     activ: 'ReLU'
     num_blocks_per_stack: 1
-    forecast_length: 1
-    backcast_length: 3
+    forecast_length: 12
+    backcast_length: 60
     n_theta_hidden: [4, 4, 4]
     thetas_dim: [4, 4]
     share_weights_in_stack: True
