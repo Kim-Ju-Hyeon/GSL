@@ -19,5 +19,5 @@ python3 run_exp.py --conf_file_path ./config/DCRNN/dcrnn.yaml --input_length 60 
 sleep 3
 python3 run_exp.py --conf_file_path ./config/DCRNN/dcrnn.yaml --input_length 48 --hidden_dim 256 &
 sleep 3
-python3 run_exp.py --conf_file_path ./config/DCRNN/dcrnn.yaml --input_length 60 --hidden_dim 256 &
-sleep 3
+#python3 run_exp.py --conf_file_path ./config/DCRNN/dcrnn.yaml --input_length 60 --hidden_dim 256 &   # CUDA out of Memory
+#sleep 3
