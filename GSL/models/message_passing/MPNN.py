@@ -32,6 +32,7 @@ class InterCorrealtionStack(MessagePassing):
         x = inputs
         for layer in self.MLP_stack:
             x = layer(x)
+            x = F.relu(x)
 
         self.propagate(edge_index=edge_index)
 
