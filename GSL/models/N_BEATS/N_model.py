@@ -12,6 +12,7 @@ class N_model(nn.Module):
         super(N_model, self).__init__()
         self.activation = config.activ
         self.stack_types = config.stack_types
+        self.inter_correlation_block_type = config.inter_correlation_block_type
         self.forecast_length = config.forecast_length
         self.backcast_length = config.backcast_length
         self.n_theta_hidden = config.n_theta_hidden
@@ -43,22 +44,33 @@ class N_model(nn.Module):
                 block = blocks[-1]
             else:
                 if stack_type == N_model.N_HITS_BLOCK:
-                    block = block_init(self.n_theta_hidden, self.thetas_dim, self.pooling_mode,
-                                       self.n_pool_kernel_size,
-                                       self.backcast_length, self.forecast_length, self.activation)
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden,
+                                       thetas_dim=self.thetas_dim, pooling_mode=self.pooling_mode,
+                                       n_pool_kernel_size=self.n_pool_kernel_size,
+                                       backcast_length=self.backcast_length,
+                                       forecast_length=self.forecast_length,
+                                       activation=self.activation)
+
                 elif stack_type == N_model.TREND_BLOCK:
                     self.thetas_dim[0], self.thetas_dim[1] = 3, 3
-                    block = block_init(self.n_theta_hidden, self.thetas_dim,
-                                       self.backcast_length, self.forecast_length, self.activation)
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
+                                       backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                       activation=self.activation)
                 elif stack_type == N_model.SEASONALITY_BLOCK:
                     self.thetas_dim[0] = 2 * int(self.backcast_length / 2 - 1) + 1
                     self.thetas_dim[1] = 2 * int(self.forecast_length / 2 - 1) + 1
 
-                    block = block_init(self.n_theta_hidden, self.thetas_dim,
-                                       self.backcast_length, self.forecast_length, self.activation)
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
+                                       backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                       activation=self.activation)
                 else:
-                    block = block_init(self.n_theta_hidden, self.thetas_dim,
-                                       self.backcast_length, self.forecast_length, self.activation)
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
+                                       backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                       activation=self.activation)
                 self.parameters.extend(block.parameters())
             blocks.append(block)
         return blocks

@@ -2,25 +2,41 @@ import torch
 from torch_geometric.nn import MessagePassing
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.utils import add_self_loops, degree
+from torch_geometric.utils import degree
 
 
 class InterCorrealtionStack(MessagePassing):
-    def __init__(self, config):
-        super().__init__(aggr='add', flow='source_to_target')
+    def __init__(self, input_dim, hidden_dim, message_norm, GLU=False, single_message=False):
+        super().__init__(aggr='add', flow='target_to_source')
 
-        self.input_dim = config.forecasting_module.backcast_length
-        self.hidden_dim = config.forecasting_module.n_theta_hidden
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.message_norm = message_norm
+        self.GLU = GLU
+        self.single_message = single_message
 
-        self.fc_cat = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
-        self.fc_out = nn.Linear(self.hidden_dim[-1], self.hidden_dim[-1])
+        if self.single_message:
+            self.fc_message = nn.Linear(self.hidden_dim[-1], self.hidden_dim[-1])
+
+        else:
+            self.fc_message = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
+
+        self.fc_update = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
 
         self.MLP_stack = nn.ModuleList()
         for i in range(len(self.hidden_dim)):
-            if i ==0:
+            if i == 0:
                 self.MLP_stack.append(nn.Linear(self.input_dim, self.hidden_dim[i]))
             else:
                 self.MLP_stack.append(nn.Linear(self.hidden_dim[i-1], self.hidden_dim[i]))
+
+        if self.GLU:
+            if self.single_message:
+                self.gated_linear_unit = nn.Linear(self.hidden_dim[-1], self.hidden_dim[-1])
+            else:
+                self.gated_linear_unit = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
+
+        self.init_weights()
 
     def init_weights(self):
         for m in self.modules():
@@ -30,16 +46,36 @@ class InterCorrealtionStack(MessagePassing):
 
     def forward(self, inputs, edge_index, edge_weight=None):
         x = inputs
+
+        if self.message_norm:
+            row, col = edge_index
+            deg = degree(col, x.size(0), dtype=x.dtype)
+            deg_inv_sqrt = deg.pow(-0.5)
+            deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
+            norm = deg_inv_sqrt[row] * deg_inv_sqrt[col]
+        else:
+            norm = None
+
         for layer in self.MLP_stack:
             x = layer(x)
             x = F.relu(x)
-
-        self.propagate(edge_index=edge_index)
+        return self.propagate(edge_index=edge_index, x=x, edge_weight=edge_weight, norm=norm)
 
     def message(self, x_i, x_j):
-        x = torch.cat([x_i, x_j], dim=-1)
-        x = F.relu(self.fc_cat(x))
-        return x
+        if self.single_message:
+            x = x_j
+        else:
+            x = torch.cat([x_i, x_j], dim=-1)
+        message = F.relu(self.fc_message(x))
+        if self.GLU:
+            x = self.gated_linear_unit(x)
+            gate = torch.sigmoid(x)
+            message = torch.mul(gate, message)
 
-    def update(self, inputs):
-        return F.relu(self.fc_out(inputs))
+        return message
+
+    def update(self, inputs, x):
+        aggregated_concated_message = torch.cat([x, inputs], dim=-1)
+        out = F.relu(self.fc_update(aggregated_concated_message))
+
+        return out
