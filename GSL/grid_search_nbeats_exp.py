@@ -34,7 +34,7 @@ def main(conf_file_path, type):
                     start = start + datetime.timedelta(hours=9)
 
                     config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
-                    config.exp_name = type
+                    config.model_name = type
                     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
                     config.seed = set_seed(config.seed)
 
@@ -58,9 +58,9 @@ def main(conf_file_path, type):
                     logger.info("Writing log file to {}".format(log_file))
                     logger.info("Exp instance id = {}".format(config.exp_name))
 
-                    runner = Runner(config=config)
-                    runner.train()
-                    runner.test()
+                    # runner = Runner(config=config)
+                    # runner.train()
+                    # runner.test()
 
 
 if __name__ == '__main__':
