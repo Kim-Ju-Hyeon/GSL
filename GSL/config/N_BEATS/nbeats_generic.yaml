@@ -1,6 +1,6 @@
 ---
-exp_name: 0603 # 0417
-exp_dir: ../exp
+exp_name: MPNN # 0417
+exp_dir: ../exp/Grid_search_0605
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
