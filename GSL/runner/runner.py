@@ -21,7 +21,7 @@ from torch_geometric_temporal.signal import temporal_signal_split
 from utils.score import get_score
 
 logger = get_logger('exp_logger')
-
+score_logger = get_logger('Score_logger')
 
 def get_dataset_length(_dataset):
     length = 0
@@ -272,5 +272,8 @@ class Runner(object):
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
         logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
+
+        score_logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
+        score_logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))

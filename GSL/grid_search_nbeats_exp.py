@@ -13,16 +13,18 @@ import datetime
 import pytz
 from easydict import EasyDict as edict
 import yaml
+import logging
 
 
 @click.command()
 @click.option('--conf_file_path', type=click.STRING, default=None)
 @click.option('--type', type=click.STRING, default=None)
 def main(conf_file_path, type):
-    num_stack_list = [1, 3, 9, 15, 30, 45, 90]
-    num_blocks_per_stack_list = [1, 3, 9, 15, 30, 45, 90]
-    mlp_stack_list = [[128, 64, 32], [256, 128, 64],[16,16,16], [16,16,16,16,16] ,[32,32,32], [64,64,64]]
-    thetas_dim_list = [[64,64], [16,16], [8,8], [128,128], [60, 12]]
+    num_stack_list = [3, 15, 30, 90]
+    num_blocks_per_stack_list = [3, 15, 30, 90]
+    mlp_stack_list = [[128, 64, 32],[16,16,16], [16,16,16,16,16] ,[32,32,32]]
+    thetas_dim_list = [[64,64], [128,128], [60, 12]]
+    log_file2 = os.path.join('../exp/Grid_search_0605', "Score.txt")
 
     for n_stack in num_stack_list:
         for n_block in num_blocks_per_stack_list:
@@ -58,9 +60,12 @@ def main(conf_file_path, type):
                     logger.info("Writing log file to {}".format(log_file))
                     logger.info("Exp instance id = {}".format(config.exp_name))
 
-                    # runner = Runner(config=config)
-                    # runner.train()
-                    # runner.test()
+                    runner = Runner(config=config)
+                    runner.train()
+                    runner.test()
+
+                    score_logger = setup_logging('INFO', log_file2, logger_name='Score_logger')
+                    score_logger.info(f'{hyperparameter}')
 
 
 if __name__ == '__main__':
