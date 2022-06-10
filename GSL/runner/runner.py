@@ -146,9 +146,8 @@ class Runner(object):
                     forecast = outputs['forecast']
                     forecast_target = data_batch.y
 
-                    backcast = outputs['forecast']
+                    backcast = outputs['backcast']
                     backcast_target = data_batch.x[:,0,:]
-
 
                     outputs = defaultdict(list)
 

@@ -1,5 +1,5 @@
 ---
-exp_name: SFTF_exp_0607 # 0417
+exp_name: BackcastLoss_0610 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
