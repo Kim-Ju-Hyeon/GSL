@@ -1,5 +1,5 @@
 ---
-exp_name: Grid_search_0605 # 0417
+exp_name: SFTF_exp_0607 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
