@@ -144,12 +144,23 @@ class Runner(object):
 
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
+                    forecast_target = data_batch.y
+
+                    backcast = outputs['forecast']
+                    backcast_target = data_batch.x[:,0,:]
+
+
                     outputs = defaultdict(list)
+
+                    forecast_loss = self.loss(forecast, forecast_target)
+                    backcast_loss = self.loss(backcast, backcast_target)
+
+                    loss = 0.3*backcast_loss + 0.7*forecast_loss
                 else:
                     forecast = outputs
-                target = data_batch.y
+                    target = data_batch.y
 
-                loss = self.loss(forecast, target)
+                    loss = self.loss(forecast, target)
 
                 # backward pass (accumulates gradients).
                 loss.backward()
