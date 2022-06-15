@@ -38,6 +38,7 @@ class Runner(object):
         self.seed = config.seed
         self.use_gpu = config.use_gpu
         self.device = config.device
+        self.backcast_loss = config.train.backcast_loss
 
         self.best_model_dir = os.path.join(self.model_save, 'best.pth')
         self.ck_dir = os.path.join(self.model_save, 'training.ck')
@@ -145,16 +146,16 @@ class Runner(object):
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
                     forecast_target = data_batch.y
+                    loss = self.loss(forecast, forecast_target)
 
-                    backcast = outputs['backcast']
-                    backcast_target = data_batch.x[:,0,:]
+                    if self.backcast_loss:
+                        backcast = outputs['backcast']
+                        backcast_target = data_batch.x[:,0,:]
+                        backcast_loss = self.loss(backcast, backcast_target)
+                        loss = 0.3 * backcast_loss + 0.7 * loss
 
                     outputs = defaultdict(list)
 
-                    forecast_loss = self.loss(forecast, forecast_target)
-                    backcast_loss = self.loss(backcast, backcast_target)
-
-                    loss = 0.3*backcast_loss + 0.7*forecast_loss
                 else:
                     forecast = outputs
                     target = data_batch.y

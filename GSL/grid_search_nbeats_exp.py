@@ -29,7 +29,7 @@ def main(conf_file_path, type):
         for n_block in num_blocks_per_stack_list:
             for mlp_stack in mlp_stack_list:
                 # for thetas_dim in thetas_dim_list:
-                hyperparameter = f'stacks_{n_stack}__num_blocks_per_stack_{n_block}__n_theta_hidden_{mlp_stack}__thetas_dim_{thetas_dim}'
+                hyperparameter = f'stacks_{n_stack}__num_blocks_per_stack_{n_block}__n_theta_hidden_{mlp_stack}'
 
                 start = datetime.datetime.now()
                 start = start + datetime.timedelta(hours=9)
