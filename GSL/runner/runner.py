@@ -83,17 +83,41 @@ class Runner(object):
             self.test_dataset = DataLoader(total_dataset['test'], batch_size=self.train_conf.batch_size)
 
         elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
-            loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name)
-            dataset, self.entire_inputs = loader.get_dataset(
-                num_timesteps_in=self.config.forecasting_module.backcast_length,
-                num_timesteps_out=self.config.forecasting_module.forecast_length,
-                batch_size=self.train_conf.batch_size)
+            num_timesteps_in = self.config.forecasting_module.backcast_length
+            num_timesteps_out = self.config.forecasting_module.forecast_length
+            batch_size = self.train_conf.batch_size
 
-            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.7)
-            self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.33)
+            dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
 
-            self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
-            self.scaler = loader.get_scaler()
+            if os.path.exists(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
+                temporal_signal = pickle.load(
+                    open(os.path.join(self.dataset_conf.root, 'temporal_signal.pickle'), 'rb'))
+                self.train_dataset = temporal_signal['train']
+                self.valid_dataset = temporal_signal['validation']
+                self.test_dataset = temporal_signal['test']
+                self.entire_inputs = temporal_signal['entire_inputs']
+                self.scaler = temporal_signal['scaler']
+
+            else:
+                loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name)
+                dataset, self.entire_inputs = loader.get_dataset(
+                    num_timesteps_in=self.config.forecasting_module.backcast_length,
+                    num_timesteps_out=self.config.forecasting_module.forecast_length,
+                    batch_size=self.train_conf.batch_size)
+
+                self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.7)
+                self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.33)
+
+                self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
+                self.scaler = loader.get_scaler()
+
+                temporal_signal = {'train': self.train_dataset,
+                                   'validation': self.valid_dataset,
+                                   'test': self.test_dataset,
+                                   'entire_inputs': self.entire_inputs,
+                                   'scaler': self.scaler}
+
+                pickle.dump(temporal_signal, open(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'), 'wb'))
 
         else:
             raise ValueError("Non-supported dataset!")
