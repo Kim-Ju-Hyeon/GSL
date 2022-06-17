@@ -22,7 +22,7 @@ import logging
 def main(conf_file_path, type):
     num_stack_list = [1, 3, 9, 15]
     num_blocks_per_stack_list = [1, 3, 9, 15]
-    mlp_stack_list = [[128, 64, 32], [64, 64, 64]]
+    mlp_stack_list = [[128, 64, 32], [64, 64, 64], [64, 64], [64]]
     # thetas_dim_list = [[64, 16], [128, 32], [60, 12]]
 
     for n_stack in num_stack_list:
@@ -48,7 +48,7 @@ def main(conf_file_path, type):
                 config.forecasting_module.num_blocks_per_stack = n_block
                 config.forecasting_module.n_theta_hidden = mlp_stack
                 # config.forecasting_module.thetas_dim = thetas_dim
-                config.forecasting_module.stack_type = ['trend'] * n_stack + ['seasonality'] * n_stack
+                config.forecasting_module.stack_types = ['trend'] * n_stack + ['seasonality'] * n_stack
 
                 save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
                 yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)

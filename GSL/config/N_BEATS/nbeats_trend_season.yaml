@@ -1,6 +1,6 @@
 ---
-exp_name: 0615_N_BEATS_I # 0417
-exp_dir: ../exp/No_backcastLoss
+exp_name: 0617_N_BEATS_I # 0417
+exp_dir: ../exp
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
@@ -48,7 +48,7 @@ graph_learning:
 
 forecasting_module:
     name: n_beats
-    stack_types: [seasonality, trend] # seasonality, trend, generic, n_hits
+    stack_types: [trend, seasonality] # seasonality, trend, generic, n_hits
     inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: 'ReLU'
     num_blocks_per_stack: 3
