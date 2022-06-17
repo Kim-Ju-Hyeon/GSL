@@ -91,7 +91,7 @@ class Runner(object):
 
             if os.path.exists(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
                 temporal_signal = pickle.load(
-                    open(os.path.join(self.dataset_conf.root, 'temporal_signal.pickle'), 'rb'))
+                    open(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'), 'rb'))
                 self.train_dataset = temporal_signal['train']
                 self.valid_dataset = temporal_signal['validation']
                 self.test_dataset = temporal_signal['test']
