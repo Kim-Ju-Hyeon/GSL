@@ -1,10 +1,10 @@
 ---
-exp_name: 0517_N_BEATS # 0417
+exp_name: 0620_N_HITS # 0417
 exp_dir: ../exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: None # If you want to reproduce set the seed that you want
-model_name: N_BEATS_generic  # GTS_Top_k_Masking_model, ...
+model_name: N_HITS  # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
@@ -16,7 +16,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 2
+    epoch: 300
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3
@@ -24,7 +24,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 128
+    batch_size : 64
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None
@@ -49,13 +49,13 @@ graph_learning:
 forecasting_module:
     name: n_beats
     stack_types: [n_hits] # seasonality, trend, generic, n_hits
-    inter_correlation_block_type: MPGLU_single_message # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
+    inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: 'ReLU'
-    num_blocks_per_stack: 1
+    num_blocks_per_stack: 3
     forecast_length: 12
     backcast_length: 60
     n_theta_hidden: [16, 16, 16]
-    thetas_dim: [12, 4]
+    thetas_dim: [16, 16]
     message_norm: True
     share_weights_in_stack: True
     pooling_mode: max
