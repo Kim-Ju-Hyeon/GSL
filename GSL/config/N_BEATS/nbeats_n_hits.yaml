@@ -59,4 +59,4 @@ forecasting_module:
     message_norm: True
     share_weights_in_stack: True
     pooling_mode: max
-    n_pool_kernel_size: 1
+    n_pool_kernel_size: 2
