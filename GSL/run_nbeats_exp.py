@@ -17,20 +17,7 @@ import yaml
 
 @click.command()
 @click.option('--conf_file_path', type=click.STRING, default=None)
-@click.option('--stack_type', type=click.STRING, default='generic,generic,generic')
-@click.option('--num_blocks_per_stack', type=int, default=1)
-@click.option('--n_theta_hidden', type=click.STRING, default='16,16')
-@click.option('--thetas_dim', type=click.STRING, default='4,4')
-def main(conf_file_path, stack_type, num_blocks_per_stack, n_theta_hidden, thetas_dim):
-    n_theta_hidden = n_theta_hidden.split(',')
-    n_theta_hidden = [int(i.strip()) for i in n_theta_hidden]
-    thetas_dim = thetas_dim.split(',')
-    thetas_dim = [int(j.strip()) for j in thetas_dim]
-    stack_type = stack_type.split(',')
-    stack_type = [j.strip() for j in stack_type]
-
-    hyperparameter = f'stacks_{len(stack_type)}__num_blocks_per_stack_{num_blocks_per_stack}__n_theta_hidden_{n_theta_hidden}__thetas_dim_{thetas_dim}'
-
+def main(conf_file_path):
     start = datetime.datetime.now()
     start = start + datetime.timedelta(hours=9)
 
@@ -39,15 +26,10 @@ def main(conf_file_path, stack_type, num_blocks_per_stack, n_theta_hidden, theta
     config.seed = set_seed(config.seed)
 
     config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))
-    config.exp_sub_dir = os.path.join(config.exp_dir, config.model_name, hyperparameter)
+    config.exp_sub_dir = os.path.join(config.exp_dir, config.model_name, now)
     config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
     mkdir(config.model_save)
-
-    config.forecasting_module.num_blocks_per_stack = num_blocks_per_stack
-    config.forecasting_module.n_theta_hidden = n_theta_hidden
-    config.forecasting_module.thetas_dim = thetas_dim
-    config.forecasting_module.stack_type = stack_type
 
     save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)

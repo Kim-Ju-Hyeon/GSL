@@ -75,6 +75,9 @@ class Inter_Correlation_Block(nn.Module):
         self.backcast_length = backcast_length
         self.forecast_length = forecast_length
 
+        if pooling_length is not None:
+            self.backcast_length = pooling_length
+
         if self.inter_correlation_block_type == 'GCN':
             self.Correlation_stack = nn.ModuleList()
             for i in range(self.n_layers):
