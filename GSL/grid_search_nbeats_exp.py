@@ -20,9 +20,9 @@ import logging
 @click.option('--conf_file_path', type=click.STRING, default=None)
 @click.option('--type', type=click.STRING, default=None)
 def main(conf_file_path, type):
-    num_stack_list = [1, 3, 9, 15]
-    num_blocks_per_stack_list = [1, 3, 9, 15]
-    mlp_stack_list = [[128, 64, 32], [64, 64, 64], [64, 64], [64]]
+    num_stack_list = [3, 9]
+    num_blocks_per_stack_list = [3, 9]
+    mlp_stack_list = [[128, 64, 32], [64, 64, 64]]
     # thetas_dim_list = [[64, 16], [128, 32], [60, 12]]
 
     for n_stack in num_stack_list:
