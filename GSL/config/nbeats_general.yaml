@@ -48,16 +48,16 @@ graph_learning:
 
 forecasting_module:
     name: n_beats
-    stack_types: [n_hits, n_hits, n_hits] # seasonality, trend, generic, n_hits
+    stack_types: [n_hits] # seasonality, trend, generic, n_hits
     inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: 'ReLU'
-    num_blocks_per_stack: 3
+    num_blocks_per_stack: 1
     inter_correlation_stack_length: 1
     forecast_length: 12
     backcast_length: 60
-    n_theta_hidden: [64, 64, 64]
-    thetas_dim: [64, 16]
+    n_theta_hidden: [8, 8]
+    thetas_dim: [8, 8]
     message_norm: True
     share_weights_in_stack: True
     pooling_mode: max
-    n_pool_kernel_size: 2
+    n_pool_kernel_size: 5

@@ -191,13 +191,13 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, pooling_mode, n_pool_kernel_size,
                  backcast_length=10,
                  forecast_length=5, activation='ReLU', inter_correlation_stack_length=1):
-        self.backcast_length = backcast_length
+        self.input_length = backcast_length
         self.forecast_length = forecast_length
         self.l_out = int(((backcast_length - n_pool_kernel_size) / n_pool_kernel_size) + 1)
 
         super(GNN_NHITSBlock, self).__init__(inter_correlation_block_type=inter_correlation_block_type,
                                              n_theta_hidden=n_theta_hidden, thetas_dim=thetas_dim,
-                                             backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                             backcast_length=backcast_length, forecast_length=forecast_length,
                                              activation=activation,
                                              inter_correlation_stack_length=inter_correlation_stack_length,
                                              pooling_length=self.l_out)
@@ -215,24 +215,17 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
 
     def forward(self, x, edge_index, edge_weight=None):
         x = squeeze_last_dim(x)
-        print(x.shape)
         x = self.pooling_layer(x)
-        print(x.shape)
         x = super(GNN_NHITSBlock, self).forward(x, edge_index, edge_weight)
-        print(x.shape)
 
         theta_b = self.theta_b_fc(x)
-        print(theta_b.shape)
         theta_f = self.theta_f_fc(x)
-        print(theta_f.shape)
 
-        backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
+        backcast = F.interpolate(theta_b[:, None, :], size=self.input_length,
                                  mode='linear', align_corners=False).squeeze(dim=1)
-        print(backcast.shape)
 
         forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
                                  mode='linear', align_corners=False).squeeze(dim=1)
-        print(forecast.shape)
 
         return backcast, forecast
 
