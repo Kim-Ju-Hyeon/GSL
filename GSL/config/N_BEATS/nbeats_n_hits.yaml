@@ -1,5 +1,5 @@
 ---
-exp_name: 0620_N_HITS # 0417
+exp_name: 0620_N_HITS_GridSearch # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -24,7 +24,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 32
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None

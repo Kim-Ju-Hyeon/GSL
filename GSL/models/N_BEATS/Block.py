@@ -214,10 +214,10 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
                                               stride=self.n_pool_kernel_size, ceil_mode=True)
 
     def forward(self, x, edge_index, edge_weight=None):
-        print(x.shape)
         x = squeeze_last_dim(x)
-        print(x.shape)
+        x = x.unsqueeze(dim=1)
         x = self.pooling_layer(x)
+        x = x.squeeze()
         x = super(GNN_NHITSBlock, self).forward(x, edge_index, edge_weight)
 
         theta_b = self.theta_b_fc(x)
