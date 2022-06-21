@@ -25,7 +25,7 @@ def main(conf_file_path, type, n_stack, n_block):
     # num_stack_list = [3, 9]
     # num_blocks_per_stack_list = [3, 9]
     mlp_stack_list = [[128, 64, 32], [64, 64, 64]]
-    thetas_dim_list = [[64, 16], [60, 12]]
+    thetas_dim_list = [[64, 16], [32, 8]]
 
     # for n_stack in num_stack_list:
     #     for n_block in num_blocks_per_stack_list:
