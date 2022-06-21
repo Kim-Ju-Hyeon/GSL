@@ -1,10 +1,10 @@
 ---
-exp_name: 0620_N_HITS_GridSearch # 0417
+exp_name: N_HITS # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
-model_name: N_HITS  # GTS_Top_k_Masking_model, ...
+model_name: 0620_N_HITS_GridSearch  # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
