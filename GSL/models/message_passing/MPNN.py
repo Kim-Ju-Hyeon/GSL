@@ -6,35 +6,26 @@ from torch_geometric.utils import degree
 
 
 class InterCorrealtionStack(MessagePassing):
-    def __init__(self, input_dim, hidden_dim, message_norm, GLU=False, single_message=False):
+    def __init__(self, hidden_dim, message_norm, GLU=False, single_message=False):
         super().__init__(aggr='add', flow='target_to_source')
-
-        self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.message_norm = message_norm
         self.GLU = GLU
         self.single_message = single_message
 
         if self.single_message:
-            self.fc_message = nn.Linear(self.hidden_dim[-1], self.hidden_dim[-1])
+            self.fc_message = nn.Linear(self.hidden_dim, self.hidden_dim)
 
         else:
-            self.fc_message = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
+            self.fc_message = nn.Linear(self.hidden_dim*2, self.hidden_dim)
 
-        self.fc_update = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
-
-        self.MLP_stack = nn.ModuleList()
-        for i in range(len(self.hidden_dim)):
-            if i == 0:
-                self.MLP_stack.append(nn.Linear(self.input_dim, self.hidden_dim[i]))
-            else:
-                self.MLP_stack.append(nn.Linear(self.hidden_dim[i-1], self.hidden_dim[i]))
+        self.fc_update = nn.Linear(self.hidden_dim*2, self.hidden_dim)
 
         if self.GLU:
             if self.single_message:
-                self.gated_linear_unit = nn.Linear(self.hidden_dim[-1], self.hidden_dim[-1])
+                self.gated_linear_unit = nn.Linear(self.hidden_dim, self.hidden_dim)
             else:
-                self.gated_linear_unit = nn.Linear(self.hidden_dim[-1]*2, self.hidden_dim[-1])
+                self.gated_linear_unit = nn.Linear(self.hidden_dim*2, self.hidden_dim)
 
         self.init_weights()
 
@@ -56,9 +47,6 @@ class InterCorrealtionStack(MessagePassing):
         else:
             norm = None
 
-        for layer in self.MLP_stack:
-            x = layer(x)
-            x = F.relu(x)
         return self.propagate(edge_index=edge_index, x=x, edge_weight=edge_weight, norm=norm)
 
     def message(self, x_i, x_j):

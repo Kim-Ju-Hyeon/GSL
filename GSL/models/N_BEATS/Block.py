@@ -61,13 +61,13 @@ class _SeasonalityGenerator(nn.Module):
 
 class Inter_Correlation_Block(nn.Module):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU',
+                 activation='ReLU', inter_correlation_stack_length=1,
                  pooling_length=None):
         super(Inter_Correlation_Block, self).__init__()
         self.inter_correlation_block_type = inter_correlation_block_type
         self.n_theta_hidden = n_theta_hidden
         self.thetas_dim = thetas_dim
-        self.n_layers = len(n_theta_hidden)
+        self.n_layers = inter_correlation_stack_length
 
         assert activation in ACTIVATIONS, f'{activation} is not in {ACTIVATIONS}'
         self.activ = getattr(nn, activation)()
@@ -78,38 +78,44 @@ class Inter_Correlation_Block(nn.Module):
         if pooling_length is not None:
             self.backcast_length = pooling_length
 
-        if self.inter_correlation_block_type == 'GCN':
-            self.Correlation_stack = nn.ModuleList()
-            for i in range(self.n_layers):
-                if (i == 0) and (pooling_length is None):
-                    self.Correlation_stack.append(GCNConv(backcast_length, self.n_theta_hidden[i]))
-                elif (i == 0) and (pooling_length is not None):
-                    self.Correlation_stack.append(GCNConv(pooling_length, self.n_theta_hidden[i]))
-                else:
-                    self.Correlation_stack.append(GCNConv(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
+        self.MLP_stack = nn.ModuleList()
+        for i in range(len(self.n_theta_hidden)):
+            if i == 0:
+                self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
+            else:
+                self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i-1], self.n_theta_hidden[i]))
 
-        elif self.inter_correlation_block_type == 'MPNN':
-            self.Inter_Correlation_Block = InterCorrealtionStack(input_dim=self.backcast_length,
-                                                                 hidden_dim=self.n_theta_hidden,
-                                                                 message_norm=True)
-        elif self.inter_correlation_block_type == 'MPGLU':
-            self.Inter_Correlation_Block = InterCorrealtionStack(input_dim=self.backcast_length,
-                                                                 hidden_dim=self.n_theta_hidden,
-                                                                 message_norm=True,
-                                                                 GLU=True)
-        elif self.inter_correlation_block_type == 'MP_single_message':
-            self.Inter_Correlation_Block = InterCorrealtionStack(input_dim=self.backcast_length,
-                                                                 hidden_dim=self.n_theta_hidden,
-                                                                 message_norm=True,
-                                                                 single_message=True)
-        elif self.inter_correlation_block_type == 'MPGLU_single_message':
-            self.Inter_Correlation_Block = InterCorrealtionStack(input_dim=self.backcast_length,
-                                                                 hidden_dim=self.n_theta_hidden,
-                                                                 message_norm=True,
-                                                                 GLU=True,
-                                                                 single_message=True)
-        else:
-            raise ValueError('Invalid Inter Correlation Block')
+        self.Inter_Correlation_Block = nn.ModuleList()
+        for i in range(self.n_layers):
+            if self.inter_correlation_block_type == 'GCN':
+                self.Inter_Correlation_Block.append(GCNConv(self.n_theta_hidden[-1], self.n_theta_hidden[-1]))
+
+            elif self.inter_correlation_block_type == 'MPNN':
+                self.Inter_Correlation_Block.append(InterCorrealtionStack(
+                                                                     hidden_dim=self.n_theta_hidden[-1],
+                                                                     message_norm=True))
+
+            elif self.inter_correlation_block_type == 'MPGLU':
+                self.Inter_Correlation_Block.append(InterCorrealtionStack(
+                                                                     hidden_dim=self.n_theta_hidden[-1],
+                                                                     message_norm=True,
+                                                                     GLU=True))
+
+            elif self.inter_correlation_block_type == 'MP_single_message':
+                self.Inter_Correlation_Block.append(InterCorrealtionStack(
+                                                                     hidden_dim=self.n_theta_hidden[-1],
+                                                                     message_norm=True,
+                                                                     single_message=True))
+
+            elif self.inter_correlation_block_type == 'MPGLU_single_message':
+                self.Inter_Correlation_Block.append(InterCorrealtionStack(
+                                                                     hidden_dim=self.n_theta_hidden[-1],
+                                                                     message_norm=True,
+                                                                     GLU=True,
+                                                                     single_message=True))
+
+            else:
+                raise ValueError('Invalid Inter Correlation Block')
 
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
@@ -117,22 +123,23 @@ class Inter_Correlation_Block(nn.Module):
     def forward(self, x, edge_index, edge_weight=None):
         x = squeeze_last_dim(x)
 
-        if self.inter_correlation_block_type == 'GCN':
-            for layer in self.Correlation_stack:
-                x = layer(x, edge_index, edge_weight)
-                x = self.activ(x)
+        for mlp in self.MLP_stack:
+            x = self.activ(mlp(x))
 
-        else:
-            x = self.Inter_Correlation_Block(inputs=x, edge_index=edge_index, edge_weight=edge_weight)
+        for layer in self.Inter_Correlation_Block:
+            x = layer(x, edge_index, edge_weight)
+            x = self.activ(x)
+
         return x
 
 
 class GNN_SeasonalityBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU'):
+                 activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_SeasonalityBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim,
                                                    backcast_length, forecast_length,
-                                                   activation)
+                                                   activation,
+                                                   inter_correlation_stack_length)
         self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
         self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
 
@@ -145,9 +152,9 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
 
 class GNN_TrendBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU'):
+                 activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_TrendBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length,
-                                             forecast_length, activation)
+                                             forecast_length, activation, inter_correlation_stack_length)
         self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
         self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
 
@@ -160,9 +167,10 @@ class GNN_TrendBlock(Inter_Correlation_Block):
 
 class GNN_GenericBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU'):
+                 activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_GenericBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim,
-                                               backcast_length, forecast_length, activation)
+                                               backcast_length, forecast_length,
+                                               activation, inter_correlation_stack_length)
 
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
@@ -182,7 +190,7 @@ class GNN_GenericBlock(Inter_Correlation_Block):
 class GNN_NHITSBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, pooling_mode, n_pool_kernel_size,
                  backcast_length=10,
-                 forecast_length=5, activation='ReLU'):
+                 forecast_length=5, activation='ReLU', inter_correlation_stack_length=1):
         self.backcast_length = backcast_length
         self.forecast_length = forecast_length
         self.l_out = int(((backcast_length - n_pool_kernel_size) / n_pool_kernel_size) + 1)
@@ -190,7 +198,10 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
         super(GNN_NHITSBlock, self).__init__(inter_correlation_block_type=inter_correlation_block_type,
                                              n_theta_hidden=n_theta_hidden, thetas_dim=thetas_dim,
                                              backcast_length=self.backcast_length, forecast_length=self.forecast_length,
-                                             activation=activation, pooling_length=self.l_out)
+                                             activation=activation,
+                                             inter_correlation_stack_length=inter_correlation_stack_length,
+                                             pooling_length=self.l_out)
+
         assert (pooling_mode in ['max', 'average'])
 
         self.n_pool_kernel_size = n_pool_kernel_size
@@ -203,20 +214,25 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
                                               stride=self.n_pool_kernel_size, ceil_mode=True)
 
     def forward(self, x, edge_index, edge_weight=None):
-        print(x.shape)
         x = squeeze_last_dim(x)
         print(x.shape)
         x = self.pooling_layer(x)
         print(x.shape)
         x = super(GNN_NHITSBlock, self).forward(x, edge_index, edge_weight)
+        print(x.shape)
 
         theta_b = self.theta_b_fc(x)
+        print(theta_b.shape)
         theta_f = self.theta_f_fc(x)
+        print(theta_f.shape)
 
         backcast = F.interpolate(theta_b[:, None, :], size=self.backcast_length,
                                  mode='linear', align_corners=False).squeeze(dim=1)
+        print(backcast.shape)
+
         forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
                                  mode='linear', align_corners=False).squeeze(dim=1)
+        print(forecast.shape)
 
         return backcast, forecast
 

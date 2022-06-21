@@ -22,7 +22,7 @@ def main(conf_file_path):
     start = start + datetime.timedelta(hours=9)
 
     config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
-    now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
+    now = str(datetime.datetime.now(pytz.timezone('Asia/Seoul')))
     config.seed = set_seed(config.seed)
 
     config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))

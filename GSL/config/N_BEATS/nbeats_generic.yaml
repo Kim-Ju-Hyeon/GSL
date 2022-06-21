@@ -52,6 +52,7 @@ forecasting_module:
     inter_correlation_block_type: MPNN # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: 'ReLU'
     num_blocks_per_stack: 3
+    inter_correlation_stack_length: 1
     forecast_length: 3
     backcast_length: 12
     n_theta_hidden: [16, 16, 16]
