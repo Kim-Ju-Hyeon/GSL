@@ -117,7 +117,6 @@ class Inter_Correlation_Block(nn.Module):
             else:
                 raise ValueError('Invalid Inter Correlation Block')
 
-        print(self.MLP_stack)
 
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
@@ -210,10 +209,10 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
 
         if pooling_mode == 'max':
             self.pooling_layer = nn.MaxPool1d(kernel_size=self.n_pool_kernel_size,
-                                              stride=self.n_pool_kernel_size, ceil_mode=True)
+                                              stride=self.n_pool_kernel_size, ceil_mode=False)
         elif pooling_mode == 'average':
             self.pooling_layer = nn.AvgPool1d(kernel_size=self.n_pool_kernel_size,
-                                              stride=self.n_pool_kernel_size, ceil_mode=True)
+                                              stride=self.n_pool_kernel_size, ceil_mode=False)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = squeeze_last_dim(x)
