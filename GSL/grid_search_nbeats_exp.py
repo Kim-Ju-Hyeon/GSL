@@ -57,7 +57,7 @@ def main(conf_file_path, n_stack, n_block, kernel_size, inter_correlation_stack_
                     config.forecasting_module.stack_types = ['n_hits'] * n_stack
 
                     config.forecasting_module.pooling_mode = pooling_mode
-                    config.forecasting_module.kernel_size = kernel_size
+                    config.forecasting_module.n_pool_kernel_size = kernel_size
                     config.forecasting_module.inter_correlation_stack_length = inter_correlation_stack_length
 
                     save_name = os.path.join(config.exp_sub_dir, 'config.yaml')

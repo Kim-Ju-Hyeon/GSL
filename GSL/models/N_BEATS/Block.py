@@ -117,6 +117,8 @@ class Inter_Correlation_Block(nn.Module):
             else:
                 raise ValueError('Invalid Inter Correlation Block')
 
+        print(self.MLP_stack)
+
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
 

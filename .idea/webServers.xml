@@ -23,6 +23,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="9492f52d-330e-4356-a4ef-b5b0f3bdb05f" name="Octo_gsl">
+        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.40" port="22" sshConfigId="75f7f34d-80c9-4d2a-9659-45bb51892ea8" sshConfig="JuHyeon@166.104.35.40:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>
