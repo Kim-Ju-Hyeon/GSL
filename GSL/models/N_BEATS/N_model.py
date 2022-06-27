@@ -21,6 +21,8 @@ class N_model(nn.Module):
         self.n_layers = config.inter_correlation_stack_length
         self.share_weights_in_stack = config.share_weights_in_stack
 
+        self.device = config.device
+
         self.pooling_mode = config.pooling_mode
         self.n_pool_kernel_size = config.n_pool_kernel_size
 
@@ -52,7 +54,8 @@ class N_model(nn.Module):
                                        backcast_length=self.backcast_length,
                                        forecast_length=self.forecast_length,
                                        activation=self.activation,
-                                       inter_correlation_stack_length=self.n_layers)
+                                       inter_correlation_stack_length=self.n_layers,
+                                       device=self.device)
 
                 elif stack_type == N_model.TREND_BLOCK:
                     self.thetas_dim[0], self.thetas_dim[1] = 3, 3
@@ -60,7 +63,8 @@ class N_model(nn.Module):
                                        n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
                                        backcast_length=self.backcast_length, forecast_length=self.forecast_length,
                                        activation=self.activation,
-                                       inter_correlation_stack_length=self.n_layers)
+                                       inter_correlation_stack_length=self.n_layers,
+                                       device=self.device)
 
                 elif stack_type == N_model.SEASONALITY_BLOCK:
                     self.thetas_dim[0] = 2 * int(self.backcast_length / 2 - 1) + 1
@@ -70,13 +74,15 @@ class N_model(nn.Module):
                                        n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
                                        backcast_length=self.backcast_length, forecast_length=self.forecast_length,
                                        activation=self.activation,
-                                       inter_correlation_stack_length=self.n_layers)
+                                       inter_correlation_stack_length=self.n_layers,
+                                       device=self.device)
                 else:
                     block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                        n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
                                        backcast_length=self.backcast_length, forecast_length=self.forecast_length,
                                        activation=self.activation,
-                                       inter_correlation_stack_length=self.n_layers)
+                                       inter_correlation_stack_length=self.n_layers,
+                                       device=self.device)
 
                 self.parameters.extend(block.parameters())
             blocks.append(block)

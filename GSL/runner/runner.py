@@ -69,6 +69,9 @@ class Runner(object):
             self.init_edge_index = self.init_edge_index.to(device=self.device)
             self.entire_inputs = self.entire_inputs.to(device=self.device)
 
+        print(self.model)
+        print(self.model.device)
+
     def get_dataset(self):
         if self.dataset_conf.name == 'spike_lambda_bin100':
             spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
