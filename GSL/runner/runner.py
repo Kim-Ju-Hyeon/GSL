@@ -21,7 +21,7 @@ from torch_geometric_temporal.signal import temporal_signal_split
 from utils.score import get_score
 
 logger = get_logger('exp_logger')
-score_logger = get_logger('Score_logger')
+
 
 def get_dataset_length(_dataset):
     length = 0
@@ -174,9 +174,9 @@ class Runner(object):
 
                     if self.backcast_loss:
                         backcast = outputs['backcast']
-                        backcast_target = data_batch.x[:,0,:]
+                        backcast_target = data_batch.x[:, 0, :]
                         backcast_loss = self.loss(backcast, backcast_target)
-                        loss = 0.3 * backcast_loss + 0.7 * loss
+                        loss = backcast_loss + loss
 
                     outputs = defaultdict(list)
 
