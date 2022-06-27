@@ -134,6 +134,7 @@ class Inter_Correlation_Block(nn.Module):
         x = squeeze_last_dim(x)
 
         for mlp in self.MLP_stack:
+            print(mlp)
             x = mlp(x)
             x = self.drop_out(x)
 
