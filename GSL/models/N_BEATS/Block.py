@@ -82,8 +82,12 @@ class Inter_Correlation_Block(nn.Module):
         for i in range(len(self.n_theta_hidden)):
             if i == 0:
                 self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
+                self.MLP_stack.append(self.activ)
+                self.MLP_stack.append(nn.BatchNorm1d(self.n_theta_hidden[i]))
             else:
                 self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i-1], self.n_theta_hidden[i]))
+                self.MLP_stack.append(self.activ)
+                self.MLP_stack.append(nn.BatchNorm1d(self.n_theta_hidden[i]))
 
         self.Inter_Correlation_Block = nn.ModuleList()
         for i in range(self.n_layers):
@@ -117,6 +121,11 @@ class Inter_Correlation_Block(nn.Module):
             else:
                 raise ValueError('Invalid Inter Correlation Block')
 
+        self.batch_norm_layer_list = nn.ModuleList()
+        for i in range(self.n_layers):
+            self.batch_norm_layer_list.append(nn.BatchNorm1d(self.n_theta_hidden[-1]))
+
+        self.drop_out = nn.Dropout(p=0.2)
 
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
@@ -125,11 +134,14 @@ class Inter_Correlation_Block(nn.Module):
         x = squeeze_last_dim(x)
 
         for mlp in self.MLP_stack:
-            x = self.activ(mlp(x))
+            x = mlp(x)
+            x = self.drop_out(x)
 
-        for layer in self.Inter_Correlation_Block:
+        for ii, layer in enumerate(self.Inter_Correlation_Block):
             x = layer(x, edge_index, edge_weight)
             x = self.activ(x)
+            x = self.batch_norm_layer_list[ii](x)
+            x = self.drop_out(x)
 
         return x
 

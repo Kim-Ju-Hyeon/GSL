@@ -308,7 +308,4 @@ class Runner(object):
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
         logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
 
-        score_logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
-        score_logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
-
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))
