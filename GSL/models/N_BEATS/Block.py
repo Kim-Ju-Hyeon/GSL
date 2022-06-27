@@ -84,11 +84,11 @@ class Inter_Correlation_Block(nn.Module):
             if i == 0:
                 self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
-                self.MLP_stack.append(nn.BatchNorm1d(self.n_theta_hidden[i]))
+                self.MLP_stack.append(nn.BatchNorm1d(self.n_theta_hidden[i], device=self.device))
             else:
                 self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i-1], self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
-                self.MLP_stack.append(nn.BatchNorm1d(self.n_theta_hidden[i]))
+                self.MLP_stack.append(nn.BatchNorm1d(self.n_theta_hidden[i], device=self.device))
 
         self.Inter_Correlation_Block = nn.ModuleList()
         for i in range(self.n_layers):
@@ -124,7 +124,7 @@ class Inter_Correlation_Block(nn.Module):
 
         self.batch_norm_layer_list = nn.ModuleList()
         for i in range(self.n_layers):
-            self.batch_norm_layer_list.append(nn.BatchNorm1d(self.n_theta_hidden[-1]))
+            self.batch_norm_layer_list.append(nn.BatchNorm1d(self.n_theta_hidden[-1], device=self.device))
 
         self.drop_out = nn.Dropout(p=0.2)
 
