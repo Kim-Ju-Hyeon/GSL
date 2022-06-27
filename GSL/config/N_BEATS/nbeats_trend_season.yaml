@@ -61,3 +61,4 @@ forecasting_module:
     share_weights_in_stack: True
     pooling_mode: max
     n_pool_kernel_size: 1
+    device: 0
