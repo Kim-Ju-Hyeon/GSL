@@ -17,13 +17,6 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="home_dgx_gsl">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/GSL" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="rtx90_gsl">
         <serverdata>
           <mappings>

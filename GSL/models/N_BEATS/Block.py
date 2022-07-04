@@ -62,7 +62,7 @@ class _SeasonalityGenerator(nn.Module):
 class Inter_Correlation_Block(nn.Module):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
                  activation='ReLU', inter_correlation_stack_length=1,
-                 pooling_length=None, device='cpu'):
+                 pooling_length=None, device='0'):
         super(Inter_Correlation_Block, self).__init__()
         self.inter_correlation_block_type = inter_correlation_block_type
         self.n_theta_hidden = n_theta_hidden

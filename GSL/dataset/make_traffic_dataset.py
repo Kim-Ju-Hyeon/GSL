@@ -10,6 +10,7 @@ from utils.utils import build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
 import random
 
+
 class TrafficDatasetLoader(object):
     def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data"), dataset_name: str = 'METR-LA'):
         super(TrafficDatasetLoader, self).__init__()

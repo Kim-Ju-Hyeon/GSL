@@ -2,29 +2,22 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="03b44255-a9ab-4eb8-a61d-dfbdd9f0f5fb" name="dgx_gsl">
-        <fileTransfer rootFolder="/home/nvidia/GSL" accessType="SFTP" host="192.168.1.10" port="22" sshConfigId="07403b2d-87d3-47cf-aa65-cd9c349b20b2" sshConfig="nvidia@192.168.1.10:22 password">
+      <webServer id="40da555a-fa98-42ca-8373-f63bbb871140" name="dgx_gsl">
+        <fileTransfer rootFolder="/home/JuHyeon/GSL" accessType="SFTP" host="166.104.115.40" port="5523" sshConfigId="253f6dfe-9a87-4648-be13-2dc2bb8a34e0" sshConfig="JuHyeon@166.104.115.40:5523 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>
-      <webServer id="cf441055-03cc-48c3-b7fc-89f380dca458" name="home_dgx_gsl">
-        <fileTransfer rootFolder="/home/nvidia" accessType="SFTP" host="166.104.115.40" port="5523" sshConfigId="cae4c3c3-9470-49a4-8073-82a496af19e2" sshConfig="nvidia@166.104.115.40:5523 password">
+      <webServer id="84ae2e3e-b30d-4409-918f-d4c66fdafeb6" name="rtx90_gsl">
+        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.39" port="22" sshConfigId="f1c0ef5b-86f0-4938-a342-50a1d1ffbb28" sshConfig="JuHyeon@166.104.35.39:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>
-      <webServer id="aabc43f6-3a94-4713-8c77-ff9a1a2b44ad" name="rtx90_gsl">
-        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.39" port="22" sshConfigId="711308d6-ee2b-48e4-8d17-28d0f45549b8" sshConfig="JuHyeon@166.104.35.39:22 password">
-          <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
-          </advancedOptions>
-        </fileTransfer>
-      </webServer>
-      <webServer id="9492f52d-330e-4356-a4ef-b5b0f3bdb05f" name="Octo_gsl">
-        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.40" port="22" sshConfigId="75f7f34d-80c9-4d2a-9659-45bb51892ea8" sshConfig="JuHyeon@166.104.35.40:22 password">
+      <webServer id="bf3f2e0f-f785-4268-a63b-93fa086a8051" name="Octo_gsl">
+        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.40" port="22" sshConfigId="75f4e595-565e-4a7a-9582-f9a7a7d90872" sshConfig="JuHyeon@166.104.35.40:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
