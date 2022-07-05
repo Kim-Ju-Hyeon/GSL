@@ -119,6 +119,9 @@ class Runner(object):
 
                 pickle.dump(temporal_signal, open(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'), 'wb'))
 
+        elif self.dataset_conf.name == 'ECL':
+            pass
+
         else:
             raise ValueError("Non-supported dataset!")
 

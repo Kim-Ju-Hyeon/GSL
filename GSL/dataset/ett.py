@@ -1,4 +1,4 @@
-__all__ = ['ETTh1', 'ETTh2', 'ETTm1', 'ETTm2', 'ETTInfo', 'process_multiple_ts', 'ETT']
+__all__ = ['ETTh1', 'ETTh2', 'ETTm1', 'ETTm2', 'ETTInfo', 'ETT']
 
 # Cell
 import os
@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from utils.dataset_utils import download_file, Info, time_features_from_frequency_str
+from utils.dataset_utils import Info, time_features_from_frequency_str, process_multiple_ts
 
 # Cell
 @dataclass
@@ -38,30 +38,6 @@ class ETTm2:
 # Cell
 ETTInfo = Info(groups=('ETTh1', 'ETTh2', 'ETTm1', 'ETTm2'),
                class_groups=(ETTh1, ETTh2, ETTm1, ETTm2))
-
-# Cell
-def process_multiple_ts(y_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Transforms multiple timeseries as columns to long format."""
-    y_df['date'] = pd.to_datetime(y_df['date'])
-    y_df.rename(columns={'date': 'ds'}, inplace=True)
-    u_ids = y_df.columns.to_list()
-    u_ids.remove('ds')
-
-    time_cls = time_features_from_frequency_str('h')
-    for cls_ in time_cls:
-        cls_name = cls_.__class__.__name__
-        y_df[cls_name] = cls_(y_df['ds'].dt)
-
-    X_df = y_df.drop(u_ids, axis=1)
-    y_df = y_df.filter(items=['ds'] + u_ids)
-    y_df = y_df.set_index('ds').stack()
-    y_df = y_df.rename('y').rename_axis(['ds', 'unique_id']).reset_index()
-    y_df['unique_id'] = pd.Categorical(y_df['unique_id'], u_ids)
-    y_df = y_df[['unique_id', 'ds', 'y']].sort_values(['unique_id', 'ds'])
-
-    X_df = y_df[['unique_id', 'ds']].merge(X_df, how='left', on=['ds'])
-
-    return y_df, X_df
 
 # Cell
 @dataclass
@@ -113,10 +89,10 @@ class ETT:
 
         return y_df, X_df, S_df
 
-    @staticmethod
-    def download(directory: str) -> None:
-        """Download ETT Dataset."""
-        path = f'{directory}/ett/datasets/'
-        if not os.path.exists(path):
-            for group in ETTInfo.groups:
-                download_file(path, f'{ETT.source_url}/{group}.csv')
+    # @staticmethod
+    # def download(directory: str) -> None:
+    #     """Download ETT Dataset."""
+    #     path = f'{directory}/ett/datasets/'
+    #     if not os.path.exists(path):
+    #         for group in ETTInfo.groups:
+    #             download_file(path, f'{ETT.source_url}/{group}.csv')

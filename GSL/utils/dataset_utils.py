@@ -1,4 +1,4 @@
-__all__ = ['logger', 'download_file', 'Info', 'TimeSeriesDataclass', 'get_holiday_dates', 'holiday_kernel',
+__all__ = ['logger', 'process_multiple_ts', 'Info', 'TimeSeriesDataclass', 'get_holiday_dates', 'holiday_kernel',
            'create_calendar_variables', 'create_us_holiday_distance_variables', 'US_FEDERAL_HOLIDAYS', 'TimeFeature',
            'SecondOfMinute', 'MinuteOfHour', 'HourOfDay', 'DayOfWeek', 'DayOfMonth', 'DayOfYear', 'MonthOfYear',
            'WeekOfYear', 'time_features_from_frequency_str']
@@ -22,55 +22,28 @@ from pandas.tseries.frequencies import to_offset
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Cell
-def download_file(directory: str, source_url: str, decompress: bool = False) -> None:
-    """Download data from source_ulr inside directory.
-    Parameters
-    ----------
-    directory: str, Path
-        Custom directory where data will be downloaded.
-    source_url: str
-        URL where data is hosted.
-    decompress: bool
-        Wheter decompress downloaded file. Default False.
-    """
-    if isinstance(directory, str):
-        directory = Path(directory)
-    directory.mkdir(parents=True, exist_ok=True)
+def process_multiple_ts(y_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Transforms multiple timeseries as columns to long format."""
+    y_df['date'] = pd.to_datetime(y_df['date'])
+    y_df.rename(columns={'date': 'ds'}, inplace=True)
+    u_ids = y_df.columns.to_list()
+    u_ids.remove('ds')
 
-    filename = source_url.split('/')[-1]
-    filepath = Path(f'{directory}/{filename}')
+    time_cls = time_features_from_frequency_str('h')
+    for cls_ in time_cls:
+        cls_name = cls_.__class__.__name__
+        y_df[cls_name] = cls_(y_df['ds'].dt)
 
-    # Streaming, so we can iterate over the response.
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    r = requests.get(source_url, stream=True, headers=headers)
-    # Total size in bytes.
-    total_size = int(r.headers.get('content-length', 0))
-    block_size = 1024 #1 Kibibyte
+    X_df = y_df.drop(u_ids, axis=1)
+    y_df = y_df.filter(items=['ds'] + u_ids)
+    y_df = y_df.set_index('ds').stack()
+    y_df = y_df.rename('y').rename_axis(['ds', 'unique_id']).reset_index()
+    y_df['unique_id'] = pd.Categorical(y_df['unique_id'], u_ids)
+    y_df = y_df[['unique_id', 'ds', 'y']].sort_values(['unique_id', 'ds'])
 
-    t = tqdm(total=total_size, unit='iB', unit_scale=True)
-    with open(filepath, 'wb') as f:
-        for data in r.iter_content(block_size):
-            t.update(len(data))
-            f.write(data)
-            f.flush()
-    t.close()
+    X_df = y_df[['unique_id', 'ds']].merge(X_df, how='left', on=['ds'])
 
-    if total_size != 0 and t.n != total_size:
-        logger.error('ERROR, something went wrong downloading data')
-
-    size = filepath.stat().st_size
-    logger.info(f'Successfully downloaded {filename}, {size}, bytes.')
-
-    if decompress:
-        if '.zip' in filepath.suffix:
-            logger.info('Decompressing zip file...')
-            with zipfile.ZipFile(filepath, 'r') as zip_ref:
-                zip_ref.extractall(directory)
-        else:
-            from patoolib import extract_archive
-            extract_archive(filepath, outdir=directory)
-        logger.info(f'Successfully decompressed {filepath}')
+    return y_df, X_df
 
 # Cell
 @dataclass
