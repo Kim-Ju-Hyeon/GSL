@@ -1,6 +1,6 @@
 ---
-exp_name: 0617_N_BEATS_I # 0417
-exp_dir: ../exp
+exp_name: NBEATS_trend_season # 0417
+exp_dir: ../exp/0706_ECL
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
@@ -8,11 +8,11 @@ model_name: N_BEATS_Interpret  # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
-    root: ./data/METR-LA
-    name: METR-LA
-    nodes_num: 207
-    node_features: 2
-    graph_learning_length: 34272
+    root: ./data/ECL
+    name: ECL
+    nodes_num: 321
+    node_features: 5
+    graph_learning_length: 26304
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
@@ -29,7 +29,7 @@ train:
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None
-    graph_mode: ground_truth # no_graph, ground_truth, random_graph It use when graph learning mode is None
+    graph_mode: no_graph # no_graph, ground_truth, random_graph It use when graph learning mode is None
     edge_prob: 0.01 # Use this probability when graph_mode is random_graph
 
     sampling: None # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None

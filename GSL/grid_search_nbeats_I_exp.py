@@ -21,13 +21,11 @@ import logging
 @click.option('--n_stack', type=int, default=1)
 @click.option('--n_block', type=int, default=1)
 @click.option('--mlp_stack', type=click.STRING, default='64,64,64')
-@click.option('--inter_correlation_stack_length', type=int, default=1)
-def main(conf_file_path, n_stack, n_block, mlp_stack, inter_correlation_stack_length):
+def main(conf_file_path, n_stack, n_block, mlp_stack):
     mlp_stack = mlp_stack.split(',')
     mlp_stack = [int(j.strip())for j in mlp_stack]
 
-    hyperparameter = f'stacks_{n_stack}__num_blocks_per_stack_{n_block}__n_theta_hidden_{mlp_stack}' \
-                     f'__inter_correlation_stack_length_{inter_correlation_stack_length}'
+    hyperparameter = f'stacks_{n_stack}__num_blocks_per_stack_{n_block}__n_theta_hidden_{mlp_stack}'
 
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
     sub_dir = '_'.join([hyperparameter, now.strftime('%m%d_%H%M%S')])
@@ -43,7 +41,6 @@ def main(conf_file_path, n_stack, n_block, mlp_stack, inter_correlation_stack_le
     config.forecasting_module.num_blocks_per_stack = n_block
     config.forecasting_module.n_theta_hidden = mlp_stack
     config.forecasting_module.stack_types = ['trend'] * n_stack + ['seasonality'] * n_stack
-    config.forecasting_module.inter_correlation_stack_length = inter_correlation_stack_length
 
     save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
@@ -53,9 +50,12 @@ def main(conf_file_path, n_stack, n_block, mlp_stack, inter_correlation_stack_le
     logger.info("Writing log file to {}".format(log_file))
     logger.info("Exp instance id = {}".format(config.exp_name))
 
-    runner = Runner(config=config)
-    runner.train()
-    runner.test()
+    try:
+        runner = Runner(config=config)
+        runner.train()
+        runner.test()
+    except:
+        logger.error(traceback.format_exc())
 
 
 if __name__ == '__main__':

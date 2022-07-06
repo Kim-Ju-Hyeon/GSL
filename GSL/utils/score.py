@@ -21,7 +21,7 @@ def get_score(target, prediction, scaler=None):
     return score
 
 def MAPE(v, v_, axis=None):
-    mape = (np.abs(v_ - v) / np.abs(v)+1e-5).astype(np.float64)
+    mape = (np.abs(v_ - v) / (np.abs(v)+1e-5)).astype(np.float64)
     mape = np.where(mape > 5, 5, mape)
     return np.mean(mape, axis)
 
