@@ -13,6 +13,7 @@ dataset:
     nodes_num: 207
     node_features: 2
     graph_learning_length: 34272
+    scaler_type: std # std, invariant, norm, norm1, median
 
 train:
     optimizer: Adam
