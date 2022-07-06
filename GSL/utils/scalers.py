@@ -10,46 +10,57 @@ class Scaler(object):
     def __init__(self, normalizer):
         assert (normalizer in ['std', 'invariant', 'norm', 'norm1', 'median']), 'Normalizer not defined'
         self.normalizer = normalizer
-        self.x_shift = None
-        self.x_scale = None
+        self.x_shift = []
+        self.x_scale = []
 
     def scale(self, x):
-        if self.normalizer == 'invariant':
-            x_scaled, x_shift, x_scale = invariant_scaler(x)
-        elif self.normalizer == 'median':
-            x_scaled, x_shift, x_scale = median_scaler(x)
-        elif self.normalizer == 'std':
-            x_scaled, x_shift, x_scale = std_scaler(x)
-        elif self.normalizer == 'norm':
-            x_scaled, x_shift, x_scale = norm_scaler(x)
-        elif self.normalizer == 'norm1':
-            x_scaled, x_shift, x_scale = norm1_scaler(x)
+        total_x_scaled = []
+        for i in range(x.shape[0]):
+            x_i = x[i]
+            if self.normalizer == 'invariant':
+                x_scaled, x_shift, x_scale = invariant_scaler(x_i)
+            elif self.normalizer == 'median':
+                x_scaled, x_shift, x_scale = median_scaler(x_i)
+            elif self.normalizer == 'std':
+                x_scaled, x_shift, x_scale = std_scaler(x_i)
+            elif self.normalizer == 'norm':
+                x_scaled, x_shift, x_scale = norm_scaler(x_i)
+            elif self.normalizer == 'norm1':
+                x_scaled, x_shift, x_scale = norm1_scaler(x_i)
 
-        nan_before_scale = np.sum(np.isnan(x))
-        nan_after_scale = np.sum(np.isnan(x_scaled))
-        assert nan_before_scale == nan_after_scale, 'Scaler induced nans'
+            nan_before_scale = np.sum(np.isnan(x_i))
+            nan_after_scale = np.sum(np.isnan(x_scaled))
+            assert nan_before_scale == nan_after_scale, 'Scaler induced nans'
 
-        self.x_shift = x_shift
-        self.x_scale = x_scale
+            total_x_scaled.append(x_scaled)
+            self.x_shift.append(x_shift)
+            self.x_scale.append(x_scale)
 
-        return np.array(x_scaled)
+        return np.array(total_x_scaled)
 
     def inv_scale(self, x):
         assert self.x_shift is not None
         assert self.x_scale is not None
+        self.x_inv_scaled = []
 
-        if self.normalizer == 'invariant':
-            x_inv_scaled = inv_invariant_scaler(x, self.x_shift, self.x_scale)
-        elif self.normalizer == 'median':
-            x_inv_scaled = inv_median_scaler(x, self.x_shift, self.x_scale)
-        elif self.normalizer == 'std':
-            x_inv_scaled = inv_std_scaler(x, self.x_shift, self.x_scale)
-        elif self.normalizer == 'norm':
-            x_inv_scaled = inv_norm_scaler(x, self.x_shift, self.x_scale)
-        elif self.normalizer == 'norm1':
-            x_inv_scaled = inv_norm1_scaler(x, self.x_shift, self.x_scale)
+        for i in range(x.shape[0]):
+            x_i = x[i]
+            x_shift = self.x_shift[i]
+            x_scale = self.x_scale[i]
+            if self.normalizer == 'invariant':
+                x_inv_scaled = inv_invariant_scaler(x_i, x_shift, x_scale)
+            elif self.normalizer == 'median':
+                x_inv_scaled = inv_median_scaler(x_i, x_shift, x_scale)
+            elif self.normalizer == 'std':
+                x_inv_scaled = inv_std_scaler(x_i, x_shift, x_scale)
+            elif self.normalizer == 'norm':
+                x_inv_scaled = inv_norm_scaler(x_i, x_shift, x_scale)
+            elif self.normalizer == 'norm1':
+                x_inv_scaled = inv_norm1_scaler(x_i, x_shift, x_scale)
 
-        return np.array(x_inv_scaled)
+            self.x_inv_scaled.append(x_inv_scaled)
+
+        return np.array(self.x_inv_scaled)
 
 # Norm
 def norm_scaler(x):

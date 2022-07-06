@@ -13,13 +13,12 @@ from utils.scalers import Scaler
 class ECLDatasetLoader(object):
     def __init__(self, raw_data_dir, scaler_type='std'):
         super(ECLDatasetLoader, self).__init__()
+        self.scaler = Scaler(scaler_type)
         self.path = f'{raw_data_dir}/ecl/datasets/'
         self.node_num = 321
         self._read_web_data()
 
-        self.scaler = Scaler(scaler_type)
-
-    def _download_url(self):  # pragma: no cover
+    def _download_url(self):
         url = 'https://drive.google.com/uc?id=1rUPdR7R2iWFW-LMoDdHoO2g4KgnkpFzP'
         os.makedirs(self.path)
         gdown.download(url, os.path.join(self.path, 'ECL.csv'))
@@ -44,6 +43,7 @@ class ECLDatasetLoader(object):
 
         df = y_df[u_ids].to_numpy().T
         df = np.expand_dims(df, axis=1)
+        df = self.scaler.scale(df)
 
         # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
         X = np.concatenate([df, temp], axis=1)

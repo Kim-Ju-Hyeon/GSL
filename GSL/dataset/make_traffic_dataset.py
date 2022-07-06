@@ -3,8 +3,7 @@ import zipfile
 import numpy as np
 import torch
 from torch_geometric.utils import dense_to_sparse
-from sklearn.preprocessing import StandardScaler
-
+from utils.scalers import Scaler
 from six.moves import urllib
 from utils.utils import build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
@@ -12,8 +11,10 @@ import random
 
 
 class TrafficDatasetLoader(object):
-    def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data"), dataset_name: str = 'METR-LA'):
+    def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data"), dataset_name: str = 'METR-LA',
+                 scaler_type='std'):
         super(TrafficDatasetLoader, self).__init__()
+        self.scaler = Scaler(scaler_type)
         self.raw_data_dir = raw_data_dir
         self._dataset_name = dataset_name
         self._read_web_data()
@@ -76,14 +77,11 @@ class TrafficDatasetLoader(object):
             raise ValueError("Invalid Dataset")
 
         X = X.astype(np.float32)
-        shape = X.shape
-
-        self.scaler = StandardScaler()
-        self.scaler.fit(X.reshape(-1, 2))
-        X = self.scaler.transform(X.reshape(-1, 2)).reshape(shape)
+        X = X.transpose((1, 2, 0))
+        X = self.scaler.scale(X)
 
         self.A = torch.from_numpy(A)
-        self.X = torch.from_numpy(X.transpose(1, 2, 0))
+        self.X = torch.from_numpy(X)
 
     def _get_edges_and_weights(self):
         edge_indices, values = dense_to_sparse(self.A)
