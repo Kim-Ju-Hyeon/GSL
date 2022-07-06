@@ -7,6 +7,7 @@ import torch
 from utils.dataset_utils import time_features_from_frequency_str
 from utils.utils import build_fully_connected_edge_idx, build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
+from torch_geometric_temporal.signal import temporal_signal_split
 from utils.scalers import Scaler
 
 
@@ -14,7 +15,7 @@ class ECLDatasetLoader(object):
     def __init__(self, raw_data_dir, scaler_type='std'):
         super(ECLDatasetLoader, self).__init__()
         self.scaler = Scaler(scaler_type)
-        self.path = f'{raw_data_dir}/ecl/datasets/'
+        self.path = raw_data_dir
         self.node_num = 321
         self._read_web_data()
 
@@ -48,6 +49,7 @@ class ECLDatasetLoader(object):
         # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
         X = np.concatenate([df, temp], axis=1)
         self.X = X
+        self.entire_dataset = torch.FloatTensor(X)
 
     def _make_init_edge_index(self):
         self.edges = build_fully_connected_edge_idx(self.node_num)
@@ -94,7 +96,7 @@ class ECLDatasetLoader(object):
         dataset = StaticGraphTemporalSignalBatch(edge_index=batch_edge, edge_weight=None,
                                                  features=feature_Tensor, targets=target_Tensor, batches=_batch)
 
-        return dataset, self.X
+        return dataset, self.entire_dataset
 
     def get_scaler(self):
         return self.scaler

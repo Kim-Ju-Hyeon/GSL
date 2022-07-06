@@ -116,7 +116,7 @@ class Runner(object):
             self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.7)
             self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.33)
 
-            self.entire_inputs = self.entire_inputs[:, 0, :self.dataset_conf.graph_learning_length]
+            self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
             self.scaler = loader.get_scaler()
 
             temporal_signal = {'train': self.train_dataset,
@@ -261,6 +261,7 @@ class Runner(object):
         best_snapshot = load_model(self.best_model_dir)
 
         self.best_model.load_state_dict(best_snapshot)
+        self.best_model.batch_size = 1
 
         if self.use_gpu and (self.device != 'cpu'):
             self.best_model = self.best_model.to(device=self.device)
@@ -278,31 +279,39 @@ class Runner(object):
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
 
-            with torch.no_grad():
-                adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                                        self.init_edge_index, interpretability=True)
+            x_shape = data_batch.x.shape
+            y_shape = data_batch.y.shape
 
-            if type(outputs) == defaultdict:
-                forecast = outputs['forecast']
-                results['stack_per_backcast'] = outputs['stack_per_backcast']
-                results['stack_per_forecast'] = outputs['stack_per_forecast']
-                results['backcast'] = outputs['backcast'].cpu()
-            else:
-                forecast = outputs
+            x = data_batch.x.reshape(-1, self.nodes_num, x_shape[-2], x_shape[-1])
+            y = data_batch.y.reshape(-1, self.nodes_num, y_shape[-1])
 
-            loss = self.loss(forecast, data_batch.y)
+            for i in range(x.shape[0]):
+                with torch.no_grad():
+                    adj_matrix, outputs, attention_matrix = self.best_model(x[i], y[i], self.entire_inputs,
+                                                                            self.init_edge_index, interpretability=True)
 
-            test_loss += [float(loss.data.cpu().numpy())]
-            output += [forecast.cpu().numpy()]
-            target += [data_batch.y.cpu().numpy()]
-            inputs += [data_batch.x.cpu().numpy()]
+                if type(outputs) == defaultdict:
+                    forecast = outputs['forecast']
+                    results['stack_per_backcast'] = outputs['stack_per_backcast']
+                    results['stack_per_forecast'] = outputs['stack_per_forecast']
+                    results['backcast'] = outputs['backcast'].cpu()
+                else:
+                    forecast = outputs
+
+                loss = self.loss(forecast, y[i])
+
+                test_loss += [float(loss.data.cpu().numpy())]
+                output += [forecast.cpu().numpy()]
+                target += [y[i].cpu().numpy()]
+                inputs += [x[i].cpu().numpy()]
 
         test_loss = np.stack(test_loss).mean()
         output = np.stack(output)
         target = np.stack(target)
         inputs = np.stack(inputs)
 
-        score = get_score(target.reshape(-1), output.reshape(-1), scaler=self.scaler)
+        score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+                          output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=self.scaler)
 
         results['test_loss'] = test_loss
         results['score'] = score

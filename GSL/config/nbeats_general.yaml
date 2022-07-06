@@ -8,16 +8,16 @@ model_name: N_BEATS_generic  # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
-    root: ./data/METR-LA
-    name: METR-LA
-    nodes_num: 207
-    node_features: 2
-    graph_learning_length: 34272
+    root: ./data/ECL
+    name: ECL
+    nodes_num: 321
+    node_features: 5
+    graph_learning_length: 26304
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
     optimizer: Adam
-    epoch: 2
+    epoch: 1
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3
@@ -28,11 +28,11 @@ train:
     batch_size : 128
 
 graph_learning:
-    mode: None # GTS, attention, MTGNN, GDN, None
-    graph_mode: ground_truth # no_graph, ground_truth, random_graph It use when graph learning mode is None
+    mode: attention # GTS, attention, MTGNN, GDN, None
+    graph_mode: no_graph # no_graph, ground_truth, random_graph It use when graph learning mode is None
     edge_prob: 0.01 # Use this probability when graph_mode is random_graph
 
-    sampling: None # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
+    sampling: Gumbel_softmax # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
     tau: 10 # Gumbel softmax tau
     top_k: 10
     alpha: 200 # Use as threshold at tanh
@@ -54,8 +54,8 @@ forecasting_module:
     activ: 'ReLU'
     num_blocks_per_stack: 1
     inter_correlation_stack_length: 1
-    forecast_length: 12
-    backcast_length: 60
+    forecast_length: 3
+    backcast_length: 12
     n_theta_hidden: [8, 8]
     thetas_dim: [8, 8]
     message_norm: True

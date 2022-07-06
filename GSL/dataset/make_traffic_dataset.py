@@ -7,6 +7,8 @@ from utils.scalers import Scaler
 from six.moves import urllib
 from utils.utils import build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
+from torch_geometric_temporal.signal import temporal_signal_split
+
 import random
 
 

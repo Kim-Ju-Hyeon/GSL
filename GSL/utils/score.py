@@ -7,8 +7,8 @@ def get_score(target, prediction, scaler=None):
     if scaler is None:
         pass
     else:
-        target = scaler.inverse_transform(np.stack([target, target], axis=-1))[:, 0]
-        prediction = scaler.inverse_transform(np.stack([prediction, prediction], axis=-1))[:, 0]
+        target = scaler.inv_scale(target)
+        prediction = scaler.inv_scale(prediction)
 
     mae = MAE(target, prediction)
     mape = MAPE(target, prediction)
