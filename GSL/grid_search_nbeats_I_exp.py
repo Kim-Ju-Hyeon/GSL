@@ -33,7 +33,7 @@ def main(conf_file_path, n_stack, n_block, mlp_stack):
     config.seed = set_seed(config.seed)
 
     config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))
-    config.exp_sub_dir = os.path.join(config.exp_dir, config.model_name, sub_dir)
+    config.exp_sub_dir = os.path.join(config.exp_dir, sub_dir)
     config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
     mkdir(config.model_save)
