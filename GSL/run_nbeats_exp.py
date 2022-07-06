@@ -26,7 +26,7 @@ def main(conf_file_path):
     config.seed = set_seed(config.seed)
 
     config.exp_dir = os.path.join(config.exp_dir, str(config.exp_name))
-    config.exp_sub_dir = os.path.join(config.exp_dir, config.model_name, now)
+    config.exp_sub_dir = os.path.join(config.exp_dir, config.model_name, now.strftime('%m%d_%H%M%S'))
     config.model_save = os.path.join(config.exp_sub_dir, "model_save")
 
     mkdir(config.model_save)

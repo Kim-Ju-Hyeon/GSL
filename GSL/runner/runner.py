@@ -236,7 +236,7 @@ class Runner(object):
             val_loss = np.stack(val_loss).mean()
 
             results['val_loss'] += [val_loss]
-            results['attention_matrix'] = attention_matrix.detach().cpu()
+            results['attention_matrix'] = attention_matrix
 
             if type(adj_matrix) == dict:
                 results['val_adj_matirix'] += adj_matrix
