@@ -82,7 +82,7 @@ class Runner(object):
             self.train_dataset = temporal_signal['train']
             self.valid_dataset = temporal_signal['validation']
             self.test_dataset = temporal_signal['test']
-            self.entire_inputs = temporal_signal['entire_inputs']
+            self.entire_inputs = temporal_signal['entire_inputs'][:, :, :self.dataset_conf.graph_learning_length]
             self.scaler = temporal_signal['scaler']
 
         else:
