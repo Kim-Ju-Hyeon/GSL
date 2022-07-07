@@ -50,7 +50,7 @@ class ECLDatasetLoader(object):
         self.X = X
 
         total_sequence_length = X.shape[-1]
-        train_index = int(total_sequence_length * 0.7) + 1
+        train_index = int(total_sequence_length * 0.6) + 1
         valid_index = int(total_sequence_length * 0.2) + 1 + train_index
 
         self.train_X = X[:, :, :train_index]

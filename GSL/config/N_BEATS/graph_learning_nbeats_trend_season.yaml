@@ -54,8 +54,8 @@ forecasting_module:
     activ: 'ReLU'
     num_blocks_per_stack: 3
     inter_correlation_stack_length: 1
-    forecast_length: 3
-    backcast_length: 24
+    forecast_length: 96
+    backcast_length: 96
     n_theta_hidden: [16, 16, 16]
     thetas_dim: [16, 16]
     message_norm: True
