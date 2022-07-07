@@ -108,13 +108,10 @@ class Runner(object):
             else:
                 raise ValueError("Non-supported dataset!")
 
-            dataset, self.entire_inputs = loader.get_dataset(
+            self.train_dataset, self.valid_dataset, self.test_dataset, self.entire_inputs = loader.get_dataset(
                 num_timesteps_in=self.config.forecasting_module.backcast_length,
                 num_timesteps_out=self.config.forecasting_module.forecast_length,
                 batch_size=self.train_conf.batch_size)
-
-            self.train_dataset, _dataset = temporal_signal_split(dataset, train_ratio=0.7)
-            self.valid_dataset, self.test_dataset = temporal_signal_split(_dataset, train_ratio=0.33)
 
             self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
             self.scaler = loader.get_scaler()

@@ -7,7 +7,6 @@ from utils.scalers import Scaler
 from six.moves import urllib
 from utils.utils import build_batch_edge_index
 from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
-from torch_geometric_temporal.signal import temporal_signal_split
 
 import random
 
@@ -82,8 +81,16 @@ class TrafficDatasetLoader(object):
         X = X.transpose((1, 2, 0))
         X = self.scaler.scale(X)
 
+        total_sequence_length = X.shape[-1]
+        train_index = int(total_sequence_length * 0.7) + 1
+        valid_index = int(total_sequence_length * 0.2) + 1 + train_index
+
+        self.train_X = X[:, :, :train_index]
+        self.valid_X = X[:, :, train_index:valid_index]
+        self.test_X = X[:, :, valid_index:]
+
         self.A = torch.from_numpy(A)
-        self.X = torch.from_numpy(X)
+        self.entire_dataset = torch.from_numpy(X)
 
     def _get_edges_and_weights(self):
         edge_indices, values = dense_to_sparse(self.A)
@@ -92,58 +99,69 @@ class TrafficDatasetLoader(object):
         self.edges = torch.LongTensor(edge_indices)
         self.edge_weights = torch.FloatTensor(values)
 
-    def _generate_task(self, num_timesteps_in: int = 12, num_timesteps_out: int = 12):
-        """Uses the node features of the graph and generates a feature/target
-        relationship of the shape
-        (num_nodes, num_node_features, num_timesteps_in) -> (num_nodes, num_timesteps_out)
-        predicting the average traffic speed using num_timesteps_in to predict the
-        traffic conditions in the next num_timesteps_out
+    def _generate_dataset(self, dataset, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32,
+                          inference: bool = False):
 
-        Args:
-            num_timesteps_in (int): number of timesteps the sequence model sees
-            num_timesteps_out (int): number of timesteps the sequence model has to predict
-        """
-        indices = [
-            (i, i + (num_timesteps_in + num_timesteps_out))
-            for i in range(self.X.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
-        ]
-        random.shuffle(indices)
+        if inference:
+            indices = [
+                (i, i + (num_timesteps_in + num_timesteps_out))
+                for i in range(dataset.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
+                if i % num_timesteps_out == 0
+            ]
+        else:
+            indices = [
+                (i, i + (num_timesteps_in + num_timesteps_out))
+                for i in range(dataset.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
+            ]
+            random.shuffle(indices)
 
-        # Generate observations
         features, target = [], []
         for i, j in indices:
-            features.append((self.X[:, :, i: i + num_timesteps_in]).numpy())
-            target.append((self.X[:, 0, i + num_timesteps_in: j]).numpy())
+            features.append((dataset[:, :, i: i + num_timesteps_in]))
+            target.append((dataset[:, 0, i + num_timesteps_in: j]))
 
-        self.features = torch.FloatTensor(np.array(features))
-        self.targets = torch.FloatTensor(np.array(target))
+        features = torch.FloatTensor(np.array(features))
+        targets = torch.FloatTensor(np.array(target))
 
-    def get_dataset(
-            self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32
-    ):
-        self._get_edges_and_weights()
-        self._generate_task(num_timesteps_in, num_timesteps_out)
+        dataset = self._get_batch_graph_temporal_signal_batch(num_timesteps_in, num_timesteps_out,
+                                                              features, targets, batch_size)
 
-        data_batch = self.features.shape[0] // batch_size
-        node_num, feature_dim = self.features.shape[1], self.features.shape[2]
+        return dataset
+
+    def _get_batch_graph_temporal_signal_batch(self, num_timesteps_in, num_timesteps_out, features, targets,
+                                               batch_size):
+        data_batch = features.shape[0] // batch_size
+        node_num, feature_dim = features.shape[1], features.shape[2]
 
         _batch = []
         for batch_iter in range(batch_size):
             _batch += [batch_iter] * node_num
         _batch = np.array(_batch)
 
-        feature_Tensor = self.features[:data_batch * batch_size].reshape(data_batch, node_num * batch_size,
-                                                                         feature_dim, num_timesteps_in).numpy()
+        feature_Tensor = features[:data_batch * batch_size].reshape(data_batch, node_num * batch_size,
+                                                                    feature_dim, num_timesteps_in).numpy()
 
-        target_Tensor = self.targets[:data_batch * batch_size].reshape(data_batch, node_num * batch_size,
-                                                                       num_timesteps_out).numpy()
+        target_Tensor = targets[:data_batch * batch_size].reshape(data_batch, node_num * batch_size,
+                                                                  num_timesteps_out).numpy()
 
         batch_edge = build_batch_edge_index(self.edges, num_graphs=batch_size, num_nodes=node_num)
 
         dataset = StaticGraphTemporalSignalBatch(edge_index=batch_edge, edge_weight=None,
                                                  features=feature_Tensor, targets=target_Tensor, batches=_batch)
 
-        return dataset, self.X
+        return dataset
+
+
+    def get_dataset(
+            self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32
+    ):
+        self._get_edges_and_weights()
+        train_dataset = self._generate_dataset(self.train_X, num_timesteps_in, num_timesteps_out, batch_size)
+        valid_dataset = self._generate_dataset(self.valid_X, num_timesteps_in, num_timesteps_out, batch_size)
+        test_dataset = self._generate_dataset(self.test_X, num_timesteps_in, num_timesteps_out, batch_size,
+                                              inference=True)
+
+        return train_dataset, valid_dataset, test_dataset, self.entire_dataset
 
     def get_scaler(self):
         return self.scaler
