@@ -3,7 +3,6 @@ import pickle
 import yaml
 from easydict import EasyDict as edict
 
-
 def get_exp_result_files(exp):
     config_file = glob(escape(exp + '/config.yaml'))[0]
     config = edict(yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader))
