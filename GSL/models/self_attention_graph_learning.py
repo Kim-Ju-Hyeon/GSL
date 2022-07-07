@@ -63,7 +63,6 @@ class Attention_Graph_Learning(nn.Module):
     def forward(self, x):
         if len(x.shape) == 2:
             x = x.reshape(self.num_nodes, self.nodes_feas, -1)
-
         for i, conv in enumerate(self.feature_extracotr):
             x = conv(x)
             x = F.relu(x)

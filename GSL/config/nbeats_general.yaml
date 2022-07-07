@@ -1,17 +1,17 @@
 ---
 exp_name: 0517_N_BEATS # 0417
 exp_dir: ../exp
-use_gpu: True
-device: 0
+use_gpu: False
+device: cpu
 seed: None # If you want to reproduce set the seed that you want
 model_name: N_BEATS_generic  # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
-    root: ./data/METR-LA # METR-LA, PEMS-BAY, ECL
-    name: METR-LA
-    nodes_num: 207 # 207, 321
-    node_features: 2 # 2, 5
+    root: ./data/ECL # METR-LA, PEMS-BAY, ECL
+    name: ECL
+    nodes_num: 321 # 207, 321
+    node_features: 5 # 2, 5
     graph_learning_length: 1000
     scaler_type: std # std, invariant, norm, norm1, median
 

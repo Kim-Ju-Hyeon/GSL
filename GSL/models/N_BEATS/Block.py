@@ -62,13 +62,12 @@ class _SeasonalityGenerator(nn.Module):
 class Inter_Correlation_Block(nn.Module):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
                  activation='ReLU', inter_correlation_stack_length=1,
-                 pooling_length=None, device='0'):
+                 pooling_length=None):
         super(Inter_Correlation_Block, self).__init__()
         self.inter_correlation_block_type = inter_correlation_block_type
         self.n_theta_hidden = n_theta_hidden
         self.thetas_dim = thetas_dim
         self.n_layers = inter_correlation_stack_length
-        self.device = device
 
         assert activation in ACTIVATIONS, f'{activation} is not in {ACTIVATIONS}'
         self.activ = getattr(nn, activation)()
@@ -149,12 +148,12 @@ class Inter_Correlation_Block(nn.Module):
 
 class GNN_SeasonalityBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, device='cpu'):
+                 activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_SeasonalityBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim,
                                                    backcast_length, forecast_length,
                                                    activation,
-                                                   inter_correlation_stack_length,
-                                                   device)
+                                                   inter_correlation_stack_length)
+
         self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
         self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
 
@@ -167,9 +166,9 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
 
 class GNN_TrendBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, device='cpu'):
+                 activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_TrendBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length,
-                                             forecast_length, activation, inter_correlation_stack_length, device)
+                                             forecast_length, activation, inter_correlation_stack_length)
         self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
         self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
 
@@ -182,10 +181,10 @@ class GNN_TrendBlock(Inter_Correlation_Block):
 
 class GNN_GenericBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, device='cpu'):
+                 activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_GenericBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim,
                                                backcast_length, forecast_length,
-                                               activation, inter_correlation_stack_length, device)
+                                               activation, inter_correlation_stack_length)
 
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
@@ -205,7 +204,7 @@ class GNN_GenericBlock(Inter_Correlation_Block):
 class GNN_NHITSBlock(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, pooling_mode, n_pool_kernel_size,
                  backcast_length=10,
-                 forecast_length=5, activation='ReLU', inter_correlation_stack_length=1, device='cpu'):
+                 forecast_length=5, activation='ReLU', inter_correlation_stack_length=1):
         self.input_length = backcast_length
         self.forecast_length = forecast_length
         self.l_out = int(((backcast_length - n_pool_kernel_size) / n_pool_kernel_size) + 1)
@@ -215,8 +214,7 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
                                              backcast_length=backcast_length, forecast_length=forecast_length,
                                              activation=activation,
                                              inter_correlation_stack_length=inter_correlation_stack_length,
-                                             pooling_length=self.l_out,
-                                             device=device)
+                                             pooling_length=self.l_out)
 
         assert (pooling_mode in ['max', 'average'])
 

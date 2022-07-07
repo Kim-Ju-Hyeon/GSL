@@ -274,6 +274,10 @@ class Runner(object):
         output = []
         target = []
         inputs = []
+
+        stack_per_backcast = []
+        stack_per_forecast = []
+        backcast = []
         for data_batch in tqdm(self.test_dataset):
 
             if self.use_gpu and (self.device != 'cpu'):
@@ -292,9 +296,6 @@ class Runner(object):
 
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
-                    results['stack_per_backcast'] = outputs['stack_per_backcast']
-                    results['stack_per_forecast'] = outputs['stack_per_forecast']
-                    results['backcast'] = outputs['backcast'].cpu()
                 else:
                     forecast = outputs
 
@@ -304,11 +305,17 @@ class Runner(object):
                 output += [forecast.cpu().numpy()]
                 target += [y[i].cpu().numpy()]
                 inputs += [x[i].cpu().numpy()]
+                stack_per_backcast += [outputs['stack_per_backcast']]
+                stack_per_forecast += [outputs['stack_per_forecast']]
+                backcast += [outputs['backcast'].cpu()]
 
         test_loss = np.stack(test_loss).mean()
         output = np.stack(output)
         target = np.stack(target)
         inputs = np.stack(inputs)
+        stack_per_backcast = np.stack(stack_per_backcast)
+        stack_per_forecast = np.stack(stack_per_forecast)
+        backcast = np.stack(backcast)
 
         score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                           output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=self.scaler)
@@ -319,7 +326,10 @@ class Runner(object):
         results['prediction'] = output
         results['target'] = target
         results['Inputs'] = inputs
-        results['attention_matrix'] = attention_matrix
+        results['attention_matrix'] = attention_matrix.cpu()
+        results['stack_per_backcast'] = stack_per_backcast
+        results['stack_per_forecast'] = stack_per_forecast
+        results['backcast'] = backcast
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
         logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
