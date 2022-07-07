@@ -280,28 +280,32 @@ class Runner(object):
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
 
-            x_shape = data_batch.x.shape
-            y_shape = data_batch.y.shape
+            # x_shape = data_batch.x.shape
+            # y_shape = data_batch.y.shape
+            #
+            # x = data_batch.x.reshape(-1, self.nodes_num, x_shape[-2], x_shape[-1])
+            # y = data_batch.y.reshape(-1, self.nodes_num, y_shape[-1])
 
-            x = data_batch.x.reshape(-1, self.nodes_num, x_shape[-2], x_shape[-1])
-            y = data_batch.y.reshape(-1, self.nodes_num, y_shape[-1])
+            # for i in range(x.shape[0]):
+            #     with torch.no_grad():
+            #         adj_matrix, outputs, attention_matrix = self.best_model(x[i], y[i], self.entire_inputs,
+            #                                                                 self.init_edge_index, interpretability=True)
 
-            for i in range(x.shape[0]):
-                with torch.no_grad():
-                    adj_matrix, outputs, attention_matrix = self.best_model(x[i], y[i], self.entire_inputs,
-                                                                            self.init_edge_index, interpretability=True)
+            with torch.no_grad():
+                adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
+                                                                        self.init_edge_index, interpretability=True)
 
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
                 else:
                     forecast = outputs
 
-                loss = self.loss(forecast, y[i])
+                loss = self.loss(forecast, data_batch.y)
 
                 test_loss += [float(loss.data.cpu().numpy())]
                 output += [forecast.cpu().numpy()]
-                target += [y[i].cpu().numpy()]
-                inputs += [x[i].cpu().numpy()]
+                target += [data_batch.y.cpu().numpy()]
+                inputs += [data_batch.x.cpu().numpy()]
                 stack_per_backcast += [outputs['stack_per_backcast']]
                 stack_per_forecast += [outputs['stack_per_forecast']]
                 backcast += [outputs['backcast'].cpu()]

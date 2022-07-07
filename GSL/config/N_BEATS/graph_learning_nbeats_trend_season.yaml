@@ -12,7 +12,7 @@ dataset:
     name: ECL
     nodes_num: 321
     node_features: 5
-    graph_learning_length: 26304
+    graph_learning_length: 18413
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
