@@ -119,7 +119,7 @@ class ECLDatasetLoader(object):
         self._make_init_edge_index()
         train_dataset = self._generate_dataset(self.train_X, num_timesteps_in, num_timesteps_out, batch_size)
         valid_dataset = self._generate_dataset(self.valid_X, num_timesteps_in, num_timesteps_out, batch_size)
-        test_dataset = self._generate_dataset(self.test_X, num_timesteps_in, num_timesteps_out, batch_size,
+        test_dataset = self._generate_dataset(self.test_X, num_timesteps_in, num_timesteps_out, 1,
                                               inference=True)
 
         return train_dataset, valid_dataset, test_dataset, self.entire_dataset

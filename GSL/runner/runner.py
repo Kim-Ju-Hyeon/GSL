@@ -276,7 +276,6 @@ class Runner(object):
         stack_per_forecast = []
         backcast = []
         for data_batch in tqdm(self.test_dataset):
-
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
 
