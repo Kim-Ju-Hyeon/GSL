@@ -2,6 +2,7 @@ import pickle
 import click
 from easydict import EasyDict as edict
 import yaml
+import traceback
 import os
 import torch
 from torch_geometric.loader import DataLoader
@@ -21,13 +22,7 @@ def download_save_dataset(config):
     dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
 
     if os.path.exists(os.path.join(dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
-        temporal_signal = pickle.load(
-            open(os.path.join(dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'), 'rb'))
-        train_dataset = temporal_signal['train']
-        valid_dataset = temporal_signal['validation']
-        test_dataset = temporal_signal['test']
-        entire_inputs = temporal_signal['entire_inputs'][:, :, :dataset_conf.graph_learning_length]
-        scaler = temporal_signal['scaler']
+        pass
 
     else:
         if dataset_conf.name == 'spike_lambda_bin100':
@@ -74,5 +69,11 @@ def download_save_dataset(config):
 @click.command()
 @click.option('--conf_file_path', type=click.STRING, default=None)
 def main(conf_file_path):
-    config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
+    try:
+        config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
+        download_save_dataset(config)
+    except:
+        print(traceback.format_exc())
+if __name__ == '__main__':
+    main()
     
