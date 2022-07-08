@@ -49,7 +49,7 @@ graph_learning:
 
 forecasting_module:
     name: n_beats
-    stack_types: [trend, seasonality] # seasonality, trend, generic, n_hits
+    stack_types: [smoothing_trend, seasonality] # seasonality, trend, generic, n_hits
     inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: 'ReLU'
     num_blocks_per_stack: 1

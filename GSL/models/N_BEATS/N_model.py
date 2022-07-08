@@ -7,6 +7,7 @@ class N_model(nn.Module):
     TREND_BLOCK = 'trend'
     GENERIC_BLOCK = 'generic'
     N_HITS_BLOCK = 'n_hits'
+    SMOOTHING_TREND_BLOCK = 'smoothing_trend'
 
     def __init__(self, config):
         super(N_model, self).__init__()
@@ -56,6 +57,16 @@ class N_model(nn.Module):
                                        activation=self.activation,
                                        inter_correlation_stack_length=self.n_layers)
 
+                elif stack_type == N_model.SMOOTHING_TREND_BLOCK:
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden,
+                                       thetas_dim=self.thetas_dim, pooling_mode=self.pooling_mode,
+                                       n_pool_kernel_size=self.n_pool_kernel_size,
+                                       backcast_length=self.backcast_length,
+                                       forecast_length=self.forecast_length,
+                                       activation=self.activation,
+                                       inter_correlation_stack_length=self.n_layers)
+
                 elif stack_type == N_model.TREND_BLOCK:
                     self.thetas_dim[0], self.thetas_dim[1] = 3, 3
                     block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
@@ -73,7 +84,8 @@ class N_model(nn.Module):
                                        backcast_length=self.backcast_length, forecast_length=self.forecast_length,
                                        activation=self.activation,
                                        inter_correlation_stack_length=self.n_layers)
-                else:
+
+                elif stack_type == N_model.GENERIC_BLOCK:
                     block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                        n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
                                        backcast_length=self.backcast_length, forecast_length=self.forecast_length,
@@ -94,6 +106,8 @@ class N_model(nn.Module):
             return GNN_GenericBlock
         elif block_type == N_model.N_HITS_BLOCK:
             return GNN_NHITSBlock
+        elif block_type == N_model.SMOOTHING_TREND_BLOCK:
+            return GNN_smoothing_Trend
         else:
             raise ValueError("Invalid block type")
 
