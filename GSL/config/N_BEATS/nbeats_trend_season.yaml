@@ -1,6 +1,6 @@
 ---
 exp_name: NBEATS_trend_season # 0417
-exp_dir: ../exp/0706_ECL
+exp_dir: ../exp/0708_ECL
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
