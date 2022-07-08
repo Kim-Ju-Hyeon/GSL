@@ -103,16 +103,26 @@ class N_model(nn.Module):
         sum_of_backcast = torch.zeros(size=(backcast.size()[0], self.backcast_length)).to(device=device)
         self.per_stack_backcast = []
         self.per_stack_forecast = []
+
+        self.total_forecast_output = []
+        self.total_backcast_output = []
+
         for stack_id in range(len(self.stacks)):
             stacks_forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
             for block_id in range(len(self.stacks[stack_id])):
                 b, f = self.stacks[stack_id][block_id](backcast, edge_index, edge_weight)
                 backcast = backcast.to(device=device) - b
                 forecast = forecast.to(device=device) + f
-                sum_of_backcast += b
 
+                sum_of_backcast += b
                 stacks_forecast += f
+
+                if interpretability:
+                    self.total_backcast_output.append(b.cpu().numpy())
+                    self.total_forecast_output.append(f.cpu().numpy())
+
             if interpretability:
-                self.per_stack_backcast.append(backcast.cpu())
-                self.per_stack_forecast.append(stacks_forecast.cpu())
+                self.per_stack_backcast.append(backcast.cpu().numpy())
+                self.per_stack_forecast.append(stacks_forecast.cpu().numpy())
+
         return sum_of_backcast, forecast

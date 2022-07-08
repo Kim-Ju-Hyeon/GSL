@@ -275,6 +275,10 @@ class Runner(object):
         stack_per_backcast = []
         stack_per_forecast = []
         backcast = []
+
+        block_per_backcast = []
+        block_per_forecast = []
+
         for data_batch in tqdm(self.test_dataset):
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
@@ -307,7 +311,8 @@ class Runner(object):
                 inputs += [data_batch.x.cpu().numpy()]
                 stack_per_backcast += [outputs['stack_per_backcast']]
                 stack_per_forecast += [outputs['stack_per_forecast']]
-                backcast += [outputs['backcast'].cpu()]
+                block_per_backcast += [outputs['block_per_backcast']]
+                block_per_forecast += [outputs['block_per_forecast']]
 
         test_loss = np.stack(test_loss).mean()
         output = np.stack(output)
@@ -315,6 +320,8 @@ class Runner(object):
         inputs = np.stack(inputs)
         stack_per_backcast = np.stack(stack_per_backcast)
         stack_per_forecast = np.stack(stack_per_forecast)
+        block_per_backcast = np.stack(block_per_backcast)
+        block_per_forecast = np.stack(block_per_forecast)
         backcast = np.stack(backcast)
 
         score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
@@ -326,9 +333,11 @@ class Runner(object):
         results['prediction'] = output
         results['target'] = target
         results['Inputs'] = inputs
-        results['attention_matrix'] = attention_matrix.cpu()
+        results['attention_matrix'] = attention_matrix
         results['stack_per_backcast'] = stack_per_backcast
         results['stack_per_forecast'] = stack_per_forecast
+        results['block_per_backcast'] = block_per_backcast
+        results['block_per_forecast'] = block_per_forecast
         results['backcast'] = backcast
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))

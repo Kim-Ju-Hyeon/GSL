@@ -152,9 +152,13 @@ class My_Model(nn.Module):
                                                         edge_weight=batch_weight_matrix, interpretability=interpretability)
             outputs['backcast'] = backcast
             outputs['forecast'] = forecast
+
             if interpretability:
                 outputs['stack_per_backcast'] = self.graph_forecasting.per_stack_backcast
                 outputs['stack_per_forecast'] = self.graph_forecasting.per_stack_forecast
+
+                outputs['block_per_backcast'] = self.graph_forecasting.total_backcast_output
+                outputs['block_per_forecast'] = self.graph_forecasting.total_forecast_output
         else:
             raise ValueError('None supported forecasting module')
 
