@@ -1,19 +1,13 @@
 import click
 from runner.runner import Runner
-
-from utils.train_helper import get_config, save_yaml
 import traceback
 from utils.logger import setup_logging
 import os
-
-from utils.slack import slack_message
 from utils.train_helper import set_seed, mkdir, edict2dict
 import datetime
-
 import pytz
 from easydict import EasyDict as edict
 import yaml
-import logging
 
 
 @click.command()
