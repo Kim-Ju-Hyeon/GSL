@@ -313,6 +313,7 @@ class Runner(object):
                 stack_per_forecast += [outputs['stack_per_forecast']]
                 block_per_backcast += [outputs['block_per_backcast']]
                 block_per_forecast += [outputs['block_per_forecast']]
+                backcast += [outputs['backcast'].cpu()]
 
         test_loss = np.stack(test_loss).mean()
         output = np.stack(output)

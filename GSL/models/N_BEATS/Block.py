@@ -154,13 +154,20 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
                                                    activation,
                                                    inter_correlation_stack_length)
 
+        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        self.backcast_norm = nn.LayerNorm(backcast_length)
+        self.forecast_norm = nn.LayerNorm(forecast_length)
+
         self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
         self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_SeasonalityBlock, self).forward(x, edge_index, edge_weight)
-        backcast = self.backcast_seasonality_model(self.theta_b_fc(x))
-        forecast = self.forecast_seasonality_model(self.theta_f_fc(x))
+        x = self.norm1(x)
+
+        backcast = self.backcast_norm(self.backcast_seasonality_model(self.theta_b_fc(x)))
+        forecast = self.forecast_norm(self.forecast_seasonality_model(self.theta_f_fc(x)))
+
         return backcast, forecast
 
 
@@ -169,13 +176,21 @@ class GNN_TrendBlock(Inter_Correlation_Block):
                  activation='ReLU', inter_correlation_stack_length=1):
         super(GNN_TrendBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length,
                                              forecast_length, activation, inter_correlation_stack_length)
+
+        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        self.backcast_norm = nn.LayerNorm(backcast_length)
+        self.forecast_norm = nn.LayerNorm(forecast_length)
+
         self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
         self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_TrendBlock, self).forward(x, edge_index, edge_weight)
-        backcast = self.backcast_trend_model(self.theta_b_fc(x))
-        forecast = self.forecast_trend_model(self.theta_f_fc(x))
+        x = self.norm1(x)
+
+        backcast = self.backcast_norm(self.backcast_trend_model(self.theta_b_fc(x)))
+        forecast = self.forecast_norm(self.forecast_trend_model(self.theta_f_fc(x)))
+
         return backcast, forecast
 
 
@@ -186,17 +201,22 @@ class GNN_GenericBlock(Inter_Correlation_Block):
                                                backcast_length, forecast_length,
                                                activation, inter_correlation_stack_length)
 
+        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        self.backcast_norm = nn.LayerNorm(backcast_length)
+        self.forecast_norm = nn.LayerNorm(forecast_length)
+
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_GenericBlock, self).forward(x, edge_index, edge_weight)
+        x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)
 
-        backcast = self.backcast_fc(theta_b)
-        forecast = self.forecast_fc(theta_f)
+        backcast = self.backcast_norm(self.backcast_fc(theta_b))
+        forecast = self.forecast_norm(self.forecast_fc(theta_f))
 
         return backcast, forecast
 
@@ -227,12 +247,17 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
             self.pooling_layer = nn.AvgPool1d(kernel_size=self.n_pool_kernel_size,
                                               stride=self.n_pool_kernel_size, ceil_mode=False)
 
+        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        self.backcast_norm = nn.LayerNorm(backcast_length)
+        self.forecast_norm = nn.LayerNorm(forecast_length)
+
     def forward(self, x, edge_index, edge_weight=None):
         x = squeeze_last_dim(x)
         x = x.unsqueeze(dim=1)
         x = self.pooling_layer(x)
         x = x.squeeze()
         x = super(GNN_NHITSBlock, self).forward(x, edge_index, edge_weight)
+        x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)
@@ -243,7 +268,7 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
         forecast = F.interpolate(theta_f[:, None, :], size=self.forecast_length,
                                  mode='linear', align_corners=False).squeeze(dim=1)
 
-        return backcast, forecast
+        return self.backcast_norm(backcast), self.forecast_norm(forecast)
 
 
 class Block(nn.Module):
