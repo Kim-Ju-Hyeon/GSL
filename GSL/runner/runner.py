@@ -254,6 +254,7 @@ class Runner(object):
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
+        print(self.config.forecasting_module.thetas_dim)
         self.best_model = My_Model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 

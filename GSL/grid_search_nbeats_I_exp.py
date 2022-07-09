@@ -34,7 +34,7 @@ def main(conf_file_path, n_stack, n_block, mlp_stack):
 
     config.forecasting_module.num_blocks_per_stack = n_block
     config.forecasting_module.n_theta_hidden = mlp_stack
-    config.forecasting_module.stack_types = ['trend'] * n_stack + ['seasonality'] * n_stack
+    config.forecasting_module.stack_types = ['smoothing_trend'] * n_stack + ['seasonality'] * n_stack // 2 + ['generic']
 
     save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)

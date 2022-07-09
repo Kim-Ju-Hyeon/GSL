@@ -1,6 +1,6 @@
 ---
 exp_name: NBEATS_trend_season # 0417
-exp_dir: ../exp/0708_ECL
+exp_dir: ../exp/0709_ECL
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
@@ -25,7 +25,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 128
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None
@@ -60,6 +60,6 @@ forecasting_module:
     thetas_dim: [16, 16]
     message_norm: True
     share_weights_in_stack: True
-    pooling_mode: max
-    n_pool_kernel_size: 1
+    pooling_mode: average
+    n_pool_kernel_size: 8
     device: 0
