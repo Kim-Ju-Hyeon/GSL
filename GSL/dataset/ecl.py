@@ -19,7 +19,8 @@ class ECLDatasetLoader(DatasetLoader):
 
     def _download_url(self):
         url = 'https://drive.google.com/uc?id=1rUPdR7R2iWFW-LMoDdHoO2g4KgnkpFzP'
-        os.makedirs(self.path)
+        if os.path.exists(self.path):
+            os.makedirs(self.path)
         gdown.download(url, os.path.join(self.path, 'ECL.csv'))
 
     def _read_web_data(self):

@@ -1,98 +1,61 @@
-__all__ = ['ETTh1', 'ETTh2', 'ETTm1', 'ETTm2', 'ETTInfo', 'ETT']
-
-# Cell
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
-
+import torch
 import numpy as np
 import pandas as pd
-
-from utils.dataset_utils import Info, time_features_from_frequency_str, process_multiple_ts
-
-# Cell
-@dataclass
-class ETTh1:
-    freq: str = 'H'
-    name: str = 'ETTh1'
-    n_ts: int = 7
-
-@dataclass
-class ETTh2:
-    freq: str = 'H'
-    name: str = 'ETTh2'
-    n_ts: int = 7
-
-@dataclass
-class ETTm1:
-    freq: str = '15T'
-    name: str = 'ETTm1'
-    n_ts: int = 7
-
-@dataclass
-class ETTm2:
-    freq: str = '15T'
-    name: str = 'ETTm2'
-    n_ts: int = 7
-
-# Cell
-ETTInfo = Info(groups=('ETTh1', 'ETTh2', 'ETTm1', 'ETTm2'),
-               class_groups=(ETTh1, ETTh2, ETTm1, ETTm2))
-
-# Cell
-@dataclass
-class ETT:
-
-    source_url: str = 'https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/'
-
-    @staticmethod
-    def load(directory: str,
-             group: str,
-             cache: bool = True) -> Tuple[pd.DataFrame,
-                                          Optional[pd.DataFrame],
-                                          Optional[pd.DataFrame]]:
-        """Downloads and loads ETT data.
-        Parameters
-        ----------
-        directory: str
-            Directory where data will be downloaded.
-        group: str
-            Group name.
-            Allowed groups: 'ETTh1', 'ETTh2',
-                            'ETTm1', 'ETTm2'.
-        cache: bool
-            If `True` saves and loads
-        Notes
-        -----
-        [1] Returns train+val+test sets.
-        """
-        path = f'{directory}/ett/datasets'
-        file_cache = f'{path}/{group}.p'
-
-        if os.path.exists(file_cache) and cache:
-            df, X_df, S_df = pd.read_pickle(file_cache)
-
-            return df, X_df, S_df
+from dataset.make_dataset_base import DatasetLoader
+from dataset.utils import download_file
+from utils.utils import build_fully_connected_edge_idx
+from utils.dataset_utils import Info, time_features_from_frequency_str
 
 
-        ETT.download(directory)
-        path = f'{directory}/ett/datasets'
-        class_group = ETTInfo[group]
+class ETTDatasetLoader(DatasetLoader):
+    def __init__(self, raw_data_dir, scaler_type='std', group='ETTh1'):
+        super(ETTDatasetLoader, self).__init__(raw_data_dir, scaler_type)
+        self.node_num = 7
+        self.group = group
+        self._read_web_data()
 
-        y_df = pd.read_csv(f'{path}/{group}.csv')
+    def _download_url(self):
+        url = 'https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/'
+        if os.path.exists(self.path):
+            os.mkdir(self.path)
+        download_file(self.path, f'{url}/{self.group}.csv')
 
-        y_df, X_df = process_multiple_ts(y_df)
+    def _read_web_data(self):
+        if not os.path.isfile(os.path.join(self.path, 'ECL.csv')):
+            self._download_url()
 
-        S_df = None
-        if cache:
-            pd.to_pickle((y_df, X_df, S_df), file_cache)
+        y_df = pd.read_csv(f'{self.path}/{self.group}.csv')
 
-        return y_df, X_df, S_df
+        y_df['date'] = pd.to_datetime(y_df['date'])
+        y_df.rename(columns={'date': 'ds'}, inplace=True)
+        u_ids = y_df.columns.to_list()
+        u_ids.remove('ds')
+        time_cls = time_features_from_frequency_str('h')
+        for cls_ in time_cls:
+            cls_name = cls_.__class__.__name__
+            y_df[cls_name] = cls_(y_df['ds'].dt)
 
-    # @staticmethod
-    # def download(directory: str) -> None:
-    #     """Download ETT Dataset."""
-    #     path = f'{directory}/ett/datasets/'
-    #     if not os.path.exists(path):
-    #         for group in ETTInfo.groups:
-    #             download_file(path, f'{ETT.source_url}/{group}.csv')
+        time_stamp = y_df.drop(u_ids + ['ds'], axis=1).to_numpy().T
+        temp = np.array([time_stamp for _ in range(7)])
+
+        df = y_df[u_ids].to_numpy().T
+        df = np.expand_dims(df, axis=1)
+
+        # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
+        X = np.concatenate([df, temp], axis=1)
+
+        self.X = X
+
+        total_sequence_length = X.shape[-1]
+        train_index = int(total_sequence_length * 0.6) + 1
+        valid_index = int(total_sequence_length * 0.2) + 1 + train_index
+
+        self.train_X = X[:, :, :train_index]
+        self.valid_X = X[:, :, train_index:valid_index]
+        self.test_X = X[:, :, valid_index:]
+        self.entire_dataset = torch.FloatTensor(X)
+
+    def _make_init_edge_index(self):
+        self.edges = build_fully_connected_edge_idx(self.node_num)

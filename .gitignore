@@ -23,13 +23,12 @@ exp
 
 # Byte-compiled / optimized / DLL files
 
-__pycache__/
+/__pycache__/*
+*/__pycache__/
+/__pycache__/
 
 *.py[cod]
 
-*/JupyterNoteBook/*
-/JupyterNoteBook
-!Result_Visualization.ipynb
 
 .Trash-0
 */.Trash-0/*
