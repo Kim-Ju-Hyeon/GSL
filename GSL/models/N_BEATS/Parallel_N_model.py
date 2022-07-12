@@ -1,0 +1,131 @@
+from models.N_BEATS.Block import *
+
+class PN_model(nn.Module):
+    SEASONALITY_BLOCK = 'seasonality'
+    TREND_BLOCK = 'trend'
+    GENERIC_BLOCK = 'generic'
+
+    def __init__(self, config):
+        super(PN_model, self).__init__()
+        self.activation = config.activ
+
+        self.stack_num = config.stack_num
+        self.singular_stack_num = config.singular_stack_num
+
+
+        self.inter_correlation_block_type = config.inter_correlation_block_type
+        self.forecast_length = config.forecast_length
+        self.backcast_length = config.backcast_length
+        self.n_theta_hidden = config.n_theta_hidden
+        self.num_blocks_per_stack = config.num_blocks_per_stack
+        self.thetas_dim = config.thetas_dim
+        self.n_layers = config.inter_correlation_stack_length
+        self.share_weights_in_stack = config.share_weights_in_stack
+
+        self.pooling_mode = config.pooling_mode
+        self.n_pool_kernel_size = config.n_pool_kernel_size
+
+        self.trend_stacks = []
+        self.seasonality_stacks = []
+        self.sigular_stacks = []
+
+        self.parameters = []
+
+        self.per_stack_backcast = []
+        self.per_stack_forecast = []
+
+        for stack_id in range(self.stack_num):
+            self.trend_stacks.append(self.create_stack('trend', stack_id))
+
+        for stack_id in range(self.stack_num):
+            self.trend_stacks.append(self.create_stack('seasonality', stack_id))
+
+        for stack_id in range(self.singular_stack_num):
+            self.trend_stacks.append(self.create_stack('generic', stack_id))
+
+        self.parameters = nn.ParameterList(self.parameters)
+
+    def create_stack(self, stack_type, stack_num):
+        blocks = []
+        for block_id in range(self.num_blocks_per_stack):
+            block_init = PN_model.select_block(stack_type)
+            if self.share_weights_in_stack and block_id != 0:
+                block = blocks[-1]
+            else:
+                if stack_type == PN_model.TREND_BLOCK:
+                    thetas_dim = [0, 0]
+
+                    thetas_dim[0] = 3
+                    thetas_dim[1] = 3
+
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden, thetas_dim=thetas_dim,
+                                       backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                       activation=self.activation,
+                                       inter_correlation_stack_length=self.n_layers)
+
+                elif stack_type == PN_model.SEASONALITY_BLOCK:
+                    thetas_dim = [0, 0]
+
+                    thetas_dim[0] = 2 * int(self.backcast_length / 2 - 1) + 1
+                    thetas_dim[1] = 2 * int(self.forecast_length / 2 - 1) + 1
+
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden, thetas_dim=thetas_dim,
+                                       backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                       activation=self.activation,
+                                       inter_correlation_stack_length=self.n_layers)
+
+                elif stack_type == PN_model.GENERIC_BLOCK:
+                    block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
+                                       n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
+                                       backcast_length=self.backcast_length, forecast_length=self.forecast_length,
+                                       activation=self.activation,
+                                       inter_correlation_stack_length=self.n_layers)
+
+                self.parameters.extend(block.parameters())
+            blocks.append(block)
+        return blocks
+
+
+    @staticmethod
+    def select_block(block_type):
+        if block_type == PN_model.SEASONALITY_BLOCK:
+            return GNN_SeasonalityBlock
+        elif block_type == PN_model.TREND_BLOCK:
+            return GNN_TrendBlock
+        elif block_type == PN_model.GENERIC_BLOCK:
+            return GNN_GenericBlock
+        else:
+            raise ValueError("Invalid block type")
+
+
+    def forward(self, backcast, edge_index, edge_weight=None, interpretability=False):
+        device = backcast.device
+        forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
+        sum_of_backcast = torch.zeros(size=(backcast.size()[0], self.backcast_length)).to(device=device)
+        self.per_stack_backcast = []
+        self.per_stack_forecast = []
+
+        self.total_forecast_output = []
+        self.total_backcast_output = []
+
+        for stack_id in range(self.stack_num):
+            stacks_forecast = torch.zeros(size=(backcast.size()[0], self.forecast_length)).to(device=device)
+            for block_id in range(len(self.stacks[stack_id])):
+                b, f = self.stacks[stack_id][block_id](backcast, edge_index, edge_weight)
+                backcast = backcast.to(device=device) - b
+                forecast = forecast.to(device=device) + f
+
+                sum_of_backcast += b
+                stacks_forecast += f
+
+                if interpretability:
+                    self.total_backcast_output.append(b.cpu().numpy())
+                    self.total_forecast_output.append(f.cpu().numpy())
+
+            if interpretability:
+                self.per_stack_backcast.append(backcast.cpu().numpy())
+                self.per_stack_forecast.append(stacks_forecast.cpu().numpy())
+
+        return sum_of_backcast, forecast
