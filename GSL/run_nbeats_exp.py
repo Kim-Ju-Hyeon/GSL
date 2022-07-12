@@ -38,9 +38,10 @@ def main(conf_file_path):
     logger.info("Exp instance id = {}".format(config.exp_name))
 
     try:
-        runner = Runner(config=config)
-        runner.train()
-        runner.test()
+        logger.info('Good')
+        # runner = Runner(config=config)
+        # runner.train()
+        # runner.test()
 
         # slack_message(start, f"{config.exp_name}: Training Success")
 

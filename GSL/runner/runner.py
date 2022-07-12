@@ -15,8 +15,14 @@ from utils.utils import build_fully_connected_edge_idx
 from dataset.make_spike_datset import MakeSpikeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
+
 from dataset.make_traffic_dataset import TrafficDatasetLoader
-from dataset.ecl import ECLDatasetLoader
+from dataset.make_dataset_ett import ETTDatasetLoader
+from dataset.make_dataset_covid19 import COVID19DatasetLoader
+from dataset.make_dataset_exchange import ExchangeDatasetLoader
+from dataset.make_dataset_ecl import ECLDatasetLoader
+from dataset.make_dataset_wth import WTHDatasetLoader
+
 from torch_geometric_temporal.signal import temporal_signal_split
 
 from utils.score import get_score
