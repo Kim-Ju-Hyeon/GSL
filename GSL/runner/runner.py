@@ -82,6 +82,8 @@ class Runner(object):
         batch_size = self.train_conf.batch_size
         dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
 
+        ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+
         if os.path.exists(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
             temporal_signal = pickle.load(
                 open(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'), 'rb'))
@@ -110,6 +112,27 @@ class Runner(object):
 
             elif self.dataset_conf.name == 'ECL':
                 loader = ECLDatasetLoader(raw_data_dir=self.dataset_conf.root,
+                                          scaler_type=self.config.dataset.scaler_type)
+
+            elif self.dataset_conf.name in ett_dataset_list:
+                loader = ETTDatasetLoader(raw_data_dir=self.dataset_conf.root,
+                                          scaler_type=self.config.dataset.scaler_type,
+                                          group=self.dataset_conf.name)
+
+            elif self.dataset_conf.name == 'COVID19':
+                loader = COVID19DatasetLoader(raw_data_dir=self.dataset_conf.root,
+                                              scaler_type=self.config.dataset.scaler_type)
+
+            elif self.dataset_conf.name == 'Exchange':
+                loader = ExchangeDatasetLoader(raw_data_dir=self.dataset_conf.root,
+                                          scaler_type=self.config.dataset.scaler_type)
+
+            elif self.dataset_conf.name == 'WTH':
+                loader = WTHDatasetLoader(raw_data_dir=self.dataset_conf.root,
+                                          scaler_type=self.config.dataset.scaler_type)
+
+            elif self.dataset_conf.name == 'Traffic':
+                loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root,
                                           scaler_type=self.config.dataset.scaler_type)
             else:
                 raise ValueError("Non-supported dataset!")

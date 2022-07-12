@@ -1,10 +1,10 @@
 ---
 exp_name: NBEATS_trend_season # 0417
-exp_dir: ../exp/0709_ECL
+exp_dir: ../exp/0712_ECL
 use_gpu: True
 device: 0
 seed: None # If you want to reproduce set the seed that you want
-model_name: N_BEATS_Interpret  # GTS_Top_k_Masking_model, ...
+model_name: N_BEATS_Avg_Trend # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
