@@ -27,7 +27,7 @@ class COVID19DatasetLoader(DatasetLoader):
         # if not os.path.isfile(os.path.join(self.path, 'ECL.csv')):
         #     self._download_url()
 
-        y_df = pd.read_csv(os.path.join(self.path, 'covid19.csv'), index_col=0)
+        y_df = pd.read_csv(os.path.join(self.path, 'covid_19.csv'), index_col=0)
 
         y_df['date'] = pd.to_datetime(y_df['date'])
         y_df.rename(columns={'date': 'ds'}, inplace=True)
@@ -39,11 +39,11 @@ class COVID19DatasetLoader(DatasetLoader):
             y_df[cls_name] = cls_(y_df['ds'].dt)
 
         time_stamp = y_df.drop(u_ids + ['ds'], axis=1).to_numpy().T
-        temp = np.array([time_stamp for _ in range(321)])
+        temp = np.array([time_stamp for _ in range(self.node_num)])
 
         df = y_df[u_ids].to_numpy().T
         df = np.expand_dims(df, axis=1)
-        df = self.scaler.scale(df)
+        # df = self.scaler.scale(df)
 
         # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
         X = np.concatenate([df, temp], axis=1)

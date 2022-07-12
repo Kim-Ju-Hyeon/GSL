@@ -39,7 +39,7 @@ class TrafficDatasetLoader(DatasetLoader):
             y_df[cls_name] = cls_(y_df['ds'].dt)
 
         time_stamp = y_df.drop(u_ids + ['ds'], axis=1).to_numpy().T
-        temp = np.array([time_stamp for _ in range(321)])
+        temp = np.array([time_stamp for _ in range(self.node_num)])
 
         df = y_df[u_ids].to_numpy().T
         df = np.expand_dims(df, axis=1)
