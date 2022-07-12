@@ -11,10 +11,10 @@ from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
 import random
 
 
-class TrafficDatasetLoader(object):
+class METR_PEMS_DatasetLoader(object):
     def __init__(self, raw_data_dir=os.path.join(os.getcwd(), "data"), dataset_name: str = 'METR-LA',
                  scaler_type='std'):
-        super(TrafficDatasetLoader, self).__init__()
+        super(METR_PEMS_DatasetLoader, self).__init__()
         self.scaler = Scaler(scaler_type)
         self.raw_data_dir = raw_data_dir
         self._dataset_name = dataset_name

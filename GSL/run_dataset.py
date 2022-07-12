@@ -8,8 +8,13 @@ import torch
 from torch_geometric.loader import DataLoader
 
 from dataset.make_spike_datset import MakeSpikeDataset
-from dataset.make_traffic_dataset import TrafficDatasetLoader
-from dataset.ecl import ECLDatasetLoader
+from dataset.make_dataset_METR_PEMS import METR_PEMS_DatasetLoader
+from dataset.make_dataset_ett import ETTDatasetLoader
+from dataset.make_dataset_covid19 import COVID19DatasetLoader
+from dataset.make_dataset_exchange import ExchangeDatasetLoader
+from dataset.make_dataset_ecl import ECLDatasetLoader
+from dataset.make_dataset_wth import WTHDatasetLoader
+from dataset.make_dataset_traffic import TrafficDatasetLoader
 
 
 def download_save_dataset(config):
@@ -20,6 +25,8 @@ def download_save_dataset(config):
     num_timesteps_out = config.forecasting_module.forecast_length
     batch_size = train_conf.batch_size
     dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
+
+    ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
 
     if os.path.exists(os.path.join(dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
         pass
@@ -38,12 +45,32 @@ def download_save_dataset(config):
             test_dataset = DataLoader(total_dataset['test'], batch_size=train_conf.batch_size)
 
         elif (dataset_conf.name == 'METR-LA') or (dataset_conf.name == 'PEMS-BAY'):
-            loader = TrafficDatasetLoader(raw_data_dir=dataset_conf.root, dataset_name=dataset_conf.name,
+            loader = METR_PEMS_DatasetLoader(raw_data_dir=dataset_conf.root, dataset_name=dataset_conf.name,
                                           scaler_type=config.dataset.scaler_type)
 
         elif dataset_conf.name == 'ECL':
             loader = ECLDatasetLoader(raw_data_dir=dataset_conf.root,
                                       scaler_type=config.dataset.scaler_type)
+        elif dataset_conf.name in ett_dataset_list:
+            loader = ETTDatasetLoader(raw_data_dir=dataset_conf.root,
+                                      scaler_type=config.dataset.scaler_type,
+                                      group=dataset_conf.name)
+
+        elif dataset_conf.name == 'COVID19':
+            loader = COVID19DatasetLoader(raw_data_dir= dataset_conf.root,
+                                          scaler_type=config.dataset.scaler_type)
+
+        elif dataset_conf.name == 'Exchange':
+            loader = ExchangeDatasetLoader(raw_data_dir=dataset_conf.root,
+                                           scaler_type=config.dataset.scaler_type)
+
+        elif dataset_conf.name == 'WTH':
+            loader = WTHDatasetLoader(raw_data_dir=dataset_conf.root,
+                                      scaler_type=config.dataset.scaler_type)
+
+        elif dataset_conf.name == 'Traffic':
+            loader = TrafficDatasetLoader(raw_data_dir=dataset_conf.root,
+                                          scaler_type=config.dataset.scaler_type)
         else:
             raise ValueError("Non-supported dataset!")
 

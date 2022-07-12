@@ -16,12 +16,13 @@ from dataset.make_spike_datset import MakeSpikeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 
-from dataset.make_traffic_dataset import TrafficDatasetLoader
+from dataset.make_dataset_METR_PEMS import METR_PEMS_DatasetLoader
 from dataset.make_dataset_ett import ETTDatasetLoader
 from dataset.make_dataset_covid19 import COVID19DatasetLoader
 from dataset.make_dataset_exchange import ExchangeDatasetLoader
 from dataset.make_dataset_ecl import ECLDatasetLoader
 from dataset.make_dataset_wth import WTHDatasetLoader
+from dataset.make_dataset_traffic import TrafficDatasetLoader
 
 from torch_geometric_temporal.signal import temporal_signal_split
 
@@ -107,7 +108,7 @@ class Runner(object):
                 self.test_dataset = DataLoader(total_dataset['test'], batch_size=self.train_conf.batch_size)
 
             elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
-                loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name,
+                loader = METR_PEMS_DatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name,
                                               scaler_type=self.config.dataset.scaler_type)
 
             elif self.dataset_conf.name == 'ECL':
