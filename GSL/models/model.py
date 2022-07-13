@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
 from models.N_BEATS.N_model import N_model
+from models.N_BEATS.Parallel_N_model import PN_model
 
 from models.GTS.gts_graph_learning2 import GTS_Graph_Learning2
 from models.self_attention_graph_learning import Attention_Graph_Learning
@@ -68,6 +69,8 @@ class My_Model(nn.Module):
             self.graph_forecasting = GTS_Traffic_Forecasting_Module(self.config)
         elif self.config.forecasting_module.name == 'n_beats':
             self.graph_forecasting = N_model(self.config.forecasting_module)
+        elif self.config.forecasting_module.name == 'pn_beats':
+            self.graph_forecasting = PN_model(self.config.forecasting_module)
         else:
             raise ValueError("Non-supported Forecasting Module!")
 
@@ -144,21 +147,33 @@ class My_Model(nn.Module):
 
         if self.config.forecasting_module.name == 's2s_dcrnn_traffic':
             outputs = self.graph_forecasting(inputs, targets, batch_edge_index, weight_matrix=batch_weight_matrix)
-        elif self.config.forecasting_module.name == 'n_beats':
+        elif (self.config.forecasting_module.name == 'n_beats') or (self.config.forecasting_module.name == 'pn_beats'):
             outputs = defaultdict(list)
             inputs = inputs.permute(0, 2, 1)
             inputs = self.preprocess_layer(inputs)
-            backcast, forecast = self.graph_forecasting(backcast=inputs.squeeze(), edge_index=batch_edge_index,
+            backcast, forecast = self.graph_forecasting(inputs.squeeze(), edge_index=batch_edge_index,
                                                         edge_weight=batch_weight_matrix, interpretability=interpretability)
             outputs['backcast'] = backcast
             outputs['forecast'] = forecast
 
             if interpretability:
-                outputs['stack_per_backcast'] = self.graph_forecasting.per_stack_backcast
-                outputs['stack_per_forecast'] = self.graph_forecasting.per_stack_forecast
+                if self.config.forecasting_module.name == 'n_beats':
+                    outputs['stack_per_backcast'] = self.graph_forecasting.per_stack_backcast
+                    outputs['stack_per_forecast'] = self.graph_forecasting.per_stack_forecast
 
-                outputs['block_per_backcast'] = self.graph_forecasting.total_backcast_output
-                outputs['block_per_forecast'] = self.graph_forecasting.total_forecast_output
+                    outputs['block_per_backcast'] = self.graph_forecasting.total_backcast_output
+                    outputs['block_per_forecast'] = self.graph_forecasting.total_forecast_output
+
+                elif self.config.forecasting_module.name == 'pn_beats':
+                    outputs['per_trend_backcast'] = self.graph_forecasting.per_trend_backcast
+                    outputs['per_trend_forecast'] = self.graph_forecasting.per_trend_forecast
+
+                    outputs['per_seasonality_backcast'] = self.graph_forecasting.per_seasonality_backcast
+                    outputs['per_seasonality_forecast'] = self.graph_forecasting.per_seasonality_forecast
+
+                    outputs['singual_backcast'] = self.graph_forecasting.singual_backcast
+                    outputs['singual_forecast'] = self.graph_forecasting.singual_forecast
+
         else:
             raise ValueError('None supported forecasting module')
 
