@@ -147,7 +147,6 @@ class PN_model(nn.Module):
             if interpretability:
                 _per_trend_backcast.append(trend_b.cpu().numpy())
                 _per_trend_forecast.append(trend_f.cpu().numpy())
-                
                 _per_seasonality_backcast.append(seasonality_b.cpu().numpy())
                 _per_seasonality_forecast.append(seasonality_f.cpu().numpy())
 
