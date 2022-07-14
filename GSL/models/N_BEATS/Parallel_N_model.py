@@ -141,7 +141,8 @@ class PN_model(nn.Module):
                                                mode='linear', align_corners=False).squeeze(dim=1)
 
             trend_b, trend_f = self.trend_stacks[stack_index](interpolate_inputs, edge_index, edge_weight)
-            seasonality_b, seasonality_f = self.seasonality_stacks[stack_index](interpolate_inputs, edge_index,
+            seasonality_b, seasonality_f = self.seasonality_stacks[stack_index](inputs-interpolate_inputs,
+                                                                                edge_index,
                                                                                 edge_weight)
 
             if interpretability:
@@ -167,13 +168,14 @@ class PN_model(nn.Module):
             forecast = forecast + singular_f
             backcast = backcast + singular_b
 
-        self.per_trend_backcast.append(np.stack(_per_trend_backcast, axis=0))
-        self.per_trend_forecast.append(np.stack(_per_trend_forecast, axis=0))
+        if interpretability:
+            self.per_trend_backcast.append(np.stack(_per_trend_backcast, axis=0))
+            self.per_trend_forecast.append(np.stack(_per_trend_forecast, axis=0))
 
-        self.per_seasonality_backcast.append(np.stack(_per_seasonality_backcast, axis=0))
-        self.per_seasonality_forecast.append(np.stack(_per_seasonality_forecast, axis=0))
+            self.per_seasonality_backcast.append(np.stack(_per_seasonality_backcast, axis=0))
+            self.per_seasonality_forecast.append(np.stack(_per_seasonality_forecast, axis=0))
 
-        self.singual_backcast.append(np.stack(_singual_backcast, axis=0))
-        self.singual_forecast.append(np.stack(_singual_forecast, axis=0))
+            self.singual_backcast.append(np.stack(_singual_backcast, axis=0))
+            self.singual_forecast.append(np.stack(_singual_forecast, axis=0))
 
         return backcast, forecast

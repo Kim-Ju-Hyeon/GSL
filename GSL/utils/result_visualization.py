@@ -61,17 +61,22 @@ class visualize_inference_result:
         self.inputs = test_result['Inputs']
         self.backcast = test_result['backcast']
 
-        self.per_trend_backcast = test_result['per_trend_backcast']
-        self.per_trend_forecast = test_result['per_trend_forecast']
+        if self.config.forecasting_module.name == 'pn_beats':
+            self.per_trend_backcast = test_result['per_trend_backcast']
+            self.per_trend_forecast = test_result['per_trend_forecast']
 
-        self.per_seasonality_backcast = test_result['per_seasonality_backcast']
-        self.per_seasonality_forecast = test_result['per_seasonality_forecast']
+            self.per_seasonality_backcast = test_result['per_seasonality_backcast']
+            self.per_seasonality_forecast = test_result['per_seasonality_forecast']
 
-        self.singual_backcast = test_result['singual_backcast']
-        self.singual_forecast = test_result['singual_forecast']
+            self.singual_backcast = test_result['singual_backcast']
+            self.singual_forecast = test_result['singual_forecast']
 
-        self.test_loss = test_result['test_loss']
-        self.score = test_result['score']
+        elif self.config.forecasting_module.name == 'n_beats':
+            self.stack_per_forecast = np.stack(test_result['stack_per_forecast'])
+            self.stack_per_backcast = np.stack(test_result['stack_per_backcast'])
+
+            self.block_per_backcast = test_result['block_per_backcast']
+            self.block_per_forecast = test_result['block_per_forecast']
 
     def visualize_val_adj_per_epoch(self):
         edge_ = []
@@ -127,10 +132,13 @@ class visualize_inference_result:
             f.savefig('./total_result.png')
 
     def visualize_stack_output(self, node: int = -2, save: bool = False):
-        nrow = self.per_trend_backcast.shape
-        ncol = 1
+        nrow = self.per_trend_backcast.shape[1] + self.singual_backcast.shape[1]
+        ncol = 2
 
         input_length = self.config.forecasting_module.backcast_length
         output_length = self.config.forecasting_module.forecast_length
 
         x_axis = np.arange(input_length + output_length)
+
+        if self.config.forecasting_module.name == 'pn_beats':
+            f, axes = plt.subplots(nrows=nrow, ncols=ncol, figsize=(4 * nrow, 50 * ncol), dpi=70)

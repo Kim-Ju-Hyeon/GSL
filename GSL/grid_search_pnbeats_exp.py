@@ -16,7 +16,8 @@ import yaml
 @click.option('--singular_stack_num', type=int, default=1)
 @click.option('--n_pool_kernel_size', type=click.STRING, default='4')
 @click.option('--n_stride_size', type=click.STRING, default='2')
-def main(conf_file_path, stack_num, singular_stack_num, n_pool_kernel_size, n_stride_size):
+@click.option('--mlp_stack', type=click.STRING, default='64,64,64')
+def main(conf_file_path, stack_num, singular_stack_num, n_pool_kernel_size, n_stride_size, mlp_stack):
     temp = stack_num//3
     n_pool_kernel_size = n_pool_kernel_size.split(',')
     n_pool_kernel_size = [int(j.strip())for j in n_pool_kernel_size]
@@ -28,7 +29,11 @@ def main(conf_file_path, stack_num, singular_stack_num, n_pool_kernel_size, n_st
     n_stride_size = n_stride_size * temp
     n_stride_size.sort(reverse=True)
 
-    hyperparameter = f'stacks_{stack_num}__singular_stack_num_{singular_stack_num}__n_pool_kernel_size_{n_pool_kernel_size}'
+    mlp_stack = mlp_stack.split(',')
+    mlp_stack = [int(j.strip())for j in mlp_stack]
+
+    hyperparameter = f'stacks_{stack_num}__singular_stack_num_{singular_stack_num}' \
+                     f'__mlp_stack_{mlp_stack[0]}x{len(mlp_stack)}'
 
     now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
     sub_dir = '_'.join([hyperparameter, now.strftime('%m%d_%H%M%S')])
@@ -44,6 +49,7 @@ def main(conf_file_path, stack_num, singular_stack_num, n_pool_kernel_size, n_st
     config.forecasting_module.stack_num = stack_num
     config.forecasting_module.singular_stack_num = singular_stack_num
     config.forecasting_module.n_pool_kernel_size = n_pool_kernel_size
+    config.forecasting_module.n_theta_hidden = mlp_stack
     config.forecasting_module.n_stride_size = n_stride_size
 
     save_name = os.path.join(config.exp_sub_dir, 'config.yaml')

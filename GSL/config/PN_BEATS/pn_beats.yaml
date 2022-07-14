@@ -1,5 +1,5 @@
 ---
-exp_name: 0713_ECL_PN_BEATS # 0417
+exp_name: 0714_ECL_PN_BEATS # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -12,12 +12,12 @@ dataset:
     name: ECL
     nodes_num: 321 # 207, 321
     node_features: 5 # 2, 5
-    graph_learning_length: 1000
+    graph_learning_length: 10000
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
     optimizer: Adam
-    epoch: 250
+    epoch: 300
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3
@@ -25,7 +25,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 32
+    batch_size : 128
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None
