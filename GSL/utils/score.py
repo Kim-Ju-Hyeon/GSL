@@ -19,15 +19,18 @@ def get_score(target, prediction, scaler=None):
     score = dict()
 
     if scaler is None:
-        pass
+        mae = MAE(target, prediction)
+        mape = MAPE(target, prediction)
+        rmse = RMSE(target, prediction)
+        mse = MSE(target, prediction)
     else:
         target = scaler.inv_scale(target)
         prediction = scaler.inv_scale(prediction)
 
-    mae = MAE(target, prediction)
-    mape = MAPE(target, prediction)
-    rmse = RMSE(target, prediction)
-    mse = MSE(target, prediction)
+        mae = MAE(target, prediction)
+        mape = MAPE(target, prediction)
+        rmse = RMSE(target, prediction)
+        mse = MSE(target, prediction)
 
     score['MAE'] = mae
     score['MAPE'] = mape

@@ -301,28 +301,11 @@ class Runner(object):
         output = []
         target = []
         inputs = []
-
-        stack_per_backcast = []
-        stack_per_forecast = []
         backcast = []
-
-        block_per_backcast = []
-        block_per_forecast = []
 
         for data_batch in tqdm(self.test_dataset):
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
-
-            # x_shape = data_batch.x.shape
-            # y_shape = data_batch.y.shape
-            #
-            # x = data_batch.x.reshape(-1, self.nodes_num, x_shape[-2], x_shape[-1])
-            # y = data_batch.y.reshape(-1, self.nodes_num, y_shape[-1])
-
-            # for i in range(x.shape[0]):
-            #     with torch.no_grad():
-            #         adj_matrix, outputs, attention_matrix = self.best_model(x[i], y[i], self.entire_inputs,
-            #                                                                 self.init_edge_index, interpretability=True)
 
             with torch.no_grad():
                 adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
@@ -339,36 +322,80 @@ class Runner(object):
                 output += [forecast.cpu().numpy()]
                 target += [data_batch.y.cpu().numpy()]
                 inputs += [data_batch.x.cpu().numpy()]
-                stack_per_backcast += [outputs['stack_per_backcast']]
-                stack_per_forecast += [outputs['stack_per_forecast']]
-                block_per_backcast += [outputs['block_per_backcast']]
-                block_per_forecast += [outputs['block_per_forecast']]
                 backcast += [outputs['backcast'].cpu()]
+
+                if self.config.forecasting_module.name == 'n_beats':
+                    stack_per_backcast = []
+                    stack_per_forecast = []
+                    block_per_backcast = []
+                    block_per_forecast = []
+
+                    stack_per_backcast += [outputs['stack_per_backcast']]
+                    stack_per_forecast += [outputs['stack_per_forecast']]
+                    block_per_backcast += [outputs['block_per_backcast']]
+                    block_per_forecast += [outputs['block_per_forecast']]
+
+                    stack_per_backcast = np.stack(stack_per_backcast)
+                    stack_per_forecast = np.stack(stack_per_forecast)
+                    block_per_backcast = np.stack(block_per_backcast)
+                    block_per_forecast = np.stack(block_per_forecast)
+
+                    results['stack_per_backcast'] = stack_per_backcast
+                    results['stack_per_forecast'] = stack_per_forecast
+                    results['block_per_backcast'] = block_per_backcast
+                    results['block_per_forecast'] = block_per_forecast
+
+                elif self.config.forecasting_module.name == 'pn_beats':
+                    per_trend_backcast = []
+                    per_trend_forecast = []
+
+                    per_seasonality_backcast = []
+                    per_seasonality_forecast = []
+
+                    singual_backcast = []
+                    singual_forecast = []
+
+                    per_trend_backcast += outputs['per_trend_backcast']
+                    per_trend_forecast += outputs['per_trend_forecast']
+                    per_seasonality_backcast += outputs['per_seasonality_backcast']
+                    per_seasonality_forecast += outputs['per_seasonality_forecast']
+                    singual_backcast += outputs['singual_backcast']
+                    singual_forecast += outputs['singual_forecast']
+
+                    per_trend_backcast = np.stack(per_trend_backcast)
+                    per_trend_forecast = np.stack(per_trend_forecast)
+                    per_seasonality_backcast = np.stack(per_seasonality_backcast)
+                    per_seasonality_forecast = np.stack(per_seasonality_forecast)
+                    singual_backcast = np.stack(singual_backcast)
+                    singual_forecast = np.stack(singual_forecast)
+
+                    results['per_trend_backcast'] = per_trend_backcast
+                    results['per_trend_forecast'] = per_trend_forecast
+                    results['per_seasonality_backcast'] = per_seasonality_backcast
+                    results['per_seasonality_forecast'] = per_seasonality_forecast
+                    results['singual_backcast'] = singual_backcast
+                    results['singual_forecast'] = singual_forecast
 
         test_loss = np.stack(test_loss).mean()
         output = np.stack(output)
         target = np.stack(target)
         inputs = np.stack(inputs)
-        stack_per_backcast = np.stack(stack_per_backcast)
-        stack_per_forecast = np.stack(stack_per_forecast)
-        block_per_backcast = np.stack(block_per_backcast)
-        block_per_forecast = np.stack(block_per_forecast)
         backcast = np.stack(backcast)
 
-        score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+        scaled_score = score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+                          output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=None)
+
+        inv_scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                           output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=self.scaler)
 
         results['test_loss'] = test_loss
-        results['score'] = score
+        results['score'] = {'scaled_score': scaled_score,
+                            'inv_scaled_score': inv_scaled_score}
         results['adj_matrix'] = adj_matrix.cpu()
         results['prediction'] = output
         results['target'] = target
         results['Inputs'] = inputs
         results['attention_matrix'] = attention_matrix
-        results['stack_per_backcast'] = stack_per_backcast
-        results['stack_per_forecast'] = stack_per_forecast
-        results['block_per_backcast'] = block_per_backcast
-        results['block_per_forecast'] = block_per_forecast
         results['backcast'] = backcast
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
