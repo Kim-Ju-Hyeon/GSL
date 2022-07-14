@@ -346,28 +346,12 @@ class Runner(object):
                     results['block_per_forecast'] = block_per_forecast
 
                 elif self.config.forecasting_module.name == 'pn_beats':
-                    per_trend_backcast = []
-                    per_trend_forecast = []
-
-                    per_seasonality_backcast = []
-                    per_seasonality_forecast = []
-
-                    singual_backcast = []
-                    singual_forecast = []
-
-                    per_trend_backcast += outputs['per_trend_backcast']
-                    per_trend_forecast += outputs['per_trend_forecast']
-                    per_seasonality_backcast += outputs['per_seasonality_backcast']
-                    per_seasonality_forecast += outputs['per_seasonality_forecast']
-                    singual_backcast += outputs['singual_backcast']
-                    singual_forecast += outputs['singual_forecast']
-
-                    per_trend_backcast = np.stack(per_trend_backcast, axis=0)
-                    per_trend_forecast = np.stack(per_trend_forecast, axis=0)
-                    per_seasonality_backcast = np.stack(per_seasonality_backcast, axis=0)
-                    per_seasonality_forecast = np.stack(per_seasonality_forecast, axis=0)
-                    singual_backcast = np.stack(singual_backcast, axis=0)
-                    singual_forecast = np.stack(singual_forecast, axis=0)
+                    per_trend_backcast = np.stack(outputs['per_trend_backcast'], axis=0)
+                    per_trend_forecast = np.stack(outputs['per_trend_forecast'], axis=0)
+                    per_seasonality_backcast = np.stack(outputs['per_seasonality_backcast'], axis=0)
+                    per_seasonality_forecast = np.stack(outputs['per_seasonality_forecast'], axis=0)
+                    singual_backcast = np.stack(outputs['singual_backcast'], axis=0)
+                    singual_forecast = np.stack(outputs['singual_forecast'], axis=0)
 
                     results['per_trend_backcast'] = per_trend_backcast
                     results['per_trend_forecast'] = per_trend_forecast
