@@ -128,6 +128,13 @@ class PN_model(nn.Module):
         forecast = torch.zeros(size=(inputs.size()[0], self.forecast_length)).to(device=device)
         backcast = torch.zeros(size=(inputs.size()[0], self.backcast_length)).to(device=device)
 
+        _per_trend_backcast = []
+        _per_trend_forecast = []
+        _per_seasonality_backcast = []
+        _per_seasonality_forecast = []
+        _singual_backcast = []
+        _singual_forecast = []
+
         for stack_index in range(self.stack_num):
             pooled_inputs = self.pooling_stack[stack_index](inputs)
             interpolate_inputs = F.interpolate(pooled_inputs.unsqueeze(dim=1), size=inputs.size()[1],
@@ -138,11 +145,11 @@ class PN_model(nn.Module):
                                                                                 edge_weight)
 
             if interpretability:
-                self.per_trend_backcast.append(trend_b.cpu().numpy())
-                self.per_trend_forecast.append(trend_f.cpu().numpy())
-
-                self.per_seasonality_backcast.append(seasonality_b.cpu().numpy())
-                self.per_seasonality_forecast.append(seasonality_f.cpu().numpy())
+                _per_trend_backcast.append(trend_b.cpu().numpy())
+                _per_trend_forecast.append(trend_f.cpu().numpy())
+                
+                _per_seasonality_backcast.append(seasonality_b.cpu().numpy())
+                _per_seasonality_forecast.append(seasonality_f.cpu().numpy())
 
             inputs = inputs - trend_b + seasonality_b
 
@@ -153,12 +160,21 @@ class PN_model(nn.Module):
             singular_b, singular_f = self.sigular_stacks[singular_stack_index](inputs, edge_index, edge_weight)
 
             if interpretability:
-                self.singual_backcast.append(singular_b.cpu().numpy())
-                self.singual_forecast.append(singular_f.cpu().numpy())
+                _singual_backcast.append(singular_b.cpu().numpy())
+                _singual_forecast.append(singular_f.cpu().numpy())
 
             inputs = inputs - singular_b
 
             forecast = forecast + singular_f
             backcast = backcast + singular_b
+
+        self.per_trend_backcast.append(np.stack(_per_trend_backcast, axis=0))
+        self.per_trend_forecast.append(np.stack(_per_trend_forecast, axis=0))
+
+        self.per_seasonality_backcast.append(np.stack(_per_seasonality_backcast, axis=0))
+        self.per_seasonality_forecast.append(np.stack(_per_seasonality_forecast, axis=0))
+
+        self.singual_backcast.append(np.stack(_singual_backcast, axis=0))
+        self.singual_forecast.append(np.stack(_singual_forecast, axis=0))
 
         return backcast, forecast

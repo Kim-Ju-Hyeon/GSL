@@ -167,6 +167,7 @@ class My_Model(nn.Module):
                 elif self.config.forecasting_module.name == 'pn_beats':
                     outputs['per_trend_backcast'] = self.graph_forecasting.per_trend_backcast
                     outputs['per_trend_forecast'] = self.graph_forecasting.per_trend_forecast
+                    print(len(outputs['per_trend_backcast']))
 
                     outputs['per_seasonality_backcast'] = self.graph_forecasting.per_seasonality_backcast
                     outputs['per_seasonality_forecast'] = self.graph_forecasting.per_seasonality_forecast

@@ -28,8 +28,7 @@ python3 run_inference.py --conf_file_path ../exp/0713_ECL_PN_BEATS/stacks_9__sin
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=5
-python3 run_inference.py --conf_file_path ../exp/0713_ECL_PN_BEATS/stacks_12__singular_stack_num_1__n_pool_kernel_size_\[16\,\ 16\,\ 16\,\ 16\,\ 8\,\ 8\,\ 8\,\ 8\,\ 4\,\ 4\,\ 4\,\ 4\]_0713_170215
-/config.yaml &
+python3 run_inference.py --conf_file_path ../exp/0713_ECL_PN_BEATS/stacks_12__singular_stack_num_1__n_pool_kernel_size_\[16\,\ 16\,\ 16\,\ 16\,\ 8\,\ 8\,\ 8\,\ 8\,\ 4\,\ 4\,\ 4\,\ 4\]_0713_170215/config.yaml &
 sleep 3
 
 #export CUDA_VISIBLE_DEVICES=6
