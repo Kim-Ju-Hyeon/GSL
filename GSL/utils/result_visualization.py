@@ -2,15 +2,135 @@ from glob import glob, escape
 import pickle
 import yaml
 from easydict import EasyDict as edict
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+
+from torch_geometric.utils import to_dense_adj, dense_to_sparse
+
 
 def get_exp_result_files(exp):
     config_file = glob(escape(exp + '/config.yaml'))[0]
+    if len(config_file) == 0:
+        config_file = glob(exp + '/config.yaml')[0]
     config = edict(yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader))
 
     train_result_dirs = glob(escape(exp + '/training_result.pickle'))
+    if len(train_result_dirs) == 0:
+        train_result_dirs = glob(exp + '/training_result.yaml')[0]
     train_result = pickle.load(open(train_result_dirs[0], 'rb'))
 
     test_result_dirs = glob(escape(exp + '/test_result.pickle'))
+    if len(test_result_dirs) == 0:
+        test_result_dirs = glob(exp + '/test_result.yaml')[0]
     test_result = pickle.load(open(test_result_dirs[0], 'rb'))
 
     return config, train_result, test_result
+
+
+def get_scaler(config):
+    num_timesteps_in = config.forecasting_module.backcast_length
+    num_timesteps_out = config.forecasting_module.forecast_length
+    batch_size = config.train.batch_size
+    dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
+
+    scaler = pickle.load(
+        open(os.path.join(f'../GSL/data/ECL/temporal_signal_{dataset_hyperparameter}.pickle'), 'rb'))
+
+    return scaler['scaler']
+
+
+# def visualize_inference_result(test_result):
+#     target = test_result['target']
+#     pred = test_result['prediction']
+#
+#     inputs = test_result['Inputs']
+#     backcast = test_result['backcast']
+
+class visualize_inference_result:
+    def __init__(self, exp):
+        self.config, self.train_result, self.test_result = get_exp_result_files(exp)
+        self.scaler = get_scaler(self.config)
+
+        self._inference_result(self.test_result)
+
+    def _inference_result(self, test_result):
+        self.target = test_result['target']
+        self.pred = test_result['prediction']
+
+        self.inputs = test_result['Inputs']
+        self.backcast = test_result['backcast']
+
+        self.per_trend_backcast = test_result['per_trend_backcast']
+        self.per_trend_forecast = test_result['per_trend_forecast']
+
+        self.per_seasonality_backcast = test_result['per_seasonality_backcast']
+        self.per_seasonality_forecast = test_result['per_seasonality_forecast']
+
+        self.singual_backcast = test_result['singual_backcast']
+        self.singual_forecast = test_result['singual_forecast']
+
+        self.test_loss = test_result['test_loss']
+        self.score = test_result['score']
+
+    def visualize_val_adj_per_epoch(self):
+        edge_ = []
+
+        for i in range(self.config.train.epoch):
+            edge_.append(dense_to_sparse(self.train_result['val_adj_matirix'][i])[0].shape[1])
+
+        f, axes = plt.subplots(figsize=(10, 5))
+
+        axes.plot(edge_, label='Learned Edge')
+        axes.set_xlabel('Epoch')
+        axes.set_ylabel('# of Total Edge')
+        axes.legend()
+
+    def visualize_test_adj_matrix(self):
+        learn_adj = self.test_result['adj_matrix']
+
+        f, axes = plt.subplots(figsize=(10, 10))
+
+        axes.imshow(learn_adj, cmap='Greys')
+
+    def visualize_learning_curve(self):
+        f, axes = plt.subplots(figsize=(10, 5))
+
+        axes.plot(self.train_result['train_loss'], label='Train Loss')
+        axes.plot(self.train_result['val_loss'], label='Validation Loss')
+        axes.set_xlabel('Epoch')
+        axes.set_ylabel('Loss')
+        axes.legend()
+
+    def visualize_node(self, node: int = -2, figure_num: int = 5, save: bool = False, backcast: bool = False):
+        nrow = figure_num
+        ncol = 1
+
+        input_length = self.config.forecasting_module.backcast_length
+        output_length = self.config.forecasting_module.forecast_length
+
+        x_axis = np.arange(input_length + output_length)
+
+        f, axes = plt.subplots(nrows=nrow, ncols=ncol, figsize=(4 * nrow, 50 * ncol), dpi=70)
+
+        for ii in range(nrow):
+            axes[ii].plot(x_axis[:input_length], self.inputs[ii, node, 0], label='Input')
+
+            if backcast:
+                axes[ii].plot(x_axis[:input_length], self.backcast[ii, node], label='Backcast')
+
+            axes[ii].plot(x_axis[input_length:], self.target[ii, node], label='Target')
+            axes[ii].plot(x_axis[input_length:], self.pred[ii, node], label='Prediction')
+            axes[ii].legend()
+
+        if save:
+            f.savefig('./total_result.png')
+
+    def visualize_stack_output(self, node: int = -2, save: bool = False):
+        nrow = self.per_trend_backcast.shape
+        ncol = 1
+
+        input_length = self.config.forecasting_module.backcast_length
+        output_length = self.config.forecasting_module.forecast_length
+
+        x_axis = np.arange(input_length + output_length)

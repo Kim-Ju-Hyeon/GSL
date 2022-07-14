@@ -362,12 +362,12 @@ class Runner(object):
                     singual_backcast += outputs['singual_backcast']
                     singual_forecast += outputs['singual_forecast']
 
-                    per_trend_backcast = np.stack(per_trend_backcast)
-                    per_trend_forecast = np.stack(per_trend_forecast)
-                    per_seasonality_backcast = np.stack(per_seasonality_backcast)
-                    per_seasonality_forecast = np.stack(per_seasonality_forecast)
-                    singual_backcast = np.stack(singual_backcast)
-                    singual_forecast = np.stack(singual_forecast)
+                    per_trend_backcast = np.stack(per_trend_backcast, axis=0)
+                    per_trend_forecast = np.stack(per_trend_forecast, axis=0)
+                    per_seasonality_backcast = np.stack(per_seasonality_backcast, axis=0)
+                    per_seasonality_forecast = np.stack(per_seasonality_forecast, axis=0)
+                    singual_backcast = np.stack(singual_backcast, axis=0)
+                    singual_forecast = np.stack(singual_forecast, axis=0)
 
                     results['per_trend_backcast'] = per_trend_backcast
                     results['per_trend_forecast'] = per_trend_forecast
@@ -382,7 +382,7 @@ class Runner(object):
         inputs = np.stack(inputs)
         backcast = np.stack(backcast)
 
-        scaled_score = score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+        scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                           output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=None)
 
         inv_scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
@@ -399,6 +399,6 @@ class Runner(object):
         results['backcast'] = backcast
 
         logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
-        logger.info("Avg. MAE = {:.6}".format(score['MAE'], 0))
+        logger.info("Avg. MAE = {:.6}".format(scaled_score['MAE'], 0))
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))
