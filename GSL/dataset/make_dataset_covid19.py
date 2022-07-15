@@ -43,7 +43,7 @@ class COVID19DatasetLoader(DatasetLoader):
 
         df = y_df[u_ids].to_numpy().T
         df = np.expand_dims(df, axis=1)
-        # df = self.scaler.scale(df)
+        df = self.scaler.scale(df)
 
         # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
         X = np.concatenate([df, temp], axis=1)

@@ -248,7 +248,6 @@ class Runner(object):
 
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
-
                 with torch.no_grad():
                     adj_matrix, outputs, attention_matrix = self.model(data_batch.x, data_batch.y, self.entire_inputs,
                                                                        self.init_edge_index, interpretability=False)
@@ -258,6 +257,7 @@ class Runner(object):
                     forecast = outputs
 
                 loss = self.loss(forecast, data_batch.y)
+
                 val_loss += [float(loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()

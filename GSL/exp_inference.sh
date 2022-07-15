@@ -32,9 +32,9 @@ python3 run_inference.py --conf_file_path ../exp/0713_ECL_PN_BEATS/stacks_12__si
 sleep 3
 
 #export CUDA_VISIBLE_DEVICES=6
-#python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats.yaml --stack_num 21 --singular_stack_num 3 --n_pool_kernel_size 16,8,4 --n_stride_size 8,4,2 &
+#python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_ecl.yaml --stack_num 21 --singular_stack_num 3 --n_pool_kernel_size 16,8,4 --n_stride_size 8,4,2 &
 #sleep 3
 #
 #export CUDA_VISIBLE_DEVICES=7
-#python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats.yaml --stack_num 24 --singular_stack_num 3 --n_pool_kernel_size 16,8,4 --n_stride_size 8,4,2 &
+#python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_ecl.yaml --stack_num 24 --singular_stack_num 3 --n_pool_kernel_size 16,8,4 --n_stride_size 8,4,2 &
 #sleep 3

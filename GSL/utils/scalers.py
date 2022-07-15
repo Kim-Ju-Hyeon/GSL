@@ -42,7 +42,6 @@ class Scaler(object):
         assert self.x_shift is not None
         assert self.x_scale is not None
         self.x_inv_scaled = []
-
         for i in range(x.shape[0]):
             x_i = x[i]
             x_shift = self.x_shift[i]
