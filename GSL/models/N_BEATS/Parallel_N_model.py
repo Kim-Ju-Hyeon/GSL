@@ -61,10 +61,10 @@ class PN_model(nn.Module):
         self.sigular_stacks = []
 
         for stack_id in range(self.stack_num):
-            self.trend_stacks.append(self.create_stack('generic', stack_id))
+            self.trend_stacks.append(self.create_stack('trend', stack_id))
 
         for stack_id in range(self.stack_num):
-            self.seasonality_stacks.append(self.create_stack('generic', stack_id))
+            self.seasonality_stacks.append(self.create_stack('seasonality', stack_id))
 
         for stack_id in range(self.singular_stack_num):
             self.sigular_stacks.append(self.create_stack('generic', stack_id))
