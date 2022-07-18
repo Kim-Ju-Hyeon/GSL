@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+import torch
+
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
 from models.N_BEATS.N_model import N_model
 from models.N_BEATS.Parallel_N_model import PN_model
@@ -80,6 +82,8 @@ class My_Model(nn.Module):
             attention_matrix = None
         elif self.graph_learning_mode == 'attention':
             theta, attention_matrix = self.graph_learning(entire_inputs)
+            attention_matrix += [theta]
+            attention_matrix = torch.stack(attention_matrix, dim=0)
         elif (self.graph_learning_mode == 'MTGNN') or (self.graph_learning_mode == 'GDN'):
             theta = self.graph_learning()
             attention_matrix = [theta]

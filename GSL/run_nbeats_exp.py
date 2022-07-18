@@ -33,7 +33,7 @@ def main(conf_file_path):
     yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
     log_file = os.path.join(config.exp_sub_dir, "log_exp_{}.txt".format(config.seed))
-    logger = setup_logging('INFO', log_file)
+    logger = setup_logging('INFO', log_file, str(config.seed))
     logger.info("Writing log file to {}".format(log_file))
     logger.info("Exp instance id = {}".format(config.exp_name))
 
@@ -47,8 +47,6 @@ def main(conf_file_path):
     except:
         logger.error(traceback.format_exc())
         # slack_message(start, f"{config.exp_name}: Error \n {traceback.format_exc()}")
-
-    sys.exit(0)
 
 
 if __name__ == '__main__':

@@ -29,6 +29,35 @@ class COVID19DatasetLoader(DatasetLoader):
 
         y_df = pd.read_csv(os.path.join(self.path, 'covid_19.csv'), index_col=0)
 
+        country = ['US',
+                   'Canada',
+                   'Mexico',
+                   'Russia',
+                   'United Kingdom',
+                   'Italy',
+                   'Germany',
+                   'France',
+                   'Belarus',
+                   'Brazil',
+                   'Peru',
+                   'Ecuador',
+                   'Chile',
+                   'India',
+                   'Turkey',
+                   'Saudi Arabia',
+                   'Pakistan',
+                   'Iran',
+                   'Singapore',
+                   'Qatar',
+                   'Bangladesh',
+                   'United Arab Emirates',
+                   'China',
+                   'Japan',
+                   'Korea, South']
+
+        y_df.reindex(country + ['date'], axis=1)
+        y_df = y_df[y_df['date'] <= '2020-05-10']
+
         y_df['date'] = pd.to_datetime(y_df['date'])
         y_df.rename(columns={'date': 'ds'}, inplace=True)
         u_ids = y_df.columns.to_list()
@@ -49,13 +78,16 @@ class COVID19DatasetLoader(DatasetLoader):
         X = np.concatenate([df, temp], axis=1)
         self.X = X
 
-        total_sequence_length = X.shape[-1]
-        train_index = int(total_sequence_length * 0.7) + 1
-        valid_index = int(total_sequence_length * 0.2) + 1 + train_index
+        # total_sequence_length = X.shape[-1]
+        # train_index = int(total_sequence_length * 0.7) + 1
+        # valid_index = int(total_sequence_length * 0.2) + 1 + train_index
+
+        train_index = 60
+        # valid_index = 50
 
         self.train_X = X[:, :, :train_index]
-        self.valid_X = X[:, :, train_index:valid_index]
-        self.test_X = X[:, :, valid_index:]
+        self.valid_X = X[:, :, train_index:]
+        self.test_X = X[:, :, train_index:]
         self.entire_dataset = torch.FloatTensor(X)
 
     def _make_init_edge_index(self):

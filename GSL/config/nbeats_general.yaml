@@ -12,7 +12,7 @@ dataset:
     name: COVID19
     nodes_num: 25 # 207, 321
     node_features: 5 # 2, 5
-    graph_learning_length: 1000
+    graph_learning_length: 110
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
@@ -28,11 +28,11 @@ train:
     batch_size : 1
 
 graph_learning:
-    mode: None # GTS, attention, MTGNN, GDN, None
+    mode: attention # GTS, attention, MTGNN, GDN, None
     graph_mode: no_graph # no_graph, ground_truth, random_graph It use when graph learning mode is None
     edge_prob: 0.01 # Use this probability when graph_mode is random_graph
 
-    sampling: None # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
+    sampling: Weight # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
     tau: 10 # Gumbel softmax tau
     top_k: 10
     alpha: 200 # Use as threshold at tanh

@@ -28,8 +28,6 @@ from torch_geometric_temporal.signal import temporal_signal_split
 
 from utils.score import get_score
 
-logger = get_logger('exp_logger')
-
 
 def get_dataset_length(_dataset):
     length = 0
@@ -53,6 +51,8 @@ class Runner(object):
 
         self.dataset_conf = config.dataset
         self.train_conf = config.train
+
+        self.logger = get_logger(logger_name=str(config.seed))
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
@@ -233,7 +233,7 @@ class Runner(object):
 
                 # display loss
                 if (i + 1) % 500 == 0:
-                    logger.info(
+                    self.logger.info(
                         "Train Loss @ epoch {} iteration {} = {}".format(epoch + 1, i + 1,
                                                                          float(loss.data.cpu().numpy())))
 
@@ -274,8 +274,8 @@ class Runner(object):
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
 
-            logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
-            logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
+            self.logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
+            self.logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
             # model_snapshot(epoch, self.model, optimizer, scheduler, best_val_loss, self.ck_dir)
             model_snapshot(epoch=epoch, model=self.model, optimizer=optimizer, scheduler=None,
@@ -375,14 +375,14 @@ class Runner(object):
         results['test_loss'] = test_loss
         results['score'] = {'scaled_score': scaled_score,
                             'inv_scaled_score': inv_scaled_score}
-        results['adj_matrix'] = adj_matrix.cpu()
+        results['adj_matrix'] = adj_matrix.cpu().numpy()
         results['prediction'] = output
         results['target'] = target
         results['Inputs'] = inputs
-        results['attention_matrix'] = attention_matrix
+        results['attention_matrix'] = attention_matrix.cpu().numpy()
         results['backcast'] = backcast
 
-        logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
-        logger.info("Avg. MAE = {:.6}".format(scaled_score['MAE'], 0))
+        self.logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
+        self.logger.info("Avg. MAPE = {:.6}".format(scaled_score['MAPE'], 0))
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))
