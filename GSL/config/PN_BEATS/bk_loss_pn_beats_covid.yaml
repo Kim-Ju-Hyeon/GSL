@@ -1,5 +1,5 @@
 ---
-exp_name: 0718_COVID_PN_BEATS_Grid_search/forecast_loss/no_graph # 0417
+exp_name: 0718_COVID_PN_BEATS_Grid_search/backcast_loss/no_graph # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -19,7 +19,7 @@ train:
     optimizer: Adam
     epoch: 300
     loss_function : MAE
-    backcast_loss: False
+    backcast_loss: True
     lr: 1.0e-3
     wd: 0.0e-4 # Adam
     momentum: 0.9 # SGD
