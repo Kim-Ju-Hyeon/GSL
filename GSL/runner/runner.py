@@ -185,7 +185,7 @@ class Runner(object):
             best_val_loss = checkpoint['best_valid_loss']
             self.train_conf.epoch -= checkpoint['epoch']
 
-        # length = get_dataset_length(self.train_dataset)
+        length = get_dataset_length(self.train_dataset)
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
@@ -200,7 +200,6 @@ class Runner(object):
 
                 _, outputs, _ = self.model(data_batch.x, data_batch.y, self.entire_inputs, self.init_edge_index,
                                            interpretability=False)
-
                 if type(outputs) == defaultdict:
                     forecast = outputs['forecast']
                     forecast_target = data_batch.y

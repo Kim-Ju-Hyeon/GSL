@@ -25,7 +25,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 32
+    batch_size : 16
 
 graph_learning:
     mode: attention # GTS, attention, MTGNN, GDN, None

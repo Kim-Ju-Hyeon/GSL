@@ -79,7 +79,7 @@ def download_save_dataset(config):
             num_timesteps_out=config.forecasting_module.forecast_length,
             batch_size=train_conf.batch_size)
 
-        entire_inputs = entire_inputs[:, :, :dataset_conf.graph_learning_length]
+        entire_inputs = entire_inputs[:, :, :]
         scaler = loader.get_scaler()
 
         temporal_signal = {'train': train_dataset,
@@ -99,6 +99,7 @@ def main(conf_file_path):
     try:
         config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
         download_save_dataset(config)
+        print('Dataset Ready')
     except:
         print(traceback.format_exc())
 if __name__ == '__main__':

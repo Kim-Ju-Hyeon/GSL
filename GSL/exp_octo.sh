@@ -22,9 +22,9 @@ python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_c
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=3
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 1 --singular_stack_num 3 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 12 --singular_stack_num 3 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
 sleep 3
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 1 --singular_stack_num 1 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 12 --singular_stack_num 1 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=4
@@ -46,7 +46,7 @@ python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_c
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=7
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 1 --singular_stack_num 3 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 12 --singular_stack_num 3 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
 sleep 3
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 1 --singular_stack_num 1 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/pn_beats_covid.yaml --stack_num 12 --singular_stack_num 1 --n_pool_kernel_size 1,1,1 --n_stride_size 1,1,1 &
 sleep 3

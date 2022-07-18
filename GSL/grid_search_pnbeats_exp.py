@@ -29,8 +29,10 @@ def main(conf_file_path, stack_num, singular_stack_num, n_pool_kernel_size, n_st
     n_stride_size = n_stride_size * temp
     n_stride_size.sort(reverse=True)
 
-    mlp_stack_list = [8, 16, 32, 64, 128, 256, 512]
-    mode = ['attention', 'None']
+    # mlp_stack_list = [8, 16, 32, 64, 128, 256, 512]
+    mlp_stack_list = [8]
+    # mode = ['attention', 'None']
+    mode = ['attention']
     for graph_learning in mode:
         for mlp_stack in mlp_stack_list:
             hyperparameter = f'stacks_{stack_num}__singular_stack_num_{singular_stack_num}' \
@@ -52,7 +54,7 @@ def main(conf_file_path, stack_num, singular_stack_num, n_pool_kernel_size, n_st
             config.forecasting_module.stack_num = stack_num
             config.forecasting_module.singular_stack_num = singular_stack_num
             config.forecasting_module.n_pool_kernel_size = n_pool_kernel_size
-            config.forecasting_module.n_theta_hidden = mlp_stack
+            config.forecasting_module.n_theta_hidden = [mlp_stack]
             config.forecasting_module.n_stride_size = n_stride_size
 
             save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
