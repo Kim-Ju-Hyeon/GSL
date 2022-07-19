@@ -136,8 +136,8 @@ class PN_model(nn.Module):
         _singual_forecast = []
 
         for stack_index in range(self.stack_num):
-            pooled_inputs = self.pooling_stack[stack_index](inputs)
-            interpolate_inputs = F.interpolate(pooled_inputs.unsqueeze(dim=1), size=inputs.size()[1],
+            pooled_inputs = self.pooling_stack[stack_index](inputs.unsqueeze(dim=1))
+            interpolate_inputs = F.interpolate(pooled_inputs, size=inputs.size()[1],
                                                mode='linear', align_corners=False).squeeze(dim=1)
 
             trend_b, trend_f = self.trend_stacks[stack_index](interpolate_inputs, edge_index, edge_weight)

@@ -82,8 +82,10 @@ class My_Model(nn.Module):
             attention_matrix = None
         elif self.graph_learning_mode == 'attention':
             theta, attention_matrix = self.graph_learning(entire_inputs)
-            attention_matrix += [theta]
-            attention_matrix = torch.stack(attention_matrix, dim=0)
+
+            if self.sampling_mode == 'Weight':
+                attention_matrix += [theta]
+                attention_matrix = torch.stack(attention_matrix, dim=0)
         elif (self.graph_learning_mode == 'MTGNN') or (self.graph_learning_mode == 'GDN'):
             theta = self.graph_learning()
             attention_matrix = [theta]

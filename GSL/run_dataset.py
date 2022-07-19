@@ -90,7 +90,7 @@ def download_save_dataset(config):
 
         pickle.dump(temporal_signal,
                     open(os.path.join(dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'),
-                         'wb'))
+                         'wb'), protocol=4)
 
 
 @click.command()
