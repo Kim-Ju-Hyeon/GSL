@@ -1,5 +1,5 @@
 ---
-exp_name: Traffic_0719_PN_BEATS # 0417
+exp_name: PN_BEATS/Traffic_0719 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -25,7 +25,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 16
+    batch_size : 4
 
 graph_learning:
     mode: attention # GTS, attention, MTGNN, GDN, None
@@ -56,8 +56,8 @@ forecasting_module:
     activ: 'ReLU'
 #    num_blocks_per_stack: 1
     inter_correlation_stack_length: 1
-    forecast_length: 7
-    backcast_length: 28
+    forecast_length: 96
+    backcast_length: 96
     n_theta_hidden: [512]
     thetas_dim: [32, 32]
     message_norm: True

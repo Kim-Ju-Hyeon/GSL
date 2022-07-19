@@ -21,7 +21,7 @@ class WTHDatasetLoader(DatasetLoader):
 
     def _download_url(self):
         url = 'https://drive.google.com/uc?id=1UBRz-aM_57i_KCC-iaSWoKDPTGGv6EaG'
-        if os.path.exists(self.path):
+        if not os.path.exists(self.path):
             os.mkdir(self.path)
         gdown.download(url, os.path.join(self.path, 'WTH.csv'))
 
