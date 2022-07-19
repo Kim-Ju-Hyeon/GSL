@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #python3 run_dataset.py --conf_file_path ./config/N_BEATS/nbeats_trend_season.yaml
 #sleep 240
