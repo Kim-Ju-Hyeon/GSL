@@ -1,0 +1,67 @@
+---
+exp_name: 0719_ECL_PN_BEATS_Grid_search/random_graph # 0417
+exp_dir: ../exp
+use_gpu: True
+device: 0
+seed: None # If you want to reproduce set the seed that you want
+model_name: PN_BEATS  # GTS_Top_k_Masking_model, ...
+train_resume: False
+
+dataset:
+    root: ./data/ECL # METR-LA, PEMS-BAY, ECL
+    name: ECL
+    nodes_num: 321 # 207, 321
+    node_features: 5 # 2, 5
+    graph_learning_length: 20000
+    scaler_type: std # std, invariant, norm, norm1, median
+
+train:
+    optimizer: Adam
+    epoch: 300
+    loss_function : MAE
+    backcast_loss: True
+    lr: 1.0e-3
+    wd: 0.0e-4 # Adam
+    momentum: 0.9 # SGD
+    T_0: 50 # cosine annealing
+    T_mult: 5 # cosine annealing
+    batch_size : 16
+
+graph_learning:
+    mode: None # GTS, attention, MTGNN, GDN, None
+    graph_mode: random_graph # no_graph, ground_truth, random_graph It use when graph learning mode is None
+    edge_prob: 0.01 # Use this probability when graph_mode is random_graph
+
+    sampling: None # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
+    tau: 10 # Gumbel softmax tau
+    top_k: 10
+    alpha: 200 # Use as threshold at tanh
+    to_symmetric: False
+    initial_edge_index: Fully Connected
+    sequence: 1 # make graph learning module sequential
+
+    kernel_size: [5, 5]
+    stride: [1, 1]
+    conv_dim: [8, 16]
+    n_head: 8 # Use it Attention Graph Learning
+    hidden_dim: 512
+
+
+forecasting_module:
+    name: pn_beats
+#    stack_types: [trend, seasonality, generic] # seasonality, trend, generic, n_hits, smoothing_trend
+    stack_num: 3
+    singular_stack_num: 1
+    inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
+    activ: 'ReLU'
+#    num_blocks_per_stack: 1
+    inter_correlation_stack_length: 1
+    forecast_length: 7
+    backcast_length: 28
+    n_theta_hidden: [512]
+    thetas_dim: [32, 32]
+    message_norm: True
+    share_weights_in_stack: True
+    pooling_mode: average # average, None
+    n_pool_kernel_size: [4, 4, 2]
+    n_stride_size : [2, 2, 1]
