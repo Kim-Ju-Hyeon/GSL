@@ -1,5 +1,5 @@
 ---
-exp_name: 0719_ECL_PN_BEATS_Grid_search/random_graph # 0417
+exp_name: ECL_PN_BEATS_Random_Graph/ # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -17,7 +17,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 300
+    epoch: 200
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3
