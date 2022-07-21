@@ -23,15 +23,12 @@ class Attention_Graph_Learning(nn.Module):
                                                             self.hidden_dim,
                                                             self.num_nodes)
 
-        out_size = 0
-        for i in range(len(self.kernel_size)):
-            if i == 0:
-                out_size = int(((self.total_length - self.kernel_size[i]) / self.stride[i]) + 1)
-            else:
-                out_size = int(((out_size - self.kernel_size[i]) / self.stride[i]) + 1)
-
-        self.fc_concat = nn.Linear(out_size*self.conv_dim[-1], self.hidden_dim)
-        self.hidden_drop = nn.Dropout(0.4)
+        # out_size = 0
+        # for i in range(len(self.kernel_size)):
+        #     if i == 0:
+        #         out_size = int(((self.total_length - self.kernel_size[i]) / self.stride[i]) + 1)
+        #     else:
+        #         out_size = int(((out_size - self.kernel_size[i]) / self.stride[i]) + 1)
 
         self.feature_extracotr = nn.ModuleList()
         self.feature_batchnorm = nn.ModuleList()
@@ -43,12 +40,23 @@ class Attention_Graph_Learning(nn.Module):
                                                         self.kernel_size[i],
                                                         stride=self.stride[i]))
             else:
-                self.feature_extracotr.append(nn.Conv1d(self.conv_dim[i-1],
+                self.feature_extracotr.append(nn.Conv1d(self.conv_dim[i - 1],
                                                         self.conv_dim[i],
                                                         self.kernel_size[i],
                                                         stride=self.stride[i]))
 
-            self.feature_batchnorm.append(nn.LayerNorm(self.conv_dim[i]))
+        temp_inpt = torch.Tensor(self.num_nodes, self.nodes_feas, self.total_length)
+        out_size = []
+        for layer in self.feature_extracotr:
+            temp_inpt = layer(temp_inpt)
+            out_size.append(temp_inpt.shape[-1])
+
+        for i in range(len(self.conv_dim)):
+            self.feature_batchnorm.append(nn.LayerNorm(out_size[i]))
+
+        self.fc_concat = nn.Linear(out_size[-1] * self.conv_dim[-1], self.hidden_dim)
+        self.hidden_drop = nn.Dropout(0.4)
+
         self.feature_batchnorm.append(nn.LayerNorm(self.hidden_dim))
 
         if self.sampling == 'Gumbel_softmax':

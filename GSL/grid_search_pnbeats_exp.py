@@ -17,9 +17,9 @@ import yaml
 @click.option('--n_pool_kernel_size', type=click.STRING, default='4')
 @click.option('--n_stride_size', type=click.STRING, default='2')
 # @click.option('--mlp_stack', type=click.STRING, default='64,64,64')
-@click.option('--Graph_Learning', type=bool, default=True)
+@click.option('--gl', type=bool, default=True)
 @click.option('--edge_prob', type=float, default=0.02)
-def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, edge_prob, Graph_Learning):
+def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, edge_prob, gl):
     config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
 
     temp = stack_num // 3
@@ -35,11 +35,6 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, edge_prob
 
     mlp_stack_list = [512]
     singular_stack_num_list = [1]
-
-    if Graph_Learning and config.graph_learning.mode != 'None':
-        gl = True
-    else:
-        gl = False
 
     for singular_stack_num in singular_stack_num_list:
         for mlp_stack in mlp_stack_list:

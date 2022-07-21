@@ -13,7 +13,7 @@ class MTGNN_Graph_Learning(nn.Module):
     def __init__(self, config):
         super(MTGNN_Graph_Learning, self).__init__()
 
-        self.num_nodes = config.nodes_num
+        self.num_nodes = config.dataset.nodes_num
         dim = config.graph_learning.hidden_dim
 
         self.device = config.device
