@@ -44,8 +44,8 @@ class GTS_Graph_Learning2(MessageLayer):
                                                         self.kernel_size[i],
                                                         stride=self.stride[i]))
 
-            self.feature_batchnorm.append(nn.BatchNorm1d(self.conv_dim[i]))
-        self.feature_batchnorm.append(nn.BatchNorm1d(self.hidden_dim))
+            self.feature_batchnorm.append(nn.LayerNorm(self.conv_dim[i]))
+        self.feature_batchnorm.append(nn.LayerNorm(self.hidden_dim))
 
         self.fc_concat = nn.Linear(out_size*self.conv_dim[-1], self.hidden_dim)
 

@@ -48,8 +48,8 @@ class Attention_Graph_Learning(nn.Module):
                                                         self.kernel_size[i],
                                                         stride=self.stride[i]))
 
-            self.feature_batchnorm.append(nn.BatchNorm1d(self.conv_dim[i]))
-        self.feature_batchnorm.append(nn.BatchNorm1d(self.hidden_dim))
+            self.feature_batchnorm.append(nn.LayerNorm(self.conv_dim[i]))
+        self.feature_batchnorm.append(nn.LayerNorm(self.hidden_dim))
 
         if self.sampling == 'Gumbel_softmax':
             self.gumbel_trick = nn.Linear(1, 2)
