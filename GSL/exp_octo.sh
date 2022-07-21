@@ -5,15 +5,15 @@ python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=0
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn_beats_covid.yaml --stack_num 3 --n_pool_kernel_size 2,2,1 --n_stride_size 1,1,1 --edge_prob 0.01 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn_beats_covid.yaml --stack_num 3 --n_pool_kernel_size 2,2,1 --n_stride_size 1,1,1 --edge_prob 0.01 --gl False &
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=3
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn_beats_covid.yaml --stack_num 3 --n_pool_kernel_size 2,2,1 --n_stride_size 1,1,1 --edge_prob 0.25 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn_beats_covid.yaml --stack_num 3 --n_pool_kernel_size 2,2,1 --n_stride_size 1,1,1 --edge_prob 0.25 --gl False &
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=3
-python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn_beats_covid.yaml --stack_num 3 --n_pool_kernel_size 2,2,1 --n_stride_size 1,1,1 --edge_prob 0.5 &
+python3 grid_search_pnbeats_exp.py --conf_file_path ./config/PN_BEATS/COVID19/pn_beats_covid.yaml --stack_num 3 --n_pool_kernel_size 2,2,1 --n_stride_size 1,1,1 --edge_prob 0.5 --gl False &
 sleep 3
 #
 #

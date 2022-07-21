@@ -25,7 +25,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 16
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None
@@ -56,8 +56,8 @@ forecasting_module:
     activ: 'ReLU'
 #    num_blocks_per_stack: 1
     inter_correlation_stack_length: 1
-    forecast_length: 96
-    backcast_length: 96
+    forecast_length: 7
+    backcast_length: 28
     n_theta_hidden: [512]
     thetas_dim: [32, 32]
     message_norm: True

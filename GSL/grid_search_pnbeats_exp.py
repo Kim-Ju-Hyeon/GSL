@@ -40,14 +40,14 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, edge_prob
         for mlp_stack in mlp_stack_list:
 
             if not gl:
-                if edge_prob < 0.05:
-                    config.train.batch_size = 32
-                elif 0.05 < edge_prob < 0.1:
-                    config.train.batch_size = 8
-                elif 0.1 < edge_prob < 0.3:
-                    config.train.batch_size = 4
-                else:
-                    config.train.batch_size = 1
+                # if edge_prob < 0.05:
+                #     config.train.batch_size = 32
+                # elif 0.05 < edge_prob < 0.1:
+                #     config.train.batch_size = 8
+                # elif 0.1 < edge_prob < 0.3:
+                #     config.train.batch_size = 4
+                # else:
+                #     config.train.batch_size = 1
 
                 config.graph_learning.edge_prob = edge_prob
 
