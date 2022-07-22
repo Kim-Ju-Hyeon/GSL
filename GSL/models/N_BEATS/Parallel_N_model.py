@@ -175,7 +175,11 @@ class PN_model(nn.Module):
             self.per_seasonality_backcast.append(np.stack(_per_seasonality_backcast, axis=0))
             self.per_seasonality_forecast.append(np.stack(_per_seasonality_forecast, axis=0))
 
-            self.singual_backcast.append(np.stack(_singual_backcast, axis=0))
-            self.singual_forecast.append(np.stack(_singual_forecast, axis=0))
+            if self.singular_stack_num >= 1:
+                self.singual_backcast.append(np.stack(_singual_backcast, axis=0))
+                self.singual_forecast.append(np.stack(_singual_forecast, axis=0))
+            else:
+                self.singual_backcast = torch.zeros(1)
+                self.singual_forecast = torch.zeros(1)
 
         return backcast, forecast

@@ -87,7 +87,7 @@ class COVID19DatasetLoader(DatasetLoader):
 
         self.train_X = X[:, :, :train_index]
         self.valid_X = X[:, :, train_index:]
-        self.test_X = X[:, :, train_index:]
+        self.test_X = X[:, :, train_index-28:]
         self.entire_dataset = torch.FloatTensor(X)
 
     def _make_init_edge_index(self):
