@@ -12,7 +12,7 @@ dataset:
     name: COVID19
     nodes_num: 25 # 207, 321
     node_features: 5 # 2, 5
-    graph_learning_length: 110
+    graph_learning_length: 109
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
@@ -25,7 +25,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 8
+    batch_size : 1
 
 graph_learning:
     mode: None # GTS, attention, MTGNN, GDN, None

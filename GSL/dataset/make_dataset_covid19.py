@@ -86,7 +86,7 @@ class COVID19DatasetLoader(DatasetLoader):
         # valid_index = 50
 
         self.train_X = X[:, :, :train_index]
-        self.valid_X = X[:, :, train_index:]
+        self.valid_X = X[:, :, train_index-28:]
         self.test_X = X[:, :, train_index-28:]
         self.entire_dataset = torch.FloatTensor(X)
 

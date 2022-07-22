@@ -8,11 +8,11 @@ model_name: N_BEATS_generic  # GTS_Top_k_Masking_model, ...
 train_resume: False
 
 dataset:
-    root: ./data/Traffic # METR-LA, PEMS-BAY, ECL
-    name: Traffic
-    nodes_num: 862 # 207, 321
+    root: ./data/COVID19 # METR-LA, PEMS-BAY, ECL
+    name: COVID19
+    nodes_num: 25 # 207, 321
     node_features: 5 # 2, 5
-    graph_learning_length: 110
+    graph_learning_length: 109
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
@@ -28,11 +28,11 @@ train:
     batch_size : 1
 
 graph_learning:
-    mode: None # GTS, attention, MTGNN, GDN, None
+    mode: GTS # GTS, attention, MTGNN, GDN, None
     graph_mode: no_graph # no_graph, ground_truth, random_graph It use when graph learning mode is None
     edge_prob: 0.01 # Use this probability when graph_mode is random_graph
 
-    sampling: Weight # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
+    sampling: Gumbel_softmax # Gumbel_softmax, Top_K_Masking, Top_K, Weight, None
     tau: 10 # Gumbel softmax tau
     top_k: 10
     alpha: 200 # Use as threshold at tanh
@@ -40,8 +40,8 @@ graph_learning:
     initial_edge_index: Fully Connected
     sequence: 1 # make graph learning module sequential
 
-    kernel_size: [10, 10]
-    stride: [1, 1]
+    kernel_size: [6, 6]
+    stride: [2, 2]
     conv_dim: [8, 16]
     n_head: 4 # Use it Attention Graph Learning
     hidden_dim: 1
@@ -56,8 +56,8 @@ forecasting_module:
     activ: 'ReLU'
     num_blocks_per_stack: 1
     inter_correlation_stack_length: 1
-    forecast_length: 12
-    backcast_length: 12
+    forecast_length: 28
+    backcast_length: 28
     n_theta_hidden: [8, 8]
     thetas_dim: [8, 8]
     message_norm: True
