@@ -33,8 +33,8 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, edge_prob
     n_stride_size = n_stride_size * temp
     n_stride_size.sort(reverse=True)
 
-    mlp_stack_list = [512]
-    singular_stack_num_list = [1]
+    mlp_stack_list = [512, 1024]
+    singular_stack_num_list = [1, 3]
 
     for singular_stack_num in singular_stack_num_list:
         for mlp_stack in mlp_stack_list:
