@@ -1,5 +1,5 @@
 ---
-exp_name: COVID_PN_BEATS_Graph_Learning/ # 0417
+exp_name: COVID_PN_BEATS/Graph_Learning # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
