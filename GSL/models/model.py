@@ -79,7 +79,7 @@ class My_Model(nn.Module):
     def graph_learning_process(self, entire_inputs, edge_index):
         if self.graph_learning_mode == 'GTS':
             theta = self.graph_learning(entire_inputs, edge_index)
-            attention_matrix = None
+            attention_matrix = theta
         elif self.graph_learning_mode == 'attention':
             theta, attention_matrix = self.graph_learning(entire_inputs)
 
@@ -88,7 +88,7 @@ class My_Model(nn.Module):
                 attention_matrix = torch.stack(attention_matrix, dim=0)
         elif (self.graph_learning_mode == 'MTGNN') or (self.graph_learning_mode == 'GDN'):
             theta = self.graph_learning()
-            attention_matrix = [theta]
+            attention_matrix = theta
         elif self.graph_learning_mode == 'None':
             theta, attention_matrix = self.graph_learning()
         else:
