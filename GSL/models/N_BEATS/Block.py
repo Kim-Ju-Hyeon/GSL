@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from utils.utils import squeeze_last_dim
 from models.message_passing.MPNN import InterCorrealtionStack
-from models.GatedLinearUnit import GLU
+from models.layer.GatedLinearUnit import GLU
 
 from torch_geometric.nn import GCNConv
 

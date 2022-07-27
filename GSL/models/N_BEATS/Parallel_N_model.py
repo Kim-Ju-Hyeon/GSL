@@ -9,7 +9,8 @@ class PN_model(nn.Module):
     def __init__(self, config):
         super(PN_model, self).__init__()
         assert len(config.n_pool_kernel_size) == len(
-            config.n_stride_size), f'pooling kernel: {len(config.n_pool_kernel_size)} and stride: {len(config.n_stride_size)} is not match'
+            config.n_stride_size), f'pooling kernel: {len(config.n_pool_kernel_size)} and stride: ' \
+                                   f'{len(config.n_stride_size)} is not match '
         assert len(config.n_pool_kernel_size) == config.stack_num, 'Pooling num and Stack num is not match'
 
         self.activation = config.activ
@@ -151,7 +152,7 @@ class PN_model(nn.Module):
                 _per_seasonality_backcast.append(seasonality_b.cpu().numpy())
                 _per_seasonality_forecast.append(seasonality_f.cpu().numpy())
 
-            inputs = inputs - trend_b + seasonality_b
+            inputs = inputs - (trend_b + seasonality_b)
 
             forecast = forecast + trend_f + seasonality_f
             backcast = backcast + trend_b + seasonality_b

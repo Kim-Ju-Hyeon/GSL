@@ -7,10 +7,11 @@ from models.N_BEATS.N_model import N_model
 from models.N_BEATS.Parallel_N_model import PN_model
 
 from models.GTS.gts_graph_learning2 import GTS_Graph_Learning2
-from models.self_attention_graph_learning import Attention_Graph_Learning
+from models.graph_learning_Attention.self_attention_graph_learning import Attention_Graph_Learning
 from models.MTGNN.mtgnn_graph_learning import MTGNN_Graph_Learning
 from models.GDN.gdn_graph_learning import GDN_Graph_Learning
-from models.none_graph_learning import None_Graph_Learning
+from models.layer.none_graph_learning_layer import None_Graph_Learning
+from models.graph_learning_Attention.probsparseattention import GraphLearningProbSparseAttention
 
 from utils.adjacency_matrix_sampling import gumbel_softmax_structure_sampling, weight_matrix_construct, \
     top_k_adj_masking_zero, top_k_adj
@@ -57,7 +58,8 @@ class My_Model(nn.Module):
         elif self.graph_learning_mode == 'GDN':
             self.graph_learning = GDN_Graph_Learning(self.config)
         elif self.graph_learning_mode == 'ProbSparse_Attention':
-            pass
+            self.graph_learning = GraphLearningProbSparseAttention(self.config)
+            self.sampling_mode = 'ProbSparse_Attention'
         elif self.graph_learning_mode == 'None':
             self.graph_learning = None_Graph_Learning(self.config)
             self.sampling_mode = 'None'
@@ -89,6 +91,9 @@ class My_Model(nn.Module):
         elif (self.graph_learning_mode == 'MTGNN') or (self.graph_learning_mode == 'GDN'):
             theta = self.graph_learning()
             attention_matrix = theta
+        elif self.graph_learning_mode == 'ProbSparse_Attention':
+            attention_matrix = self.graph_learning(entire_inputs, entire_inputs)
+            theta = attention_matrix
         elif self.graph_learning_mode == 'None':
             theta, attention_matrix = self.graph_learning()
         else:
@@ -131,6 +136,8 @@ class My_Model(nn.Module):
 
             attention_matrix = to_dense_adj(theta, edge_attr=attention_matrix).squeeze(dim=0)
 
+        # elif self.sampling_mode == 'ProbSparse_Attention':
+        #     pass
         else:
             raise ValueError("Invalid graph sampling mode")
 

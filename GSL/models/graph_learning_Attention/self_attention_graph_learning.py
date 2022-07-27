@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch_geometric.utils import dense_to_sparse
-from models.Attention import GraphLearningMultiHeadAttention
+from models.graph_learning_Attention.Attention import GraphLearningMultiHeadAttention
 
 
 class Attention_Graph_Learning(nn.Module):

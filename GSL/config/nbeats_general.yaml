@@ -36,6 +36,7 @@ graph_learning:
     tau: 10 # Gumbel softmax tau
     top_k: 10
     alpha: 200 # Use as threshold at tanh
+    factor: 2 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     to_symmetric: False
     initial_edge_index: Fully Connected
     sequence: 1 # make graph learning module sequential

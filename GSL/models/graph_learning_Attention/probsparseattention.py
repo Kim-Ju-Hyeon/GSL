@@ -71,20 +71,19 @@ class ProbAttention(nn.Module):
 
 
 class GraphLearningProbSparseAttention(nn.Module):
-    def __init__(self, n_head, d_model, num_nodes, dropout_rate=0.5, factor=2):
+    def __init__(self, config):
         super(GraphLearningProbSparseAttention, self).__init__()
 
-        self.n_head = n_head
-        self.d_model = d_model
-        self.num_nodes = num_nodes
+        self.n_head = config.graph_learning.n_head
+        self.d_model = config.graph_learning.d_model
 
-        self.d_k = self.d_q = d_model // n_head
-        self.dropout = nn.Dropout(p=dropout_rate)
+        self.d_k = self.d_q = self.d_model // self.n_head
+        self.dropout = nn.Dropout(p=config.graph_learning.dropout_rate)
 
         self.query_projection = nn.Linear(self.d_model, self.d_k * self.n_head)
         self.key_projection = nn.Linear(self.d_model, self.d_k * self.n_head)
 
-        self.attention = ProbAttention(factor)
+        self.attention = ProbAttention(config.graph_learning.factor)
 
         self.init_weights()
 

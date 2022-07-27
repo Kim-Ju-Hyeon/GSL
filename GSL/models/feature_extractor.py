@@ -1,2 +1,0 @@
-# 1D Conv
-# GRU

@@ -1,6 +1,6 @@
 from models.GTS.gts_graph_learning import GTS_Graph_Learning
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
-from models.self_attention_graph_learning import Attention_Graph_Learning
+from models.graph_learning_Attention.self_attention_graph_learning import Attention_Graph_Learning
 from utils.utils import build_batch_edge_index, build_batch_edge_weight
 
 import torch
