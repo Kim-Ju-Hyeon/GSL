@@ -29,19 +29,12 @@ class ProbAttention(nn.Module):
 
         # use the reduced Q to calculate Q_K
         Q_reduce = Q[torch.arange(B)[:, None, None],
-                   torch.arange(H)[None, :, None],
-                   M_top, :]  # factor*ln(L_q)
+                     torch.arange(H)[None, :, None],
+                     M_top, :]  # factor*ln(L_q)
+
         Q_K = torch.matmul(Q_reduce, K.transpose(-2, -1))  # factor*ln(L_q)*L_k
 
         return Q_K, M_top
-
-    def _update_context(self, init_attn, scores, index):
-        B, H, _, _ = init_attn.shape
-        attn = torch.softmax(scores, dim=-1)  # nn.Softmax(dim=-1)(scores)
-
-        init_attn[torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], index, :] = attn
-
-        return init_attn
 
     def forward(self, queries, keys):
         B, L, H, D = queries.shape
@@ -64,7 +57,7 @@ class ProbAttention(nn.Module):
         # update the context with selected top_k queries
         attn = torch.softmax(scores_top, dim=-1)
 
-        attention_matirx = (torch.ones([B, H, L, L]) / L).type_as(attn).to(scores_top.device)
+        attention_matirx = (torch.zeros([B, H, L, L])).type_as(attn).to(scores_top.device)
         attention_matirx[torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], index, :] = attn
 
         return attention_matirx

@@ -17,7 +17,7 @@ ACTIVATIONS = ['ReLU',
                'Sigmoid']
 
 
-class _TrendGenerator(nn.Module):
+class TrendGenerator(nn.Module):
     def __init__(self, expansion_coefficient_dim, target_length):
         super().__init__()
 
@@ -36,7 +36,7 @@ class _TrendGenerator(nn.Module):
         return torch.matmul(x, self.basis)
 
 
-class _SeasonalityGenerator(nn.Module):
+class SeasonalityGenerator(nn.Module):
     def __init__(self, target_length):
         super().__init__()
         half_minus_one = int(target_length / 2 - 1)
@@ -88,7 +88,7 @@ class Inter_Correlation_Block(nn.Module):
                 self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
             else:
                 # self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
-                self.MLP_stack.append(GLU(self.n_theta_hidden[i-1], self.n_theta_hidden[i]))
+                self.MLP_stack.append(GLU(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
                 self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
 
@@ -141,10 +141,11 @@ class Inter_Correlation_Block(nn.Module):
             x = self.drop_out(x)
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
-            x = layer(x, edge_index, edge_weight)
-            x = self.activ(x)
-            x = self.batch_norm_layer_list[ii](x)
-            x = self.drop_out(x)
+            for head in range(edge_index.shape[0]):
+                x = layer(x, edge_index[head], edge_weight[head])
+                x = self.activ(x)
+                x = self.batch_norm_layer_list[ii](x)
+                x = self.drop_out(x)
 
         return x
 
@@ -158,11 +159,9 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
                                                    inter_correlation_stack_length)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
-        # self.backcast_norm = nn.LayerNorm(backcast_length)
-        # self.forecast_norm = nn.LayerNorm(forecast_length)
 
-        self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
-        self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
+        self.backcast_seasonality_model = SeasonalityGenerator(backcast_length)
+        self.forecast_seasonality_model = SeasonalityGenerator(forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_SeasonalityBlock, self).forward(x, edge_index, edge_weight)
@@ -181,11 +180,9 @@ class GNN_TrendBlock(Inter_Correlation_Block):
                                              forecast_length, activation, inter_correlation_stack_length)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
-        # self.backcast_norm = nn.LayerNorm(thetas_dim[0])
-        # self.forecast_norm = nn.LayerNorm(thetas_dim[1])
 
-        self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
-        self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
+        self.backcast_trend_model = TrendGenerator(thetas_dim[0], backcast_length)
+        self.forecast_trend_model = TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_TrendBlock, self).forward(x, edge_index, edge_weight)
@@ -205,8 +202,6 @@ class GNN_GenericBlock(Inter_Correlation_Block):
                                                activation, inter_correlation_stack_length)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
-        # self.backcast_norm = nn.LayerNorm(thetas_dim[0])
-        # self.forecast_norm = nn.LayerNorm(thetas_dim[1])
 
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
@@ -300,8 +295,8 @@ class GNN_smoothing_Trend(Inter_Correlation_Block):
             self.pooling_layer = nn.AvgPool1d(kernel_size=self.n_pool_kernel_size,
                                               stride=self.n_pool_kernel_size, ceil_mode=False)
 
-        self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
-        self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
+        self.backcast_trend_model = TrendGenerator(thetas_dim[0], backcast_length)
+        self.forecast_trend_model = TrendGenerator(thetas_dim[1], forecast_length)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 
@@ -362,8 +357,8 @@ class Block(nn.Module):
 class SeasonalityBlock(Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(SeasonalityBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
-        self.backcast_seasonality_model = _SeasonalityGenerator(backcast_length)
-        self.forecast_seasonality_model = _SeasonalityGenerator(forecast_length)
+        self.backcast_seasonality_model = SeasonalityGenerator(backcast_length)
+        self.forecast_seasonality_model = SeasonalityGenerator(forecast_length)
 
     def forward(self, x):
         x = super(SeasonalityBlock, self).forward(x)
@@ -375,8 +370,8 @@ class SeasonalityBlock(Block):
 class TrendBlock(Block):
     def __init__(self, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5, activation='ReLU'):
         super(TrendBlock, self).__init__(n_theta_hidden, thetas_dim, backcast_length, forecast_length, activation)
-        self.backcast_trend_model = _TrendGenerator(thetas_dim[0], backcast_length)
-        self.forecast_trend_model = _TrendGenerator(thetas_dim[1], forecast_length)
+        self.backcast_trend_model = TrendGenerator(thetas_dim[0], backcast_length)
+        self.forecast_trend_model = TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x):
         x = super(TrendBlock, self).forward(x)
