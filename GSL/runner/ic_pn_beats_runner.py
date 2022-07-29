@@ -26,6 +26,7 @@ from dataset.make_dataset_traffic import TrafficDatasetLoader
 
 from utils.score import get_score
 
+
 class runner(object):
     def __init__(self, config):
         self.config = config
@@ -213,15 +214,9 @@ class runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
                 with torch.no_grad():
-                    backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
+                    _, forecast, _ = self.model(data_batch.x, interpretability=False)
 
                 forecast_loss = self.loss(forecast, data_batch.y)
-                if self.backcast_loss:
-                    backcast_loss = self.loss(backcast, data_batch.x[:, 0, :])
-                    loss = 0.3 * backcast_loss + 0.7 * forecast_loss
-                else:
-                    loss = forecast_loss
-
                 val_loss += [float(forecast_loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()
@@ -235,18 +230,18 @@ class runner(object):
             self.logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             self.logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
 
-            # model_snapshot(epoch, self.model, optimizer, scheduler, best_val_loss, self.ck_dir)
             model_snapshot(epoch=epoch, model=self.model, optimizer=optimizer, scheduler=None,
                            best_valid_loss=best_val_loss, exp_dir=self.ck_dir)
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
+        self.config.train.batch_size = 1
+
         self.best_model = IC_PN_BEATS_model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 
         self.best_model.load_state_dict(best_snapshot)
-        self.best_model.batch_size = 1
 
         if self.use_gpu and (self.device != 'cpu'):
             self.best_model = self.best_model.to(device=self.device)
@@ -256,92 +251,71 @@ class runner(object):
 
         test_loss = []
         results = defaultdict()
-        output = []
         target = []
         inputs = []
-        backcast = []
+        forecast_list = []
+        backcast_list = []
+
+        per_trend_backcast = []
+        per_trend_forecast = []
+        per_seasonality_backcast = []
+        per_seasonality_forecast = []
+        singual_backcast = []
+        singual_forecast = []
+
+        attention_matrix = []
 
         for data_batch in tqdm(self.test_dataset):
             if self.use_gpu and (self.device != 'cpu'):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
-                adj_matrix, outputs, attention_matrix = self.best_model(data_batch.x, data_batch.y, self.entire_inputs,
-                                                                        self.init_edge_index, interpretability=True)
+                _backcast_output, _forecast_output, outputs = self.model(data_batch.x, interpretability=True)
 
-                if type(outputs) == defaultdict:
-                    forecast = outputs['forecast']
-                else:
-                    forecast = outputs
+            loss = self.loss(_forecast_output, data_batch.y)
 
-                loss = self.loss(forecast, data_batch.y)
+            test_loss += [float(loss.data.cpu().detach().numpy())]
+            target += [data_batch.y.cpu().detach().numpy()]
+            inputs += [data_batch.x.cpu().detach().numpy()]
+            forecast_list += [_forecast_output.cpu().detach().numpy()]
+            backcast_list += [_backcast_output.cpu().detach().numpy()]
 
-                test_loss += [float(loss.data.cpu().numpy())]
-                output += [forecast.cpu().numpy()]
-                target += [data_batch.y.cpu().numpy()]
-                inputs += [data_batch.x.cpu().numpy()]
-                backcast += [outputs['backcast'].cpu()]
+            per_trend_backcast += [outputs['per_trend_backcast']]
+            per_trend_forecast += [outputs['per_trend_forecast']]
+            per_seasonality_backcast += [outputs['per_seasonality_backcast']]
+            per_seasonality_forecast += [outputs['per_seasonality_forecast']]
+            singual_backcast += [outputs['singual_backcast']]
+            singual_forecast += [outputs['singual_forecast']]
+            attention_matrix += [outputs['attention_matrix']]
 
-                if self.config.forecasting_module.name == 'n_beats':
-                    stack_per_backcast = []
-                    stack_per_forecast = []
-                    block_per_backcast = []
-                    block_per_forecast = []
+        results['per_trend_backcast'] = np.stack(per_trend_backcast, axis=0)
+        results['per_trend_forecast'] = np.stack(per_trend_forecast, axis=0)
+        results['per_seasonality_backcast'] = np.stack(per_seasonality_backcast, axis=0)
+        results['per_seasonality_forecast'] = np.stack(per_seasonality_forecast, axis=0)
+        results['singual_backcast'] = np.stack(singual_backcast, axis=0)
+        results['singual_forecast'] = np.stack(singual_forecast, axis=0)
 
-                    stack_per_backcast += [outputs['stack_per_backcast']]
-                    stack_per_forecast += [outputs['stack_per_forecast']]
-                    block_per_backcast += [outputs['block_per_backcast']]
-                    block_per_forecast += [outputs['block_per_forecast']]
+        results['test_loss'] = np.stack(test_loss).mean()
+        results['forecast'] = np.stack(forecast_list, axis=0)
+        results['backcast'] = np.stack(backcast_list, axis=0)
+        results['target'] = np.stack(target, axis=0)
+        results['inputs'] = np.stack(inputs, axis=0)
+        results['attention_matrix'] = np.stack(attention_matrix, axis=0)
 
-                    stack_per_backcast = np.stack(stack_per_backcast)
-                    stack_per_forecast = np.stack(stack_per_forecast)
-                    block_per_backcast = np.stack(block_per_backcast)
-                    block_per_forecast = np.stack(block_per_forecast)
+        scaled_score = get_score(results['target'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+                                 results['forecast'].transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=None)
 
-                    results['stack_per_backcast'] = stack_per_backcast
-                    results['stack_per_forecast'] = stack_per_forecast
-                    results['block_per_backcast'] = block_per_backcast
-                    results['block_per_forecast'] = block_per_forecast
+        inv_scaled_score = get_score(results['target'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+                                     results['forecast'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+                                     scaler=self.scaler)
 
-                elif self.config.forecasting_module.name == 'pn_beats':
-                    per_trend_backcast = np.stack(outputs['per_trend_backcast'], axis=0)
-                    per_trend_forecast = np.stack(outputs['per_trend_forecast'], axis=0)
-                    per_seasonality_backcast = np.stack(outputs['per_seasonality_backcast'], axis=0)
-                    per_seasonality_forecast = np.stack(outputs['per_seasonality_forecast'], axis=0)
-                    singual_backcast = np.stack(outputs['singual_backcast'], axis=0)
-                    singual_forecast = np.stack(outputs['singual_forecast'], axis=0)
-
-                    results['per_trend_backcast'] = per_trend_backcast
-                    results['per_trend_forecast'] = per_trend_forecast
-                    results['per_seasonality_backcast'] = per_seasonality_backcast
-                    results['per_seasonality_forecast'] = per_seasonality_forecast
-                    results['singual_backcast'] = singual_backcast
-                    results['singual_forecast'] = singual_forecast
-
-        test_loss = np.stack(test_loss).mean()
-        output = np.stack(output)
-        target = np.stack(target)
-        inputs = np.stack(inputs)
-        backcast = np.stack(backcast)
-
-        scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
-                          output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=None)
-
-        inv_scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
-                          output.transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=self.scaler)
-
-        results['test_loss'] = test_loss
         results['score'] = {'scaled_score': scaled_score,
                             'inv_scaled_score': inv_scaled_score}
-        results['adj_matrix'] = adj_matrix.cpu().numpy()
-        results['prediction'] = output
-        results['target'] = target
-        results['Inputs'] = inputs
-        results['attention_matrix'] = attention_matrix.cpu().numpy()
-        results['backcast'] = backcast
 
         self.logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
-        self.logger.info("Avg. MAPE = {:.6}".format(scaled_score['MAPE'], 0))
+        self.logger.info(f"Avg. MAE = {scaled_score['MAE']:.6}")
+        self.logger.info(f"Avg. MAPE = {scaled_score['MAPE']:.6}")
+        self.logger.info(f"Avg. RMSE = {scaled_score['RMSE']:.6}")
+        self.logger.info(f"Avg. MSE = {scaled_score['MSE']:.6}")
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))
-
