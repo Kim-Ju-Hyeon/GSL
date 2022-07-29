@@ -30,7 +30,7 @@ class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):
                 _multi_head.append(x)
 
             _multi_head = torch.stack(_multi_head, axis=0)
-            x = self.weight_sum(_multi_head.permute(1, 2, 0))
+            x = self.weight_sum(_multi_head.permute(1, 2, 0)).squeeze()
 
         return x
 
