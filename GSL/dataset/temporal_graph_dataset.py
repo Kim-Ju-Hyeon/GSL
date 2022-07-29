@@ -83,15 +83,24 @@ class Temporal_Graph_Signal(object):
             self.nodes_num = 25
             self.node_features = 5
             self.freq = '1D'
+            self.url = 'https://drive.google.com/file/d/1rPwzpCH8fzNiteXMyO71EbKixievDu3j/view?usp=sharing'
         elif self.dataset_name == 'ECL':
             self.nodes_num = 321
             self.node_features = 5
-            self.url = 'https://drive.google.com/uc?id=1rUPdR7R2iWFW-LMoDdHoO2g4KgnkpFzP'
+            self.url = 'https://drive.google.com/file/d/1nzq4Q3bdVHBqpiz4V7hR1Z3w-kssADmt/view?usp=sharing'
             self.freq = '1H'
         elif dataset_name in ett_dataset_list:
             self.nodes_num = 7
             self.node_features = 5
-            self.url = f'https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/{dataset_name}.csv'
+            if dataset_name == ett_dataset_list[0]:
+                self.url = 'https://drive.google.com/file/d/1KSAK82HFR2rE8NxkZu5OoG6ax_Od2FNo/view?usp=sharing'
+            elif dataset_name == ett_dataset_list[1]:
+                self.url = 'https://drive.google.com/file/d/1B_roxkwOS0FBteC-iYstFtM0FhO0SoJ-/view?usp=sharing'
+            elif dataset_name == ett_dataset_list[2]:
+                self.url = 'https://drive.google.com/file/d/16JUqAOvfaI_AQ16Pv8S2iac7QzlD_D4F/view?usp=sharing'
+            elif dataset_name == ett_dataset_list[3]:
+                self.url = 'https://drive.google.com/file/d/1U23E3-o7uUipUbzQnbTB_-X0EH8wizNf/view?usp=sharing'
+
             if (dataset_name == ett_dataset_list[0]) or (dataset_name == ett_dataset_list[1]):
                 self.freq = '15min'
             else:
@@ -99,20 +108,24 @@ class Temporal_Graph_Signal(object):
         elif dataset_name == 'WTH':
             self.nodes_num = 21
             self.node_features = 5
-            self.url = 'https://drive.google.com/uc?id=1UBRz-aM_57i_KCC-iaSWoKDPTGGv6EaG'
+            self.url = 'https://drive.google.com/file/d/1GZyRQujWfVNs7Hd4uiLQefqTZS83nYE9/view?usp=sharing'
             self.freq = '10min'
         elif dataset_name == 'Traffic':
             self.nodes_num = 862
             self.node_features = 5
             self.freq = '1H'
+            self.url = 'https://drive.google.com/file/d/1v6nDK-X_77OaIYMhce4675I692GsEvDI/view?usp=sharing'
         elif dataset_name == 'Exchange':
             self.nodes_num = 8
             self.node_features = 1
+            self.url = 'https://drive.google.com/file/d/1TIRVGj4KkTtvTzeBVG1-xU8gHCaMagAj/view?usp=sharing'
             self.freq = '1D'
         else:
             raise ValueError("Non-supported dataset!")
 
         if dataset_name in ett_dataset_list:
+            if not os.path.exists(f'./data/ETT'):
+                os.mkdir(f'./data/ETT')
             self.path = f'./data/ETT/{dataset_name}'
         else:
             self.path = f'./data/{dataset_name}'
@@ -120,7 +133,7 @@ class Temporal_Graph_Signal(object):
     def _download_url(self):
         if not os.path.exists(self.path):
             os.mkdir(self.path)
-        gdown.download(self.url, os.path.join(self.path, f'{self.dataset_name}.csv'))
+        gdown.download(self.url, os.path.join(self.path, f'{self.dataset_name}.csv'), fuzzy=True)
 
     def _read_web_data(self):
         if not os.path.isfile(os.path.join(self.path, f'{self.dataset_name}.csv')):
@@ -133,8 +146,6 @@ class Temporal_Graph_Signal(object):
 
     def _get_torch_geometric_dataset(self):
         if self.dataset_name == 'METR-LA':
-            url = "https://graphmining.ai/temporal_datasets/METR-LA.zip"
-
             # Check if zip file is in data folder from working directory, otherwise download
             if not os.path.isfile(
                     os.path.join(self.path, "METR-LA.zip")
@@ -157,8 +168,6 @@ class Temporal_Graph_Signal(object):
             X = np.load(os.path.join(self.path, "node_values.npy"))
 
         elif self.dataset_name == 'PEMS-BAY':
-            url = "https://graphmining.ai/temporal_datasets/PEMS-BAY.zip"
-
             # Check if zip file is in data folder from working directory, otherwise download
             if not os.path.isfile(
                     os.path.join(self.path, "PEMS-BAY.zip")
