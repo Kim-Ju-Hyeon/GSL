@@ -20,9 +20,6 @@ class IC_PN_BEATS_model(nn.Module):
         backcast, forecast = self.model(inputs, interpretability)
 
         if interpretability:
-            outputs['backcast'] = backcast
-            outputs['forecast'] = forecast
-
             outputs['per_trend_backcast'] = self.model.per_trend_backcast
             outputs['per_trend_forecast'] = self.model.per_trend_forecast
 
