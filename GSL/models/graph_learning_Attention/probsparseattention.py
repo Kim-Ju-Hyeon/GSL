@@ -68,11 +68,23 @@ class GraphLearningProbSparseAttention(nn.Module):
         super(GraphLearningProbSparseAttention, self).__init__()
 
         self.n_head = config.graph_learning.n_head
-        self.d_model = config.graph_learning.d_model
+        self.sequence_length = config.forecasting_module.backcast_length
+        self.dropout = nn.Dropout(p=config.graph_learning.dropout_rate)
+        self._mlp_layers = config.graph_learning.pre_mlp_layer
+
+        self.mlp_layers = nn.ModuleList()
+        for i in range(len(self._mlp_layers)):
+            if i == 0:
+                self.mlp_layers.append(nn.Linear(self.sequence_length, self._mlp_layers[i]))
+            else:
+                self.mlp_layers.append(nn.Linear(self._mlp_layers[i-1], self._mlp_layers[i]))
+
+        if len(self._mlp_layers) == 0:
+            self.d_model = self.sequence_length
+        else:
+            self.d_model = self._mlp_layers[-1]
 
         self.d_k = self.d_q = self.d_model // self.n_head
-        self.dropout = nn.Dropout(p=config.graph_learning.dropout_rate)
-
         self.query_projection = nn.Linear(self.d_model, self.d_k * self.n_head)
         self.key_projection = nn.Linear(self.d_model, self.d_k * self.n_head)
 
@@ -87,11 +99,15 @@ class GraphLearningProbSparseAttention(nn.Module):
             else:
                 torch.nn.init.zeros_(p)
 
-    def forward(self, q, k):
-        B, nodes_num, hidden = q.shape
+    def forward(self, x):
+        B, nodes_num, hidden = x.shape
 
-        queries = self.query_projection(q).view(B, nodes_num, self.n_head, -1)
-        keys = self.key_projection(k).view(B, nodes_num, self.n_head, -1)
+        for layer in self.mlp_layers:
+            x = layer(x)
+            x = F.relu(x)
+
+        queries = self.query_projection(x).view(B, nodes_num, self.n_head, -1)
+        keys = self.key_projection(x).view(B, nodes_num, self.n_head, -1)
 
         attn = self.attention(queries, keys)
 
