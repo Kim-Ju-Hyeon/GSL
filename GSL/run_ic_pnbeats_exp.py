@@ -16,7 +16,8 @@ import yaml
 @click.option('--stack_num', type=int, default=1)
 @click.option('--n_pool_kernel_size', type=click.STRING, default='4')
 @click.option('--n_stride_size', type=click.STRING, default='2')
-def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size):
+@click.option('--factor', type=int, default=2)
+def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
     config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
 
     temp = stack_num // 3
@@ -31,12 +32,12 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size):
     n_stride_size.sort(reverse=True)
 
     mlp_stack_list = [512, 1024]
-    singular_stack_num_list = [1, 3]
+    n_head_list = [4, 16, 64]
 
-    for singular_stack_num in singular_stack_num_list:
+    for n_head in n_head_list:
         for mlp_stack in mlp_stack_list:
             hyperparameter = f'stacks_{stack_num}' \
-                             f'__singular_stack_num_{singular_stack_num}' \
+                             f'__n_head_{n_head}' \
                              f'__mlp_stack_{mlp_stack}'
 
             now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
@@ -52,10 +53,12 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size):
             mkdir(config.model_save)
 
             config.forecasting_module.stack_num = stack_num
-            config.forecasting_module.singular_stack_num = singular_stack_num
             config.forecasting_module.n_pool_kernel_size = n_pool_kernel_size
             config.forecasting_module.n_theta_hidden = [mlp_stack]
             config.forecasting_module.n_stride_size = n_stride_size
+
+            config.graph_learning.factor = factor
+            config.graph_learning.n_head = n_head
 
             save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
             yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)

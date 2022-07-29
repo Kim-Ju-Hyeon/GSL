@@ -5,92 +5,39 @@ import yaml
 import traceback
 import os
 import torch
-from torch_geometric.loader import DataLoader
-
-from dataset.make_spike_datset import MakeSpikeDataset
-from dataset.make_dataset_METR_PEMS import METR_PEMS_DatasetLoader
-from dataset.make_dataset_ett import ETTDatasetLoader
-from dataset.make_dataset_covid19 import COVID19DatasetLoader
-from dataset.make_dataset_exchange import ExchangeDatasetLoader
-from dataset.make_dataset_ecl import ECLDatasetLoader
-from dataset.make_dataset_wth import WTHDatasetLoader
-from dataset.make_dataset_traffic import TrafficDatasetLoader
+from dataset.temporal_graph_dataset import Temporal_Graph_Signal
 
 
 def download_save_dataset(config):
-    dataset_conf = config.dataset
-    train_conf = config.train
-
     num_timesteps_in = config.forecasting_module.backcast_length
     num_timesteps_out = config.forecasting_module.forecast_length
-    batch_size = train_conf.batch_size
+    batch_size = config.train.batch_size
     dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
 
     ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
-
-    if os.path.exists(os.path.join(dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
-        pass
-
+    if config.dataset.name in ett_dataset_list:
+        path = f'./data/ETT/{config.dataset.name}'
     else:
-        if dataset_conf.name == 'spike_lambda_bin100':
-            spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
+        path = f'./data/{config.dataset.name}'
 
-            entire_inputs = torch.FloatTensor(spike[:, :dataset_conf.graph_learning_length])
+    path = os.path.join(path, f'temporal_signal_{dataset_hyperparameter}.pickle')
 
-            dataset_maker = MakeSpikeDataset(config)
-            total_dataset = dataset_maker.make()
+    loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type)
 
-            train_dataset = DataLoader(total_dataset['train'], batch_size=train_conf.batch_size)
-            valid_dataset = DataLoader(total_dataset['valid'], batch_size=train_conf.batch_size)
-            test_dataset = DataLoader(total_dataset['test'], batch_size=train_conf.batch_size)
+    loader.preprocess_dataset()
+    train_dataset, valid_dataset, test_dataset = loader.get_dataset(
+        num_timesteps_in=config.forecasting_module.backcast_length,
+        num_timesteps_out=config.forecasting_module.forecast_length,
+        batch_size=config.train.batch_size)
 
-        elif (dataset_conf.name == 'METR-LA') or (dataset_conf.name == 'PEMS-BAY'):
-            loader = METR_PEMS_DatasetLoader(raw_data_dir=dataset_conf.root, dataset_name=dataset_conf.name,
-                                          scaler_type=config.dataset.scaler_type)
+    scaler = loader.get_scaler()
 
-        elif dataset_conf.name == 'ECL':
-            loader = ECLDatasetLoader(raw_data_dir=dataset_conf.root,
-                                      scaler_type=config.dataset.scaler_type)
-        elif dataset_conf.name in ett_dataset_list:
-            loader = ETTDatasetLoader(raw_data_dir=dataset_conf.root,
-                                      scaler_type=config.dataset.scaler_type,
-                                      group=dataset_conf.name)
+    temporal_signal = {'train': train_dataset,
+                       'validation': valid_dataset,
+                       'test': test_dataset,
+                       'scaler': scaler}
 
-        elif dataset_conf.name == 'COVID19':
-            loader = COVID19DatasetLoader(raw_data_dir= dataset_conf.root,
-                                          scaler_type=config.dataset.scaler_type)
-
-        elif dataset_conf.name == 'Exchange':
-            loader = ExchangeDatasetLoader(raw_data_dir=dataset_conf.root,
-                                           scaler_type=config.dataset.scaler_type)
-
-        elif dataset_conf.name == 'WTH':
-            loader = WTHDatasetLoader(raw_data_dir=dataset_conf.root,
-                                      scaler_type=config.dataset.scaler_type)
-
-        elif dataset_conf.name == 'Traffic':
-            loader = TrafficDatasetLoader(raw_data_dir=dataset_conf.root,
-                                          scaler_type=config.dataset.scaler_type)
-        else:
-            raise ValueError("Non-supported dataset!")
-
-        train_dataset, valid_dataset, test_dataset, entire_inputs = loader.get_dataset(
-            num_timesteps_in=config.forecasting_module.backcast_length,
-            num_timesteps_out=config.forecasting_module.forecast_length,
-            batch_size=train_conf.batch_size)
-
-        entire_inputs = entire_inputs[:, :, :]
-        scaler = loader.get_scaler()
-
-        temporal_signal = {'train': train_dataset,
-                           'validation': valid_dataset,
-                           'test': test_dataset,
-                           'entire_inputs': entire_inputs,
-                           'scaler': scaler}
-
-        pickle.dump(temporal_signal,
-                    open(os.path.join(dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'),
-                         'wb'), protocol=4)
+    pickle.dump(temporal_signal, open(path, 'wb'))
 
 
 @click.command()
