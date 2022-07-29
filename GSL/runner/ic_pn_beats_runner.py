@@ -19,8 +19,7 @@ import yaml
 from utils.train_helper import edict2dict
 
 
-
-class runner(object):
+class Runner(object):
     def __init__(self, config):
         self.get_dataset(config)
         self.config = config
@@ -37,7 +36,7 @@ class runner(object):
 
         self.train_conf = config.train
         self.dataset_conf = config.dataset
-        self.nodes_num = config.nodes_num
+        self.nodes_num = config.dataset.nodes_num
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
@@ -72,7 +71,7 @@ class runner(object):
         save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
         yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
-        if os.path.exists(path):
+        if os.path.isfile(path):
             temporal_signal = pickle.load(open(path, 'rb'))
             self.train_dataset = temporal_signal['train']
             self.valid_dataset = temporal_signal['validation']
@@ -81,7 +80,7 @@ class runner(object):
 
         else:
             loader.preprocess_dataset()
-            self.train_dataset, self.valid_dataset, self.test_dataset, self.entire_inputs = loader.get_dataset(
+            self.train_dataset, self.valid_dataset, self.test_dataset = loader.get_dataset(
                 num_timesteps_in=config.forecasting_module.backcast_length,
                 num_timesteps_out=config.forecasting_module.forecast_length,
                 batch_size=config.train.batch_size)
@@ -192,8 +191,7 @@ class runner(object):
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-        self.train_conf.batch_size = 1
-
+        self.config.train.batch_size = 1
         self.best_model = IC_PN_BEATS_model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 
@@ -226,7 +224,7 @@ class runner(object):
                 data_batch = data_batch.to(device=self.device)
 
             with torch.no_grad():
-                _backcast_output, _forecast_output, outputs = self.model(data_batch.x, interpretability=True)
+                _backcast_output, _forecast_output, outputs = self.best_model(data_batch.x, interpretability=True)
 
             loss = self.loss(_forecast_output, data_batch.y)
 
@@ -268,10 +266,10 @@ class runner(object):
         results['score'] = {'scaled_score': scaled_score,
                             'inv_scaled_score': inv_scaled_score}
 
-        self.logger.info("Avg. Test Loss = {:.6}".format(test_loss, 0))
-        self.logger.info(f"Avg. MAE = {scaled_score['MAE']:.6}")
-        self.logger.info(f"Avg. MAPE = {scaled_score['MAPE']:.6}")
-        self.logger.info(f"Avg. RMSE = {scaled_score['RMSE']:.6}")
-        self.logger.info(f"Avg. MSE = {scaled_score['MSE']:.6}")
+        self.logger.info(f"Avg. Test Loss = {results['test_loss']}")
+        self.logger.info(f"Avg. MAE = {scaled_score['MAE']}")
+        self.logger.info(f"Avg. MAPE = {scaled_score['MAPE']}")
+        self.logger.info(f"Avg. RMSE = {scaled_score['RMSE']}")
+        self.logger.info(f"Avg. MSE = {scaled_score['MSE']}")
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))

@@ -1,5 +1,5 @@
 import click
-from runner.runner import Runner
+from runner.ic_pn_beats_runner import Runner
 import traceback
 from utils.logger import setup_logging
 import os

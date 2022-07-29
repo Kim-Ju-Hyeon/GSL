@@ -57,8 +57,6 @@ class IC_PN_BEATS(nn.Module):
         self.n_theta_hidden = config.forecasting_module.n_theta_hidden
         self.thetas_dim = config.forecasting_module.thetas_dim
         self.n_layers = config.forecasting_module.inter_correlation_stack_length
-        self.share_weights_in_stack = config.forecasting_module.share_weights_in_stack
-
         self.pooling_mode = config.forecasting_module.pooling_mode
         self.n_pool_kernel_size = config.forecasting_module.n_pool_kernel_size
         self.n_stride_size = config.forecasting_module.n_stride_size

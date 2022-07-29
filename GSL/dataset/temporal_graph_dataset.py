@@ -91,7 +91,7 @@ class Temporal_Graph_Signal(object):
         elif dataset_name in ett_dataset_list:
             self.nodes_num = 7
             self.node_features = 5
-            self.url = 'https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/'
+            self.url = f'https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/{dataset_name}.csv'
             if (dataset_name == ett_dataset_list[0]) or (dataset_name == ett_dataset_list[1]):
                 self.freq = '15min'
             else:
