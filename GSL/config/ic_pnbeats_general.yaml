@@ -3,15 +3,12 @@ exp_name: 0517_N_BEATS # 0417
 exp_dir: ../exp
 use_gpu: False
 device: cpu
-seed: None # If you want to reproduce set the seed that you want
-model_name: N_BEATS_generic  # GTS_Top_k_Masking_model, ...
+seed: None # If you want to reproduce set the seed
+model_name: N_BEATS_generic
 train_resume: False
 
 dataset:
-    root: ./data/ECL # METR-LA, PEMS-BAY, ECL
-    name: ECL
-    nodes_num: 321 # 207, 321
-    node_features: 5 # 2, 5
+    name: ECL # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
 
 train:
