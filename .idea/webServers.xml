@@ -17,7 +17,7 @@
         </fileTransfer>
       </webServer>
       <webServer id="bf3f2e0f-f785-4268-a63b-93fa086a8051" name="Octo_gsl">
-        <fileTransfer rootFolder="/home/JuHyeon" accessType="SFTP" host="166.104.35.40" port="22" sshConfigId="75f4e595-565e-4a7a-9582-f9a7a7d90872" sshConfig="JuHyeon@166.104.35.40:22 password">
+        <fileTransfer rootFolder="/home/juhyeon" accessType="SFTP" host="166.104.35.40" port="22" sshConfigId="75f4e595-565e-4a7a-9582-f9a7a7d90872" sshConfig="juhyeon@166.104.35.40:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
