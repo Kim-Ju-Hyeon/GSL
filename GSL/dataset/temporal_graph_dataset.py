@@ -39,26 +39,31 @@ class Temporal_Graph_Signal(object):
             else:
                 self._read_web_data()
 
-                y_df = pd.read_csv(os.path.join(self.path, f'{self.dataset_name}.csv'))
+                y_df = pd.read_csv(os.path.join(self.path, f'{self.dataset_name}.csv'), index_col=self.index_col)
 
-                y_df['date'] = pd.to_datetime(y_df['date'])
-                y_df.rename(columns={'date': 'ds'}, inplace=True)
-                u_ids = y_df.columns.to_list()
-                u_ids.remove('ds')
-                time_cls = time_features_from_frequency_str(self.freq)
-                for cls_ in time_cls:
-                    cls_name = cls_.__class__.__name__
-                    y_df[cls_name] = cls_(y_df['ds'].dt)
+                if self.dataset_name == 'Exchange':
+                    X = y_df.to_numpy().T
+                    X = np.expand_dims(X, axis=1)
+                    X = self.scaler.scale(X)
+                else:
+                    y_df['date'] = pd.to_datetime(y_df['date'])
+                    y_df.rename(columns={'date': 'ds'}, inplace=True)
+                    u_ids = y_df.columns.to_list()
+                    u_ids.remove('ds')
+                    time_cls = time_features_from_frequency_str(self.freq)
+                    for cls_ in time_cls:
+                        cls_name = cls_.__class__.__name__
+                        y_df[cls_name] = cls_(y_df['ds'].dt)
 
-                time_stamp = y_df.drop(u_ids + ['ds'], axis=1).to_numpy().T
-                temp = np.array([time_stamp for _ in range(self.nodes_num)])
+                    time_stamp = y_df.drop(u_ids + ['ds'], axis=1).to_numpy().T
+                    temp = np.array([time_stamp for _ in range(self.nodes_num)])
 
-                df = y_df[u_ids].to_numpy().T
-                df = np.expand_dims(df, axis=1)
-                df = self.scaler.scale(df)
+                    df = y_df[u_ids].to_numpy().T
+                    df = np.expand_dims(df, axis=1)
+                    df = self.scaler.scale(df)
 
-                # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
-                X = np.concatenate([df, temp], axis=1)
+                    # Total X dimension = [Number of Nodes, Number of Features, Sequence Length]
+                    X = np.concatenate([df, temp], axis=1)
 
                 total_sequence_length = X.shape[-1]
                 train_index = int(total_sequence_length * 0.6) + 1
@@ -79,19 +84,23 @@ class Temporal_Graph_Signal(object):
             self.nodes_num = 325
             self.node_features = 2
             self.url = "https://graphmining.ai/temporal_datasets/PEMS-BAY.zip"
+
         elif dataset_name == 'COVID19':
+            self.index_col = 0
             self.nodes_num = 25
-            self.node_features = 5
+            self.node_features = 4
             self.freq = '1D'
             self.url = 'https://drive.google.com/file/d/1rPwzpCH8fzNiteXMyO71EbKixievDu3j/view?usp=sharing'
         elif self.dataset_name == 'ECL':
+            self.index_col = False
             self.nodes_num = 321
             self.node_features = 5
             self.url = 'https://drive.google.com/file/d/1nzq4Q3bdVHBqpiz4V7hR1Z3w-kssADmt/view?usp=sharing'
             self.freq = '1H'
         elif dataset_name in ett_dataset_list:
+            self.index_col = False
             self.nodes_num = 7
-            self.node_features = 5
+
             if dataset_name == ett_dataset_list[0]:
                 self.url = 'https://drive.google.com/file/d/1KSAK82HFR2rE8NxkZu5OoG6ax_Od2FNo/view?usp=sharing'
             elif dataset_name == ett_dataset_list[1]:
@@ -103,19 +112,27 @@ class Temporal_Graph_Signal(object):
 
             if (dataset_name == ett_dataset_list[0]) or (dataset_name == ett_dataset_list[1]):
                 self.freq = '15min'
+                self.node_features = 6
             else:
                 self.freq = '1H'
+                self.node_features = 5
+
         elif dataset_name == 'WTH':
-            self.nodes_num = 21
+            self.index_col = False
+            self.nodes_num = 12
             self.node_features = 5
             self.url = 'https://drive.google.com/file/d/1GZyRQujWfVNs7Hd4uiLQefqTZS83nYE9/view?usp=sharing'
-            self.freq = '10min'
+            self.freq = '1H'
+
         elif dataset_name == 'Traffic':
+            self.index_col = 0
             self.nodes_num = 862
             self.node_features = 5
             self.freq = '1H'
             self.url = 'https://drive.google.com/file/d/1v6nDK-X_77OaIYMhce4675I692GsEvDI/view?usp=sharing'
+
         elif dataset_name == 'Exchange':
+            self.index_col = 0
             self.nodes_num = 8
             self.node_features = 1
             self.url = 'https://drive.google.com/file/d/1TIRVGj4KkTtvTzeBVG1-xU8gHCaMagAj/view?usp=sharing'
