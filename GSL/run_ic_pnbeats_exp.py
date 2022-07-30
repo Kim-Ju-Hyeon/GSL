@@ -29,8 +29,8 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
     n_stride_size = n_stride_size * temp
     n_stride_size.sort(reverse=True)
 
-    mlp_stack_list = [512, 1024]
-    n_head_list = [4, 16, 64]
+    mlp_stack_list = [512]
+    n_head_list = [4, 16]
 
     for n_head in n_head_list:
         for mlp_stack in mlp_stack_list:
@@ -42,7 +42,7 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
 
             now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
             sub_dir = '_'.join([hyperparameter, now.strftime('%m%d_%H%M%S')])
-            config.seed = set_seed()
+            config.seed = set_seed(config.seed)
 
             config.exp_name = config.exp_name
 
