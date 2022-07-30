@@ -18,8 +18,6 @@ import yaml
 @click.option('--n_stride_size', type=click.STRING, default='2')
 @click.option('--factor', type=int, default=2)
 def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
-    config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
-
     temp = stack_num // 3
     n_pool_kernel_size = n_pool_kernel_size.split(',')
     n_pool_kernel_size = [int(j.strip()) for j in n_pool_kernel_size]
@@ -36,13 +34,15 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
 
     for n_head in n_head_list:
         for mlp_stack in mlp_stack_list:
+            config = edict(yaml.load(open(conf_file_path, 'r'), Loader=yaml.FullLoader))
+
             hyperparameter = f'stacks_{stack_num}' \
                              f'__n_head_{n_head}' \
                              f'__mlp_stack_{mlp_stack}'
 
             now = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
             sub_dir = '_'.join([hyperparameter, now.strftime('%m%d_%H%M%S')])
-            config.seed = set_seed(config.seed)
+            config.seed = set_seed()
 
             config.exp_name = config.exp_name
 

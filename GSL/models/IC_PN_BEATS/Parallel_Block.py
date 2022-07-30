@@ -21,7 +21,7 @@ class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):
 
         _multi_head = []
         for ii, layer in enumerate(self.Inter_Correlation_Block):
-            for head in range(edge_index.shape[0]):
+            for head in range(len(edge_index)):
                 x = layer(x, edge_index[head], edge_weight[head])
                 x = self.activ(x)
                 x = self.batch_norm_layer_list[ii](x)

@@ -16,8 +16,8 @@ def attn_to_edge_index(attn):
         edge_index.append(_sparse[0])
         edge_weight.append(_sparse[1])
 
-    edge_index = torch.stack(edge_index, axis=0)
-    edge_weight = torch.stack(edge_weight, axis=1)
+    # edge_index = torch.stack(edge_index, axis=0)
+    # edge_weight = torch.stack(edge_weight, axis=0)
 
     return edge_index, edge_weight
 

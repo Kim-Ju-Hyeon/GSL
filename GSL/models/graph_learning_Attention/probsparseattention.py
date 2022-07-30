@@ -51,7 +51,7 @@ class ProbAttention(nn.Module):
         scores_top, index = self._prob_QK(queries, keys, sample_k=U_part, n_top=u)
 
         # add scale factor
-        scale = 1. / sqrt(D)
+        scale = 1. / torch.sqrt(torch.tensor(keys.shape[-1]).to(torch.float32))
         scores_top = scores_top * scale
 
         # update the context with selected top_k queries
