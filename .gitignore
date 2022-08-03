@@ -1,7 +1,8 @@
 .DS_Store
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-/ignore_jupyter/
+
+*/ignore_jupyter/*
 venv
 *.tar.gz
 
@@ -117,3 +118,5 @@ Terms
 Privacy
 Security
 Status
+!/Jupyter Notebook/ignore_jupyter/
+!/Jupyter Notebook/ignore_jupyter/

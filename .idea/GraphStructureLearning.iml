@@ -11,6 +11,7 @@
       <excludeFolder url="file://$MODULE_DIR$/JupyterNoteBook/data" />
       <excludeFolder url="file://$MODULE_DIR$/.ipynb_checkpoints" />
       <excludeFolder url="file://$MODULE_DIR$/exp" />
+      <excludeFolder url="file://$MODULE_DIR$/Jupyter Notebook/.ipynb_checkpoints" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (GraphStructureLearning)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
