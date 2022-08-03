@@ -1,7 +1,7 @@
 .DS_Store
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-
+/ignore_jupyter/
 venv
 *.tar.gz
 
