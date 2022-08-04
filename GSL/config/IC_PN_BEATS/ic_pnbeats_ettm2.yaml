@@ -1,5 +1,5 @@
 ---
-exp_name: 0729_ECL_EXP # 0417
+exp_name: 0804_ETTm2_EXP # 0417
 exp_dir: ../exp
 use_gpu: False
 device: cpu
@@ -15,7 +15,7 @@ train:
     optimizer: Adam
     epoch: 250
     loss_function : MAE
-    backcast_loss: True
+    backcast_loss: False
     lr: 1.0e-3
     wd: 0.0e-4 # Adam
     momentum: 0.9 # SGD
@@ -24,7 +24,7 @@ train:
     batch_size : 16
 
 graph_learning:
-    factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    factor: 2 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
     pre_mlp_layer: [8, 4]
