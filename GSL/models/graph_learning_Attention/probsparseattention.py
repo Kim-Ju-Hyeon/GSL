@@ -66,7 +66,7 @@ class ProbAttention(nn.Module):
 class GraphLearningProbSparseAttention(nn.Module):
     def __init__(self, config):
         super(GraphLearningProbSparseAttention, self).__init__()
-        self.num_nodes = config.dataset.num_nodes
+        self.num_nodes = config.dataset.nodes_num
         self.batch_size = config.train.batch_size
 
         self.n_head = config.graph_learning.n_head
@@ -114,11 +114,10 @@ class GraphLearningProbSparseAttention(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        for name, p in self.named_parameters():
-            if 'bias' not in name:
-                torch.nn.init.xavier_uniform_(p)
-            else:
-                torch.nn.init.zeros_(p)
+        for m in self.modules():
+            if (isinstance(m, nn.Linear)) or (isinstance(m, nn.Conv1d)):
+                nn.init.xavier_normal_(m.weight.data)
+                m.bias.data.fill_(0.1)
 
     def forward(self, x):
         B, nodes_num, hidden = x.shape

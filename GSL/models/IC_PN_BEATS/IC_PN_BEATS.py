@@ -8,18 +8,8 @@ from torch_geometric.utils import dense_to_sparse
 
 
 def attn_to_edge_index(attn):
-    edge_index = []
-    edge_weight = []
-
-    for head in range(attn.shape[0]):
-        _sparse = dense_to_sparse(attn[head])
-        edge_index.append(_sparse[0])
-        edge_weight.append(_sparse[1])
-
-    # edge_index = torch.stack(edge_index, axis=0)
-    # edge_weight = torch.stack(edge_weight, axis=0)
-
-    return edge_index, edge_weight
+    _sparse = dense_to_sparse(attn)
+    return _sparse[0], _sparse[1]
 
 
 class IC_PN_BEATS(nn.Module):
@@ -76,16 +66,6 @@ class IC_PN_BEATS(nn.Module):
                 raise ValueError('Invalid Pooling Mode Only "max", "average" is available')
 
             self.pooling_stack.append(pooling_layer)
-
-        # # For Inference Interpret
-        # self.per_trend_backcast = []
-        # self.per_trend_forecast = []
-        #
-        # self.per_seasonality_backcast = []
-        # self.per_seasonality_forecast = []
-        #
-        # self.singual_backcast = []
-        # self.singual_forecast = []
 
         # Make Stack For Trend, Seasonality, Singular
         self.trend_stacks = []
@@ -170,32 +150,34 @@ class IC_PN_BEATS(nn.Module):
         _singual_backcast = []
         _singual_forecast = []
 
-        _attention_matrix = []
+        _trend_attention_matrix = []
+        _seasonality_attention_matrix = []
+        _singual_attention_matrix = []
 
         for stack_index in range(self.stack_num):
-            gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
-            attn = self.graph_learning_module(gl_input)
-
-            multi_head_batch_edge_index, multi_head_batch_edge_weight = attn_to_edge_index(attn.permute(1,0,2,3))
-
             pooled_inputs = self.pooling_stack[stack_index](inputs.unsqueeze(dim=1))
             trend_input = F.interpolate(pooled_inputs, size=inputs.size()[1],
                                         mode='linear', align_corners=False).squeeze(dim=1)
             seasonality_input = inputs - trend_input
 
-            trend_b, trend_f = self.trend_stacks[stack_index](trend_input, multi_head_batch_edge_index,
-                                                              multi_head_batch_edge_weight)
+            trend_attn = self.graph_learning_module(trend_input.view(self.batch_size, self.nodes_num, self.backcast_length))
+            trend_batch_edge_index, trend_batch_edge_weight = attn_to_edge_index(trend_attn)
+            trend_b, trend_f = self.trend_stacks[stack_index](trend_input, trend_batch_edge_index,
+                                                              trend_batch_edge_weight)
 
+            seasonality_attn = self.graph_learning_module(seasonality_input.view(self.batch_size, self.nodes_num, self.backcast_length))
+            seasonality_batch_edge_index, seasonality_batch_edge_weight = attn_to_edge_index(seasonality_attn)
             seasonality_b, seasonality_f = self.seasonality_stacks[stack_index](seasonality_input,
-                                                                                multi_head_batch_edge_index,
-                                                                                multi_head_batch_edge_weight)
+                                                                                seasonality_batch_edge_index,
+                                                                                seasonality_batch_edge_weight)
 
             if interpretability:
                 _per_trend_backcast.append(trend_b.cpu().detach().numpy())
                 _per_trend_forecast.append(trend_f.cpu().detach().numpy())
                 _per_seasonality_backcast.append(seasonality_b.cpu().detach().numpy())
                 _per_seasonality_forecast.append(seasonality_f.cpu().detach().numpy())
-                _attention_matrix.append(attn.cpu().detach().numpy())
+                _trend_attention_matrix.append(trend_attn.cpu().detach().numpy())
+                _seasonality_attention_matrix.append(seasonality_attn.cpu().detach().numpy())
 
             inputs = inputs - trend_b - seasonality_b
 
@@ -206,16 +188,16 @@ class IC_PN_BEATS(nn.Module):
             gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
             attn = self.graph_learning_module(gl_input)
 
-            multi_head_batch_edge_index, multi_head_batch_edge_weight = attn_to_edge_index(attn.permute(1,0,2,3))
+            _batch_edge_index, _batch_edge_weight = attn_to_edge_index(attn)
 
             singular_b, singular_f = self.sigular_stacks[singular_stack_index](inputs,
-                                                                               multi_head_batch_edge_index,
-                                                                               multi_head_batch_edge_weight)
+                                                                               _batch_edge_index,
+                                                                               _batch_edge_weight)
 
             if interpretability:
                 _singual_backcast.append(singular_b.cpu().detach().numpy())
                 _singual_forecast.append(singular_f.cpu().detach().numpy())
-                _attention_matrix.append(attn.cpu().detach().numpy())
+                _singual_attention_matrix.append(attn.cpu().detach().numpy())
 
             inputs = inputs - singular_b
 
@@ -229,7 +211,9 @@ class IC_PN_BEATS(nn.Module):
             self.per_seasonality_backcast = np.stack(_per_seasonality_backcast, axis=0)
             self.per_seasonality_forecast = np.stack(_per_seasonality_forecast, axis=0)
 
-            self.attn_matrix = np.stack(_attention_matrix, axis=0)
+            self.attn_matrix = {'Trend': _trend_attention_matrix,
+                                'Seasonality': _seasonality_attention_matrix,
+                                'Singular': _singual_attention_matrix}
 
             if self.singular_stack_num >= 1:
                 self.singual_backcast = np.stack(_singual_backcast, axis=0)

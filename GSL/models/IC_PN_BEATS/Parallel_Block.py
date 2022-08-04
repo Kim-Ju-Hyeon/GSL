@@ -12,24 +12,16 @@ class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):
                                                                 thetas_dim, backcast_length, forecast_length,
                                                                 activation, inter_correlation_stack_length)
 
-        self.weight_sum = nn.Linear(n_head, 1)
-
     def forward(self, x, edge_index, edge_weight):
         for mlp in self.MLP_stack:
             x = mlp(x)
             x = self.drop_out(x)
 
-        _multi_head = []
         for ii, layer in enumerate(self.Inter_Correlation_Block):
-            for head in range(len(edge_index)):
-                x = layer(x, edge_index[head], edge_weight[head])
-                x = self.activ(x)
-                x = self.batch_norm_layer_list[ii](x)
-                x = self.drop_out(x)
-                _multi_head.append(x)
-
-            _multi_head = torch.stack(_multi_head, axis=0)
-            x = self.weight_sum(_multi_head.permute(1, 2, 0)).squeeze()
+            x = layer(x, edge_index, edge_weight)
+            x = self.activ(x)
+            x = self.batch_norm_layer_list[ii](x)
+            x = self.drop_out(x)
 
         return x
 
