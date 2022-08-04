@@ -111,4 +111,4 @@ class GraphLearningProbSparseAttention(nn.Module):
 
         attn = self.attention(queries, keys)
 
-        return attn
+        return attn.mean(dim=1)
