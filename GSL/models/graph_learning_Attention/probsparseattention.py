@@ -66,27 +66,48 @@ class ProbAttention(nn.Module):
 class GraphLearningProbSparseAttention(nn.Module):
     def __init__(self, config):
         super(GraphLearningProbSparseAttention, self).__init__()
+        self.num_nodes = config.dataset.num_nodes
+        self.batch_size = config.train.batch_size
 
         self.n_head = config.graph_learning.n_head
         self.sequence_length = config.forecasting_module.backcast_length
         self.dropout = nn.Dropout(p=config.graph_learning.dropout_rate)
-        self._mlp_layers = config.graph_learning.pre_mlp_layer
 
-        self.mlp_layers = nn.ModuleList()
-        for i in range(len(self._mlp_layers)):
+        self.kernel_size = config.graph_learning.kernel_size
+        self.stride = config.graph_learning.stride
+        self.conv_dim = config.graph_learning.conv_dim
+        self.hidden_dim = config.graph_learning.hidden_dim
+
+        self.feature_extracotr = nn.ModuleList()
+        self.feature_batchnorm = nn.ModuleList()
+
+        for i in range(len(self.conv_dim)):
             if i == 0:
-                self.mlp_layers.append(nn.Linear(self.sequence_length, self._mlp_layers[i]))
+                self.feature_extracotr.append(nn.Conv1d(1,
+                                                        self.conv_dim[i],
+                                                        self.kernel_size[i],
+                                                        stride=self.stride[i]))
             else:
-                self.mlp_layers.append(nn.Linear(self._mlp_layers[i-1], self._mlp_layers[i]))
+                self.feature_extracotr.append(nn.Conv1d(self.conv_dim[i-1],
+                                                        self.conv_dim[i],
+                                                        self.kernel_size[i],
+                                                        stride=self.stride[i]))
 
-        if len(self._mlp_layers) == 0:
-            self.d_model = self.sequence_length
-        else:
-            self.d_model = self._mlp_layers[-1]
+        temp_inpt = torch.Tensor(self.num_nodes*self.batch_size, 1, self.sequence_length)
+        out_size = []
+        for layer in self.feature_extracotr:
+            temp_inpt = layer(temp_inpt)
+            out_size.append(temp_inpt.shape[-1])
 
-        self.d_k = self.d_q = self.d_model // self.n_head
-        self.query_projection = nn.Linear(self.d_model, self.d_k * self.n_head)
-        self.key_projection = nn.Linear(self.d_model, self.d_k * self.n_head)
+        for i in range(len(self.conv_dim)):
+            self.feature_batchnorm.append(nn.LayerNorm(out_size[i]))
+
+        self.fc_concat = nn.Linear(out_size[-1] * self.conv_dim[-1], self.hidden_dim)
+        self.feature_batchnorm.append(nn.LayerNorm(self.hidden_dim))
+
+        self.d_k = self.d_q = self.hidden_dim // self.n_head
+        self.query_projection = nn.Linear(self.hidden_dim, self.d_k * self.n_head)
+        self.key_projection = nn.Linear(self.hidden_dim, self.d_k * self.n_head)
 
         self.attention = ProbAttention(config.graph_learning.factor)
 
@@ -102,9 +123,17 @@ class GraphLearningProbSparseAttention(nn.Module):
     def forward(self, x):
         B, nodes_num, hidden = x.shape
 
-        for layer in self.mlp_layers:
-            x = layer(x)
+        x = x.view(B*nodes_num, 1, -1)
+        for i, conv in enumerate(self.feature_extracotr):
+            x = conv(x)
             x = F.relu(x)
+            x = self.feature_batchnorm[i](x)
+
+        x = x.view(self.num_nodes*self.batch_size, -1)
+
+        x = self.fc_concat(x)
+        x = F.relu(x)
+        x = self.feature_batchnorm[-1](x)
 
         queries = self.query_projection(x).view(B, nodes_num, self.n_head, -1)
         keys = self.key_projection(x).view(B, nodes_num, self.n_head, -1)
