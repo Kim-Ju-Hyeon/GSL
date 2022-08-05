@@ -94,7 +94,6 @@ class Runner(object):
 
             pickle.dump(temporal_signal, open(path, 'wb'))
 
-
     def train(self):
         # create optimizer
         params = filter(lambda p: p.requires_grad, self.model.parameters())
@@ -134,10 +133,29 @@ class Runner(object):
                     data_batch = data_batch.to(device=self.device)
 
                 backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
-                forecast_loss = self.loss(forecast, data_batch.y)
+
+                ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+                if self.dataset_conf.name in ett_dataset_list:
+                    forecast = forecast.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+                    target = data_batch.y.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+
+                    forecast_loss = self.loss(forecast, target)
+                else:
+                    forecast_loss = self.loss(forecast, data_batch.y)
 
                 if self.backcast_loss:
-                    backcast_loss = self.loss(backcast, data_batch.x[:, 0, :])
+                    if self.dataset_conf.name in ett_dataset_list:
+                        backcast = backcast.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+                        inputs = data_batch.x[:, 0, :].view(self.train_conf.batch_size, self.dataset_conf.nodes_num,
+                                                            -1)[:, -1, :]
+
+                        backcast_loss = self.loss(
+                            backcast.view(self.train_conf.batch_size * self.dataset_conf.nodes_num,
+                                          -1), inputs.view(self.train_conf.batch_size *
+                                                           self.dataset_conf.nodes_num, -1))
+                    else:
+                        backcast_loss = self.loss(backcast, data_batch.x[:, 0, :])
+
                     loss = 0.3 * backcast_loss + 0.7 * forecast_loss
                 else:
                     loss = forecast_loss
@@ -171,7 +189,15 @@ class Runner(object):
                 with torch.no_grad():
                     _, forecast, _ = self.model(data_batch.x, interpretability=False)
 
-                forecast_loss = self.loss(forecast, data_batch.y)
+                ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+                if self.dataset_conf.name in ett_dataset_list:
+                    forecast = forecast.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+                    target = data_batch.y.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+
+                    forecast_loss = self.loss(forecast, target)
+                else:
+                    forecast_loss = self.loss(forecast, data_batch.y)
+
                 val_loss += [float(forecast_loss.data.cpu().numpy())]
 
             val_loss = np.stack(val_loss).mean()
@@ -226,7 +252,14 @@ class Runner(object):
             with torch.no_grad():
                 _backcast_output, _forecast_output, outputs = self.best_model(data_batch.x, interpretability=True)
 
-            loss = self.loss(_forecast_output, data_batch.y)
+            ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+            if self.dataset_conf.name in ett_dataset_list:
+                forecast = _forecast_output.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+                ground_truth = data_batch.y.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
+
+                loss = self.loss(forecast, ground_truth)
+            else:
+                loss = self.loss(_forecast_output, data_batch.y)
 
             test_loss += [float(loss.data.cpu().detach().numpy())]
             target += [data_batch.y.cpu().detach().numpy()]
