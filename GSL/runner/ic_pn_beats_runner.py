@@ -296,8 +296,8 @@ class Runner(object):
                                      results['forecast'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                                      scaler=self.scaler)
 
-        results['score'] = {'scaled_score': scaled_score,
-                            'inv_scaled_score': inv_scaled_score}
+        score_dict = {'scaled_score': scaled_score,
+                      'inv_scaled_score': inv_scaled_score}
 
         self.logger.info(f"Avg. Test Loss = {results['test_loss']}")
         self.logger.info(f"Avg. MAE = {scaled_score['MAE']}")
@@ -306,3 +306,4 @@ class Runner(object):
         self.logger.info(f"Avg. MSE = {scaled_score['MSE']}")
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'test_result.pickle'), 'wb'))
+        pickle.dump(score_dict, open(os.path.join(self.config.exp_sub_dir, 'test_score.pickle'), 'wb'))
