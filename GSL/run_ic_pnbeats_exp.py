@@ -30,7 +30,7 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
     n_stride_size.sort(reverse=True)
 
     mlp_stack_list = [512]
-    n_head_list = [8]
+    n_head_list = [4]
 
     for n_head in n_head_list:
         for mlp_stack in mlp_stack_list:
