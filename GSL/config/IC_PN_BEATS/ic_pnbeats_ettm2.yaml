@@ -1,5 +1,5 @@
 ---
-exp_name: 0804_ETTm2_EXP # 0417
+exp_name: 0808_ETTm2_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -28,11 +28,10 @@ graph_learning:
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
-    kernel_size: [16, 8, 4]
-    stride: [4, 4, 2]
-    conv_dim: [4, 16, 32]
-
-    hidden_dim: 16
+    kernel_size: [16, 16]
+    stride: [2, 2]
+    conv_dim: [8, 16]
+    hidden_dim: 128
 
 forecasting_module:
     name: pn_beats

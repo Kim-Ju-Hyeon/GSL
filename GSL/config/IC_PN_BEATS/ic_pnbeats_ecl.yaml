@@ -1,5 +1,5 @@
 ---
-exp_name: 0729_ECL_EXP # 0417
+exp_name: 0808_ECL_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -13,21 +13,25 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 250
+    epoch: 200
     loss_function : MAE
-    backcast_loss: True
+    backcast_loss: False
     lr: 1.0e-3
     wd: 0.0e-4 # Adam
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 8
+    batch_size : 16
 
 graph_learning:
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
-    pre_mlp_layer: [64, 32, 16]
+
+    kernel_size: [16, 16]
+    stride: [2, 2]
+    conv_dim: [8, 16]
+    hidden_dim: 128
 
 forecasting_module:
     name: pn_beats
