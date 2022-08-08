@@ -54,11 +54,11 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
 
             if config.dataset.name == 'ECL':
                 if stack_num == 3:
-                    config.train.batch_size = 32
-                elif stack_num == 6:
-                    config.train.batch_size = 16
-                elif stack_num == 9:
                     config.train.batch_size = 8
+                elif stack_num == 6:
+                    config.train.batch_size = 6
+                elif stack_num == 9:
+                    config.train.batch_size = 5
 
 
             config.forecasting_module.stack_num = stack_num
