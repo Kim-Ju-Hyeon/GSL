@@ -1,8 +1,8 @@
 ---
-exp_name: 0729_ECL_EXP # 0417
+exp_name: 0812_WTH_Exp # 0417
 exp_dir: ../exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: None # If you want to reproduce set the seed
 model_name: IC_PN_BEATS
 train_resume: False
@@ -27,7 +27,11 @@ graph_learning:
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
-    pre_mlp_layer: [8, 4]
+
+    kernel_size: [16, 16]
+    stride: [2, 2]
+    conv_dim: [8, 16]
+    hidden_dim: 128
 
 forecasting_module:
     name: pn_beats

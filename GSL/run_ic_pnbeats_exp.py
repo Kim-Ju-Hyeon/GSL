@@ -16,8 +16,7 @@ import yaml
 @click.option('--stack_num', type=int, default=1)
 @click.option('--n_pool_kernel_size', type=click.STRING, default='4')
 @click.option('--n_stride_size', type=click.STRING, default='2')
-@click.option('--factor', type=int, default=2)
-def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
+def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size):
     temp = stack_num // 3
     n_pool_kernel_size = n_pool_kernel_size.split(',')
     n_pool_kernel_size = [int(j.strip()) for j in n_pool_kernel_size]
@@ -30,7 +29,6 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
     n_stride_size.sort(reverse=True)
 
     mlp_stack_list = [256, 512, 1024]
-    n_head_list = [4, 16, 32]
 
     for n_head in n_head_list:
         for mlp_stack in mlp_stack_list:
@@ -66,8 +64,6 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
             config.forecasting_module.n_theta_hidden = [mlp_stack]
             config.forecasting_module.n_stride_size = n_stride_size
 
-            config.graph_learning.factor = factor
-            config.graph_learning.n_head = n_head
 
             save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
             yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
