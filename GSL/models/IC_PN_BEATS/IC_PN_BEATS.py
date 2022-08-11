@@ -72,10 +72,10 @@ class IC_PN_BEATS(nn.Module):
         self.seasonality_stacks = []
         self.sigular_stacks = []
         for stack_id in range(self.stack_num):
-            self.trend_stacks.append(self.create_stack('trend'))
+            self.trend_stacks.append(self.create_stack('generic'))
 
         for stack_id in range(self.stack_num):
-            self.seasonality_stacks.append(self.create_stack('seasonality'))
+            self.seasonality_stacks.append(self.create_stack('generic'))
 
         for stack_id in range(self.singular_stack_num):
             self.sigular_stacks.append(self.create_stack('generic'))
