@@ -1,5 +1,5 @@
 ---
-exp_name: 0808_ETTm2_EXP # 0417
+exp_name: 0811_ETTm2_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0

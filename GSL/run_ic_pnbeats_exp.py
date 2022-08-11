@@ -29,8 +29,8 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
     n_stride_size = n_stride_size * temp
     n_stride_size.sort(reverse=True)
 
-    mlp_stack_list = [1024]
-    n_head_list = [4]
+    mlp_stack_list = [256, 512, 1024]
+    n_head_list = [4, 16, 32]
 
     for n_head in n_head_list:
         for mlp_stack in mlp_stack_list:
@@ -54,11 +54,11 @@ def main(conf_file_path, stack_num, n_pool_kernel_size, n_stride_size, factor):
 
             if config.dataset.name == 'ECL':
                 if stack_num == 3:
-                    config.train.batch_size = 32
-                elif stack_num == 6:
-                    config.train.batch_size = 16
-                elif stack_num == 9:
                     config.train.batch_size = 8
+                elif stack_num == 6:
+                    config.train.batch_size = 6
+                elif stack_num == 9:
+                    config.train.batch_size = 5
 
 
             config.forecasting_module.stack_num = stack_num
