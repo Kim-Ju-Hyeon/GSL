@@ -1,5 +1,5 @@
 ---
-exp_name: 0811_ETTm2_EXP # 0417
+exp_name: Univariate/0811_ETTm2_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -10,6 +10,7 @@ train_resume: False
 dataset:
     name: ETTm2 # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
+    univariate: True
 
 train:
     optimizer: Adam
@@ -24,14 +25,14 @@ train:
     batch_size : 512
 
 graph_learning:
-    factor: 2 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
-    n_head: 16 # Use it Attention Graph Learning
+    factor: 5 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    n_head: 4 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
     kernel_size: [16, 16]
     stride: [2, 2]
     conv_dim: [8, 16]
-    hidden_dim: 128
+    hidden_dim: 512
 
 forecasting_module:
     name: pn_beats

@@ -30,7 +30,8 @@ class IC_PN_BEATS(nn.Module):
         self.n_head = config.graph_learning.n_head
         self.batch_size = config.train.batch_size
 
-        self.preprocess_layer = nn.Linear(self.num_feature, 1)
+        if not self.config.dataset.univariate:
+            self.preprocess_layer = nn.Linear(self.num_feature, 1)
 
         self.graph_learning_module = GraphLearningProbSparseAttention(self.config)
 
@@ -137,8 +138,13 @@ class IC_PN_BEATS(nn.Module):
 
     def forward(self, inputs, interpretability=False):
         device = inputs.device
-        inputs = inputs.permute(0, 2, 1)
-        inputs = self.preprocess_layer(inputs).squeeze()
+
+        if not self.config.dataset.univariate:
+            inputs = inputs.permute(0, 2, 1)
+            inputs = self.preprocess_layer(inputs).squeeze()
+            inputs = inputs.unsqueeze(dim=1)
+        else:
+            inputs = inputs.squeeze()
 
         forecast = torch.zeros(size=(inputs.size()[0], self.forecast_length)).to(device=device)
         backcast = torch.zeros(size=(inputs.size()[0], self.backcast_length)).to(device=device)
@@ -155,8 +161,8 @@ class IC_PN_BEATS(nn.Module):
         _singual_attention_matrix = []
 
         for stack_index in range(self.stack_num):
-            pooled_inputs = self.pooling_stack[stack_index](inputs.unsqueeze(dim=1))
-            trend_input = F.interpolate(pooled_inputs, size=inputs.size()[1],
+            pooled_inputs = self.pooling_stack[stack_index](inputs)
+            trend_input = F.interpolate(pooled_inputs.unsqueeze(dim=1), size=inputs.size()[1],
                                         mode='linear', align_corners=False).squeeze(dim=1)
             seasonality_input = inputs - trend_input
 
