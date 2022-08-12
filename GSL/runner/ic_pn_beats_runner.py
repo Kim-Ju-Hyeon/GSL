@@ -51,48 +51,21 @@ class Runner(object):
             self.model = self.model.to(device=self.device)
 
     def get_dataset(self, config):
-        num_timesteps_in = config.forecasting_module.backcast_length
-        num_timesteps_out = config.forecasting_module.forecast_length
-        batch_size = config.train.batch_size
-        dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
-
-        ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
-        if config.dataset.name in ett_dataset_list:
-            path = f'./data/ETT/{config.dataset.name}'
-        else:
-            path = f'./data/{config.dataset.name}'
-
-        path = os.path.join(path, f'temporal_signal_{dataset_hyperparameter}.pickle')
-
-        loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type)
+        loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
         config.dataset.nodes_num = loader.nodes_num
         config.dataset.node_features = loader.node_features
         config.dataset.root = loader.path
         save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
         yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
-        if os.path.isfile(path):
-            temporal_signal = pickle.load(open(path, 'rb'))
-            self.train_dataset = temporal_signal['train']
-            self.valid_dataset = temporal_signal['validation']
-            self.test_dataset = temporal_signal['test']
-            self.scaler = temporal_signal['scaler']
+        loader.preprocess_dataset()
+        self.train_dataset, self.valid_dataset, self.test_dataset = loader.get_dataset(
+            num_timesteps_in=config.forecasting_module.backcast_length,
+            num_timesteps_out=config.forecasting_module.forecast_length,
+            batch_size=config.train.batch_size)
 
-        else:
-            loader.preprocess_dataset()
-            self.train_dataset, self.valid_dataset, self.test_dataset = loader.get_dataset(
-                num_timesteps_in=config.forecasting_module.backcast_length,
-                num_timesteps_out=config.forecasting_module.forecast_length,
-                batch_size=config.train.batch_size)
+        self.scaler = loader.get_scaler()
 
-            self.scaler = loader.get_scaler()
-
-            temporal_signal = {'train': self.train_dataset,
-                               'validation': self.valid_dataset,
-                               'test': self.test_dataset,
-                               'scaler': self.scaler}
-
-            pickle.dump(temporal_signal, open(path, 'wb'))
 
     def train(self):
         # create optimizer
