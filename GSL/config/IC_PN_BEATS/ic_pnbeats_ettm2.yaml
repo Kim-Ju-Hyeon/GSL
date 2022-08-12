@@ -1,5 +1,5 @@
 ---
-exp_name: 0811_ETTm2_EXP # 0417
+exp_name: Univariate/0811_ETTm2_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -26,13 +26,13 @@ train:
 
 graph_learning:
     factor: 5 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
-    n_head: 16 # Use it Attention Graph Learning
+    n_head: 4 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
     kernel_size: [16, 16]
     stride: [2, 2]
     conv_dim: [8, 16]
-    hidden_dim: 128
+    hidden_dim: 512
 
 forecasting_module:
     name: pn_beats
