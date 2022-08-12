@@ -17,8 +17,8 @@ import yaml
 @click.option('--singular_stack', type=int, default=1)
 def main(conf_file_path, stack_num, singular_stack):
     mlp_stack_list = [32, 256, 512]
-    mlp_num = [1, 2, 4]
-    thetas_dim_list = [[16, 16], [64, 64], [256, 256], [512, 512]]
+    mlp_num = [1, 3]
+    thetas_dim_list = [[16, 16], [64, 64], [256, 256]]
 
     for thetas_dim in thetas_dim_list:
         for _mlp_num in mlp_num:
@@ -62,7 +62,7 @@ def main(conf_file_path, stack_num, singular_stack):
 
                 config.forecasting_module.stack_num = stack_num
                 config.forecasting_module.singular_stack_num = singular_stack
-                config.forecasting_module.n_theta_hidden = [mlp_stack] * mlp_num
+                config.forecasting_module.n_theta_hidden = [mlp_stack] * _mlp_num
                 config.forecasting_module.thetas_dim = thetas_dim
 
                 config.forecasting_module.n_pool_kernel_size = n_pool_kernel_size

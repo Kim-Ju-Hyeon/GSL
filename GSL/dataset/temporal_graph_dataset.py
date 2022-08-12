@@ -48,10 +48,12 @@ class Temporal_Graph_Signal(object):
             if self.dataset_name == 'Exchange':
                 X = y_df.to_numpy().T
                 X = X.astype(np.float32)
+                X = np.expand_dims(X, axis=1)
                 X = self.scaler.scale(X)
             else:
                 _df = y_df.drop(['date'], axis=1).to_numpy().T
                 X = _df.astype(np.float32)
+                X = np.expand_dims(X, axis=1)
                 X = self.scaler.scale(X)
 
                 if not self.univariate:
