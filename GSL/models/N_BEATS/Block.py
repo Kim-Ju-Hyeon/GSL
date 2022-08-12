@@ -82,13 +82,13 @@ class Inter_Correlation_Block(nn.Module):
         self.MLP_stack = nn.ModuleList()
         for i in range(len(self.n_theta_hidden)):
             if i == 0:
-                # self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
-                self.MLP_stack.append(GLU(self.backcast_length, self.n_theta_hidden[i]))
+                self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
+                # self.MLP_stack.append(GLU(self.backcast_length, self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
                 self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
             else:
-                # self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
-                self.MLP_stack.append(GLU(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
+                self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
+                # self.MLP_stack.append(GLU(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
                 self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
 
