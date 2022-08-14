@@ -56,9 +56,6 @@ class Temporal_Graph_Signal(object):
                 X = np.expand_dims(X, axis=1)
                 X = self.scaler.scale(X)
 
-                if not self.univariate:
-                    self.time_stamp = self._get_timestamp(y_df)
-
             total_sequence_length = X.shape[-1]
             train_index = int(total_sequence_length * 0.6) + 1
             valid_index = int(total_sequence_length * 0.2) + 1 + train_index
@@ -224,17 +221,27 @@ class Temporal_Graph_Signal(object):
         ]
 
         features, target = [], []
+        if not self.univariate:
+            self.time_stamp = self._get_timestamp(y_df)
+            time_feature = []
         for i, j in indices:
             features.append((dataset[:, :, i: i + num_timesteps_in]))
             target.append((dataset[:, 0, i + num_timesteps_in: j]))
+            if not self.univariate:
+                time_feature.append(self.time_stamp[:, i:i+num_timesteps_in])
 
         features = torch.FloatTensor(np.array(features))
         targets = torch.FloatTensor(np.array(target))
+        if not self.univariate:
+            time_feature = torch.FloatTensor(np.array(time_feature))
 
         _data = []
 
         for batch in range(len(indices)):
-            _data.append(Data(x=features[batch], y=targets[batch]))
+            if self.univariate:
+                _data.append(Data(x=features[batch], y=targets[batch], time_stamp=None))
+            elif not self.univariate:
+                _data.append(Data(x=features[batch], y=targets[batch], time_stamp=time_feature[batch]))
 
         return _data
 

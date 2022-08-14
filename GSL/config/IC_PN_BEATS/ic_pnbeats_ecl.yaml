@@ -1,5 +1,5 @@
 ---
-exp_name: 0808_ECL_EXP # 0417
+exp_name: Univariate/0815_ECL_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -22,7 +22,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 16
+    batch_size : 64
 
 graph_learning:
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
@@ -32,7 +32,7 @@ graph_learning:
     kernel_size: [16, 16]
     stride: [2, 2]
     conv_dim: [8, 16]
-    hidden_dim: 128
+    hidden_dim: 512
 
 forecasting_module:
     name: pn_beats
