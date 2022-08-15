@@ -1,5 +1,5 @@
 ---
-exp_name: Univariate/0815_ECL_EXP # 0417
+exp_name: Univariate/0816_ECL_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
