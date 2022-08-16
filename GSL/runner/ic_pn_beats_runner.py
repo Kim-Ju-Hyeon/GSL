@@ -56,6 +56,7 @@ class Runner(object):
         config.dataset.nodes_num = loader.nodes_num
         config.dataset.node_features = loader.node_features
         config.dataset.root = loader.path
+        config.dataset.freq = loader.freq
         save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
         yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 

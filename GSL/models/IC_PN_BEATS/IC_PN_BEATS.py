@@ -2,6 +2,7 @@ import numpy as np
 import torch.nn.functional as F
 from models.graph_learning_Attention.probsparseattention import GraphLearningProbSparseAttention
 from models.IC_PN_BEATS.Parallel_Block import *
+from models.embedding_module.embed import DataEmbedding
 
 import torch.nn as nn
 from torch_geometric.utils import dense_to_sparse
@@ -29,9 +30,12 @@ class IC_PN_BEATS(nn.Module):
         self.num_feature = config.dataset.node_features
         self.n_head = config.graph_learning.n_head
         self.batch_size = config.train.batch_size
+        self.embedding_dim = config.forecasting_module.embedding_dim
 
         if not self.config.dataset.univariate:
-            self.preprocess_layer = nn.Linear(self.num_feature, 1)
+            self.embed = DataEmbedding(c_in=1, embedding_dim=self.embedding_dim, batch_size=self.batch_size,
+                                       nodes_num=self.nodes_num,
+                                       freq=self.config.dataset.freq)
 
         self.graph_learning_module = GraphLearningProbSparseAttention(self.config)
 
@@ -138,15 +142,6 @@ class IC_PN_BEATS(nn.Module):
 
     def forward(self, inputs, time_stamp=None, interpretability=False):
         device = inputs.device
-        print(inputs.shape)
-        print(time_stamp.shape)
-
-        if not self.config.dataset.univariate:
-            inputs = inputs.permute(0, 2, 1)
-            inputs = self.preprocess_layer(inputs).squeeze()
-            inputs = inputs.unsqueeze(dim=1)
-        else:
-            inputs = inputs.squeeze()
 
         forecast = torch.zeros(size=(inputs.size()[0], self.forecast_length)).to(device=device)
         backcast = torch.zeros(size=(inputs.size()[0], self.backcast_length)).to(device=device)
@@ -163,6 +158,11 @@ class IC_PN_BEATS(nn.Module):
         _singual_attention_matrix = []
 
         for stack_index in range(self.stack_num):
+            if not self.config.dataset.univariate:
+                inputs = self.embed(inputs, time_stamp).squeeze()
+            else:
+                inputs = inputs.squeeze()
+
             pooled_inputs = self.pooling_stack[stack_index](inputs)
             trend_input = F.interpolate(pooled_inputs.unsqueeze(dim=1), size=inputs.size()[1],
                                         mode='linear', align_corners=False).squeeze(dim=1)
@@ -193,6 +193,8 @@ class IC_PN_BEATS(nn.Module):
             backcast = backcast + trend_b + seasonality_b
 
         for singular_stack_index in range(self.singular_stack_num):
+            if not self.config.dataset.univariate:
+                inputs = self.embed(inputs, time_stamp).squeeze()
             gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
             attn = self.graph_learning_module(gl_input)
 
@@ -202,15 +204,14 @@ class IC_PN_BEATS(nn.Module):
                                                                                _batch_edge_index,
                                                                                _batch_edge_weight)
 
+            inputs = inputs - singular_b
+            forecast = forecast + singular_f
+            backcast = backcast + singular_b
+
             if interpretability:
                 _singual_backcast.append(singular_b.cpu().detach().numpy())
                 _singual_forecast.append(singular_f.cpu().detach().numpy())
                 _singual_attention_matrix.append(attn.cpu().detach().numpy())
-
-            inputs = inputs - singular_b
-
-            forecast = forecast + singular_f
-            backcast = backcast + singular_b
 
         if interpretability:
             self.per_trend_backcast = np.stack(_per_trend_backcast, axis=0)
