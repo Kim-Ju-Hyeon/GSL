@@ -136,8 +136,10 @@ class IC_PN_BEATS(nn.Module):
         else:
             raise ValueError("Invalid block type")
 
-    def forward(self, inputs, interpretability=False):
+    def forward(self, inputs, time_stamp=None, interpretability=False):
         device = inputs.device
+        print(inputs.shape)
+        print(time_stamp.shape)
 
         if not self.config.dataset.univariate:
             inputs = inputs.permute(0, 2, 1)

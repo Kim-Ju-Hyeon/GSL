@@ -14,10 +14,10 @@ class IC_PN_BEATS_model(nn.Module):
         self.config = config
         self.model = IC_PN_BEATS(config)
 
-    def forward(self, inputs, interpretability=False):
+    def forward(self, inputs, time_stamp=None, interpretability=False):
         outputs = defaultdict(list)
 
-        backcast, forecast = self.model(inputs, interpretability)
+        backcast, forecast = self.model(inputs, time_stamp=time_stamp, interpretability=interpretability)
 
         if interpretability:
             outputs['per_trend_backcast'] = self.model.per_trend_backcast
