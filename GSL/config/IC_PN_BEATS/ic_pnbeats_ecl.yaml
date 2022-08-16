@@ -25,7 +25,7 @@ train:
     batch_size : 64
 
 graph_learning:
-    factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    factor: 2 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 4 # Use it Attention Graph Learning
     dropout_rate: 0.5
 

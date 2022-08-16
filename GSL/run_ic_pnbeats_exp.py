@@ -44,10 +44,10 @@ def main(conf_file_path, stack_num, singular_stack, mlp_stack, mlp_num, thetas_d
     if config.dataset.name == 'ECL':
         if stack_num == 1:
             config.train.batch_size = 32
-        elif stack_num == 3:
+        elif stack_num == 2:
             config.train.batch_size = 16
-        elif stack_num == 9:
-            config.train.batch_size = 5
+        elif stack_num == 3:
+            config.train.batch_size = 8
 
     if stack_num == 1:
         n_pool_kernel_size = [8]
