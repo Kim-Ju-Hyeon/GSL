@@ -63,8 +63,8 @@ class DataEmbedding(nn.Module):
         self.position_embedding = PositionalEmbedding(d_model=embedding_dim)
         self.temporal_embedding = TimeFeatureEmbedding(d_model=embedding_dim, freq=freq)
 
-        self.embed_1 = nn.Linear(self.embedding_dim, self.embedding_dim // 4)
-        self.embed_2 = nn.Linear(self.embedding_dim // 4, 1)
+        self.embed_1 = nn.Linear(self.embedding_dim, 1)
+        # self.embed_2 = nn.Linear(self.embedding_dim // 4, 1)
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, time_stamp):
@@ -83,6 +83,6 @@ class DataEmbedding(nn.Module):
                  1, 0, 2, 3)).view(-1, L, self.embedding_dim)
 
         x = self.dropout(self.embed_1(x))
-        x = self.dropout(self.embed_2(x))
+        # x = self.dropout(self.embed_2(x))
 
         return x
