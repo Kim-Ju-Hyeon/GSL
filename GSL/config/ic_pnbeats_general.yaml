@@ -10,7 +10,7 @@ train_resume: False
 dataset:
     name: ETTm2 # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
-    univariate: True
+    univariate: False
 
 train:
     optimizer: Adam
