@@ -12,6 +12,7 @@ import pandas as pd
 from six.moves import urllib
 import zipfile
 import gdown
+import pickle
 
 from utils.dataset_utils import time_features_from_frequency_str
 
@@ -45,6 +46,9 @@ class Temporal_Graph_Signal(object):
 
             y_df = pd.read_csv(os.path.join(self.path, f'{self.dataset_name}.csv'), index_col=self.index_col)
 
+            if (not self.univariate) and (not self.dataset_name == 'Exchange'):
+                self.time_stamp = self._get_timestamp(y_df)
+
             if self.dataset_name == 'Exchange':
                 X = y_df.to_numpy().T
                 X = X.astype(np.float32)
@@ -63,6 +67,12 @@ class Temporal_Graph_Signal(object):
             self.train_X = X[:, :, :train_index]
             self.valid_X = X[:, :, train_index:valid_index]
             self.test_X = X[:, :, valid_index:]
+
+            if not os.path.isfile(os.path.join(self.path, f'inference.pickle')):
+                pickle.dump(self.test_X, open(os.path.join(self.path, f'inference.pickle'), 'wb'))
+
+            if not os.path.isfile(os.path.join(self.path, f'scaler.pickle')):
+                pickle.dump(self.scaler, open(os.path.join(self.path, f'scaler.pickle'), 'wb'))
 
     def _get_timestamp(self, y_df):
         y_df['date'] = pd.to_datetime(y_df['date'])
@@ -222,7 +232,6 @@ class Temporal_Graph_Signal(object):
 
         features, target = [], []
         if not self.univariate:
-            self.time_stamp = self._get_timestamp(y_df)
             time_feature = []
         for i, j in indices:
             features.append((dataset[:, :, i: i + num_timesteps_in]))
