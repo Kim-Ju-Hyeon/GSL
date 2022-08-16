@@ -30,6 +30,7 @@ class Runner(object):
         self.use_gpu = config.use_gpu
         self.device = config.device
         self.backcast_loss = config.train.backcast_loss
+        self.univariate = config.dataset.univariate
 
         self.best_model_dir = os.path.join(self.model_save, 'best.pth')
         self.ck_dir = os.path.join(self.model_save, 'training.ck')
@@ -65,7 +66,6 @@ class Runner(object):
             batch_size=config.train.batch_size)
 
         self.scaler = loader.get_scaler()
-
 
     def train(self):
         # create optimizer
@@ -105,7 +105,11 @@ class Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
 
-                backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
+                if self.univariate:
+                    backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
+                else:
+                    backcast, forecast, _ = self.model(data_batch.x, time_stamp=data_batch.time_stamp,
+                                                       interpretability=False)
 
                 ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
                 if self.dataset_conf.name in ett_dataset_list:
@@ -235,10 +239,10 @@ class Runner(object):
                 loss = self.loss(_forecast_output, data_batch.y)
 
             test_loss += [float(loss.data.cpu().detach().numpy())]
-            target += [data_batch.y.cpu().detach().numpy()]
-            inputs += [data_batch.x.cpu().detach().numpy()]
             forecast_list += [_forecast_output.cpu().detach().numpy()]
             backcast_list += [_backcast_output.cpu().detach().numpy()]
+
+            target += [data_batch.y.cpu().detach().numpy()]
 
             per_trend_backcast += [outputs['per_trend_backcast']]
             per_trend_forecast += [outputs['per_trend_forecast']]
@@ -258,14 +262,14 @@ class Runner(object):
         results['test_loss'] = np.stack(test_loss).mean()
         results['forecast'] = np.stack(forecast_list, axis=0)
         results['backcast'] = np.stack(backcast_list, axis=0)
-        results['target'] = np.stack(target, axis=0)
-        results['inputs'] = np.stack(inputs, axis=0)
         results['attention_matrix'] = np.stack(attention_matrix, axis=0)
 
-        scaled_score = get_score(results['target'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+        target = np.stack(target, axis=0)
+
+        scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                                  results['forecast'].transpose((1, 0, 2)).reshape(self.nodes_num, -1), scaler=None)
 
-        inv_scaled_score = get_score(results['target'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
+        inv_scaled_score = get_score(target.transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                                      results['forecast'].transpose((1, 0, 2)).reshape(self.nodes_num, -1),
                                      scaler=self.scaler)
 
