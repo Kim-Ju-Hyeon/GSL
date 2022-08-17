@@ -245,7 +245,6 @@ class Temporal_Graph_Signal(object):
             time_feature = torch.FloatTensor(np.array(time_feature))
 
         _data = []
-
         for batch in range(len(indices)):
             if self.univariate:
                 _data.append(Data(x=features[batch], y=targets[batch], time_stamp=None))
@@ -254,17 +253,22 @@ class Temporal_Graph_Signal(object):
 
         return _data
 
-    def get_dataset(self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32):
+    def get_dataset(self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32, return_loader=True):
         train_dataset = self._generate_dataset(self.train_X, num_timesteps_in, num_timesteps_out)
-        train = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-
         valid_dataset = self._generate_dataset(self.valid_X, num_timesteps_in, num_timesteps_out)
-        valid = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-
         test_dataset = self._generate_dataset(self.test_X, num_timesteps_in, num_timesteps_out)
-        test = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-        return train, valid, test
+        if return_loader:
+            train = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True,
+                               num_workers=self.num_workers, pin_memory=True)
+            valid = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, drop_last=True,
+                               num_workers=self.num_workers, pin_memory=True)
+            test = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=self.num_workers, pin_memory=True)
+
+            return train, valid, test
+
+        else:
+            return train_dataset, valid_dataset, test_dataset
 
     def get_scaler(self):
         return self.scaler
