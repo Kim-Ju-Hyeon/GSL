@@ -223,9 +223,10 @@ class multi_GPU_Runner(object):
 
             results['val_loss'] += [val_loss]
 
-            if (val_loss < best_val_loss) and (self.hvd.rank() == 0):
+            if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                torch.save(self.model.state_dict(), self.best_model_dir)
+                if self.hvd.rank() == 0:
+                    torch.save(self.model.state_dict(), self.best_model_dir)
 
             self.logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             self.logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
