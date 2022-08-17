@@ -27,6 +27,7 @@ class multi_GPU_Runner(object):
         self.hvd = hvd
         self.hvd.init()
         torch.cuda.set_device(hvd.local_rank())
+        self.gpus_num = torch.cuda.device_count()
 
         self.get_dataset(config, self.hvd)
         self.config = config
@@ -43,6 +44,7 @@ class multi_GPU_Runner(object):
         self.ck_dir = os.path.join(self.model_save, 'training.ck')
 
         self.train_conf = config.train
+        self.train_conf.batch_size = self.train_conf.batch_size * self.gpus_num
         self.dataset_conf = config.dataset
         self.nodes_num = config.dataset.nodes_num
 
@@ -237,7 +239,7 @@ class multi_GPU_Runner(object):
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-        self.config.train.batch_size = 1
+        self.config.train.batch_size = 1 * self.gpus_num
         self.best_model = IC_PN_BEATS_model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 
