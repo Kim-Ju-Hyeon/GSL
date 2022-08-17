@@ -146,6 +146,7 @@ class multi_GPU_Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.cuda()
 
+                optimizer.zero_grad()
                 with torch.cuda.amp.autocast():
                     if self.univariate:
                         backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
@@ -187,7 +188,6 @@ class multi_GPU_Runner(object):
                 # performs a single update step.
                 self.GradScaler.step(optimizer)
                 self.GradScaler.update()
-                optimizer.zero_grad()
 
                 train_loss += [float(forecast_loss.data.cpu().numpy())]
 
