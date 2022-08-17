@@ -44,7 +44,7 @@ class multi_GPU_Runner(object):
         self.ck_dir = os.path.join(self.model_save, 'training.ck')
 
         self.train_conf = config.train
-        self.train_conf.batch_size = self.train_conf.batch_size * self.gpus_num
+        # self.train_conf.batch_size = self.train_conf.batch_size * self.gpus_num
         self.dataset_conf = config.dataset
         self.nodes_num = config.dataset.nodes_num
 
@@ -90,13 +90,14 @@ class multi_GPU_Runner(object):
             num_replicas=hvd.size(),
             rank=hvd.rank())
 
-
-        self.train_dataset = DataLoader(_train_dataset, batch_size=128, num_workers=4 * torch.cuda.device_count(),
+        self.train_dataset = DataLoader(_train_dataset, batch_size=config.train.batch_size,
+                                        num_workers=4 * torch.cuda.device_count(),
                                         shuffle=False, drop_last=True, sampler=train_sampler)
-        self.valid_dataset = DataLoader(_valid_dataset, batch_size=128, num_workers=4 * torch.cuda.device_count(),
+        self.valid_dataset = DataLoader(_valid_dataset, batch_size=config.train.batch_size,
+                                        num_workers=4 * torch.cuda.device_count(),
                                         shuffle=False, drop_last=True, sampler=validation_sampler)
-        self.test_dataset = DataLoader(_test_dataset, batch_size=1, shuffle=False,
-                                       num_workers=4 * torch.cuda.device_count(), pin_memory=True)
+        self.test_dataset = DataLoader(_test_dataset, batch_size=config.train.batch_size, shuffle=False,
+                                       drop_last=True, num_workers=4 * torch.cuda.device_count(), pin_memory=True)
 
         self.scaler = loader.get_scaler()
 
@@ -228,7 +229,7 @@ class multi_GPU_Runner(object):
 
             self.logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             self.logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
-            
+
             if self.hvd.rank() == 0:
                 model_snapshot(epoch=epoch, model=self.model, optimizer=optimizer, scheduler=None,
                                best_valid_loss=best_val_loss, exp_dir=self.ck_dir)
@@ -236,7 +237,7 @@ class multi_GPU_Runner(object):
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-        self.config.train.batch_size = 1
+        # self.config.train.batch_size = 1
         self.best_model = IC_PN_BEATS_model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 

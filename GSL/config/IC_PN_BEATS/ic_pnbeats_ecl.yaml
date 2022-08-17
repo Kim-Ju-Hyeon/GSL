@@ -1,5 +1,5 @@
 ---
-exp_name: Univariate/0817_ECL_EXP # 0417
+exp_name: MultiGPU/0817_ECL_EXP # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -22,7 +22,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 4
 
 graph_learning:
     factor: 2 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
@@ -36,7 +36,7 @@ graph_learning:
 
 forecasting_module:
     name: pn_beats
-    stack_num: 3
+    stack_num: 5
     singular_stack_num: 1
     inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: ReLU
@@ -44,9 +44,9 @@ forecasting_module:
     embedding_dim: 256
     forecast_length: 96
     backcast_length: 96
-    n_theta_hidden: [128]
+    n_theta_hidden: [512]
     thetas_dim: [32, 32]
     message_norm: True
     pooling_mode: average
-    n_pool_kernel_size: [2]
-    n_stride_size : [2]
+    n_pool_kernel_size: [16,16,8,8,4]
+    n_stride_size : [2,2,2,2,2]

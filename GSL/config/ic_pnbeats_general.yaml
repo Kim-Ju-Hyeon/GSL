@@ -22,7 +22,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 32
+    batch_size : 256
 
 graph_learning:
     factor: 1 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
