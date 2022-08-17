@@ -141,7 +141,6 @@ class multi_GPU_Runner(object):
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.cuda()
 
-                print(data_batch.x.shape)
                 with torch.cuda.amp.autocast():
                     if self.univariate:
                         backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
@@ -223,15 +222,16 @@ class multi_GPU_Runner(object):
 
             results['val_loss'] += [val_loss]
 
-            if val_loss < best_val_loss:
+            if (val_loss < best_val_loss) and (self.hvd.rank() == 0):
                 best_val_loss = val_loss
                 torch.save(self.model.state_dict(), self.best_model_dir)
 
             self.logger.info("Epoch {} Avg. Validation Loss = {:.6}".format(epoch + 1, val_loss, 0))
             self.logger.info("Current Best Validation Loss = {:.6}".format(best_val_loss))
-
-            model_snapshot(epoch=epoch, model=self.model, optimizer=optimizer, scheduler=None,
-                           best_valid_loss=best_val_loss, exp_dir=self.ck_dir)
+            
+            if self.hvd.rank() == 0:
+                model_snapshot(epoch=epoch, model=self.model, optimizer=optimizer, scheduler=None,
+                               best_valid_loss=best_val_loss, exp_dir=self.ck_dir)
 
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
