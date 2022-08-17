@@ -58,7 +58,7 @@ class multi_GPU_Runner(object):
         self.model = IC_PN_BEATS_model(self.config)
 
         if self.use_gpu and (self.device != 'cpu'):
-            self.model = self.model.to(device=self.device)
+            self.model = self.model.cuda()
 
         self.hvd.broadcast_parameters(self.model.state_dict(), root_rank=0)
 
@@ -142,7 +142,7 @@ class multi_GPU_Runner(object):
             for i, data_batch in enumerate(tqdm(self.train_dataset)):
 
                 if self.use_gpu and (self.device != 'cpu'):
-                    data_batch = data_batch.to(device=self.device)
+                    data_batch = data_batch.cuda()
 
                 with torch.cuda.amp.autocast():
                     if self.univariate:
@@ -205,7 +205,7 @@ class multi_GPU_Runner(object):
             for data_batch in tqdm(self.valid_dataset):
 
                 if self.use_gpu and (self.device != 'cpu'):
-                    data_batch = data_batch.to(device=self.device)
+                    data_batch = data_batch.cuda()
                 with torch.no_grad():
                     _, forecast, _ = self.model(data_batch.x, interpretability=False)
 
@@ -267,7 +267,7 @@ class multi_GPU_Runner(object):
 
         for data_batch in tqdm(self.test_dataset):
             if self.use_gpu and (self.device != 'cpu'):
-                data_batch = data_batch.to(device=self.device)
+                data_batch = data_batch.cuda()
 
             with torch.no_grad():
                 _backcast_output, _forecast_output, outputs = self.best_model(data_batch.x, interpretability=True)

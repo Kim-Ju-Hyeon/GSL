@@ -1,8 +1,8 @@
 ---
-exp_name: 0729_ECL_EXP # 0417
+exp_name: test # 0417
 exp_dir: ../exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: None # If you want to reproduce set the seed
 model_name: IC_PN_BEATS
 train_resume: False
