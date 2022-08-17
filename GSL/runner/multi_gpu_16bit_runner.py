@@ -90,17 +90,13 @@ class multi_GPU_Runner(object):
             num_replicas=hvd.size(),
             rank=hvd.rank())
 
-        test_sampler = torch.utils.data.distributed.DistributedSampler(
-            _test_dataset,
-            num_replicas=hvd.size(),
-            rank=hvd.rank())
 
         self.train_dataset = DataLoader(_train_dataset, batch_size=128, num_workers=4 * torch.cuda.device_count(),
                                         shuffle=False, drop_last=True, sampler=train_sampler)
         self.valid_dataset = DataLoader(_valid_dataset, batch_size=128, num_workers=4 * torch.cuda.device_count(),
                                         shuffle=False, drop_last=True, sampler=validation_sampler)
-        self.test_dataset = DataLoader(_test_dataset, batch_size=128, num_workers=4 * torch.cuda.device_count(),
-                                       shuffle=False, drop_last=True, sampler=test_sampler)
+        self.test_dataset = DataLoader(_test_dataset, batch_size=1, shuffle=False,
+                                       num_workers=4 * torch.cuda.device_count(), pin_memory=True)
 
         self.scaler = loader.get_scaler()
 
@@ -142,11 +138,10 @@ class multi_GPU_Runner(object):
             train_loss = []
 
             for i, data_batch in enumerate(tqdm(self.train_dataset)):
-
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.cuda()
 
-                optimizer.zero_grad()
+                print(data_batch.x.shape)
                 with torch.cuda.amp.autocast():
                     if self.univariate:
                         backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
@@ -186,8 +181,10 @@ class multi_GPU_Runner(object):
                 self.GradScaler.scale(loss).backward()
 
                 # performs a single update step.
-                self.GradScaler.step(optimizer)
-                self.GradScaler.update()
+                optimizer.synchronize()
+                with optimizer.skip_synchronize():
+                    self.GradScaler.step(optimizer)
+                    self.GradScaler.update()
 
                 train_loss += [float(forecast_loss.data.cpu().numpy())]
 
@@ -239,7 +236,7 @@ class multi_GPU_Runner(object):
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-        self.config.train.batch_size = 1 * self.gpus_num
+        self.config.train.batch_size = 1
         self.best_model = IC_PN_BEATS_model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 

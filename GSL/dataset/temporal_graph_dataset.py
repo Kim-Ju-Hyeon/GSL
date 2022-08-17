@@ -22,6 +22,7 @@ class Temporal_Graph_Signal(object):
         super(Temporal_Graph_Signal, self).__init__()
         self.dataset_name = dataset_name
         self.univariate = univariate
+        self.num_workers = 4 * torch.cuda.device_count()
         self._set_dataset_parameters(dataset_name)
         self.scaler = Scaler(scaler_type)
 
