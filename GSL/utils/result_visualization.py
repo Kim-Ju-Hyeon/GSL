@@ -57,10 +57,10 @@ def get_scaler_and_test_dataset(config):
         features.append((test_dataset[:, 0, i: i + num_timesteps_in]))
         target.append((test_dataset[:, 0, i + num_timesteps_in: j]))
 
-    features = torch.FloatTensor(np.array(features))
-    targets = torch.FloatTensor(np.array(target))
+    # features = torch.FloatTensor(np.array(features))
+    # targets = torch.FloatTensor(np.array(target))
 
-    return scaler, features, targets
+    return scaler, np.array(features), np.array(target)
 
 
 # def visualize_inference_result(test_result):
