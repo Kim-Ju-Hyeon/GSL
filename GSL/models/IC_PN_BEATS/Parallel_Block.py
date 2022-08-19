@@ -14,7 +14,6 @@ class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):
 
     def forward(self, x, edge_index, edge_weight):
         for mlp in self.MLP_stack:
-            print(x.shape)
             x = mlp(x)
             x = self.drop_out(x)
 
