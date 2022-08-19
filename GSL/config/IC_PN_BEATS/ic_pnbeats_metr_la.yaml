@@ -25,6 +25,11 @@ train:
     batch_size : 16
 
 graph_learning:
+    graph_learning: True
+    # This Parameters is available when graph_learning is False
+    graph_mode: random_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
+    edge_prob: 0.1 # For random_graph
+
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
@@ -39,6 +44,7 @@ forecasting_module:
     stack_num: 3
     singular_stack_num: 1
     inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
+    update_only_message: True
     activ: ReLU
     inter_correlation_stack_length: 1
     embedding_dim: 256
