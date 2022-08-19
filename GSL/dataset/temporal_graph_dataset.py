@@ -166,7 +166,7 @@ class Temporal_Graph_Signal(object):
 
     def _download_url(self):
         if not os.path.exists(self.path):
-            os.mkdir(self.path)
+            os.makedirs(self.path)
         gdown.download(self.url, os.path.join(self.path, f'{self.dataset_name}.csv'), fuzzy=True)
 
     def _read_web_data(self):
