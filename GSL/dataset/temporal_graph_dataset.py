@@ -33,6 +33,7 @@ class Temporal_Graph_Signal(object):
             X = X.transpose((1, 2, 0))
 
             self.time_stamp = X[:, 1, :]
+            X = X[:, 0, :]
             X = self.scaler.scale(X)
             X = np.expand_dims(X, axis=1)
 
