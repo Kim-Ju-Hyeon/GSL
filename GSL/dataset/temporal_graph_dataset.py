@@ -91,11 +91,13 @@ class Temporal_Graph_Signal(object):
         if dataset_name == 'METR-LA':
             self.nodes_num = 207
             self.node_features = 2
+            self.freq = '15min'
             self.url = "https://graphmining.ai/temporal_datasets/METR-LA.zip"
 
         elif dataset_name == 'PEMS-BAY':
             self.nodes_num = 325
             self.node_features = 2
+            self.freq = '15min'
             self.url = "https://graphmining.ai/temporal_datasets/PEMS-BAY.zip"
 
         elif dataset_name == 'COVID19':
