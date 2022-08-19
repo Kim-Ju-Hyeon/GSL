@@ -1,8 +1,8 @@
 ---
 exp_name: 0729_ECL_EXP # 0417
 exp_dir: ../exp
-use_gpu: False
-device: cpu
+use_gpu: True
+device: 0
 seed: None # If you want to reproduce set the seed
 model_name: IC_PN_BEATS
 train_resume: False
@@ -10,6 +10,7 @@ train_resume: False
 dataset:
     name: PEMS-BAY # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
+    univariate: True
 
 train:
     optimizer: Adam
@@ -27,7 +28,11 @@ graph_learning:
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
-    pre_mlp_layer: [8, 4]
+
+    kernel_size: [16, 16]
+    stride: [2, 2]
+    conv_dim: [8, 16]
+    hidden_dim: 256
 
 forecasting_module:
     name: pn_beats
@@ -36,6 +41,7 @@ forecasting_module:
     inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: ReLU
     inter_correlation_stack_length: 1
+    embedding_dim: 256
     forecast_length: 3
     backcast_length: 12
     n_theta_hidden: [128]
