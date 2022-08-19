@@ -68,10 +68,6 @@ class Temporal_Graph_Signal(object):
         self.valid_X = X[:, :, train_index:valid_index]
         self.test_X = X[:, :, valid_index:]
 
-        print(self.train_X.shape)
-        print(self.valid_X.shape)
-        print(self.test_X.shape)
-
         if not os.path.isfile(os.path.join(self.path, f'inference.pickle')):
             pickle.dump(self.test_X, open(os.path.join(self.path, f'inference.pickle'), 'wb'))
 

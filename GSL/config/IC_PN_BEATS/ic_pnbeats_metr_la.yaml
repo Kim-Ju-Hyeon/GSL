@@ -34,7 +34,7 @@ graph_learning:
     n_head: 4 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
-    kernel_size: [16, 16]
+    kernel_size: [2, 2]
     stride: [2, 2]
     conv_dim: [2, 2]
     hidden_dim: 4
