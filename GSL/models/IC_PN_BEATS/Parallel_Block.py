@@ -6,11 +6,11 @@ from models.N_BEATS.Parallel_N_model import Inter_Correlation_Block, TrendGenera
 
 class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, n_head=4):
+                 activation='ReLU', inter_correlation_stack_length=1, update_only_message=False):
 
         super(MultiHead_Inter_Correlation_Block, self).__init__(inter_correlation_block_type, n_theta_hidden,
                                                                 thetas_dim, backcast_length, forecast_length,
-                                                                activation, inter_correlation_stack_length)
+                                                                activation, inter_correlation_stack_length, update_only_message)
 
     def forward(self, x, edge_index, edge_weight):
         for mlp in self.MLP_stack:
@@ -29,10 +29,10 @@ class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):
 class Parallel_TrendBlock(MultiHead_Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden,
                  thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, n_head=4):
+                 activation='ReLU', inter_correlation_stack_length=1, update_only_message=False):
         super(Parallel_TrendBlock, self).__init__(inter_correlation_block_type, n_theta_hidden,
                                                   thetas_dim, backcast_length, forecast_length,
-                                                  activation, inter_correlation_stack_length, n_head)
+                                                  activation, inter_correlation_stack_length, update_only_message)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 
@@ -52,10 +52,10 @@ class Parallel_TrendBlock(MultiHead_Inter_Correlation_Block):
 class Parallel_SeasonalityBlock(MultiHead_Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden,
                  thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, n_head=4):
+                 activation='ReLU', inter_correlation_stack_length=1, update_only_message=False):
         super(Parallel_SeasonalityBlock, self).__init__(inter_correlation_block_type, n_theta_hidden,
                                                         thetas_dim, backcast_length, forecast_length,
-                                                        activation, inter_correlation_stack_length, n_head)
+                                                        activation, inter_correlation_stack_length, update_only_message)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 
@@ -75,10 +75,10 @@ class Parallel_SeasonalityBlock(MultiHead_Inter_Correlation_Block):
 class Parallel_GenericBlock(MultiHead_Inter_Correlation_Block):
     def __init__(self, inter_correlation_block_type, n_theta_hidden,
                  thetas_dim, backcast_length=10, forecast_length=5,
-                 activation='ReLU', inter_correlation_stack_length=1, n_head=4):
+                 activation='ReLU', inter_correlation_stack_length=1, update_only_message=False):
         super(Parallel_GenericBlock, self).__init__(inter_correlation_block_type, n_theta_hidden,
                                                     thetas_dim, backcast_length, forecast_length,
-                                                    activation, inter_correlation_stack_length, n_head)
+                                                    activation, inter_correlation_stack_length, update_only_message)
 
         self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 

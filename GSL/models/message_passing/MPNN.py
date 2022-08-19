@@ -6,12 +6,13 @@ from torch_geometric.utils import degree
 
 
 class InterCorrealtionStack(MessagePassing):
-    def __init__(self, hidden_dim, message_norm, GLU=False, single_message=False):
+    def __init__(self, hidden_dim, message_norm, GLU=False, single_message=False, update_only_message=False):
         super().__init__(aggr='add', flow='target_to_source')
         self.hidden_dim = hidden_dim
         self.message_norm = message_norm
         self.GLU = GLU
         self.single_message = single_message
+        self.update_only_message = update_only_message
 
         if self.single_message:
             self.fc_message = nn.Linear(self.hidden_dim, self.hidden_dim)
@@ -19,13 +20,16 @@ class InterCorrealtionStack(MessagePassing):
         else:
             self.fc_message = nn.Linear(self.hidden_dim*2, self.hidden_dim)
 
-        self.fc_update = nn.Linear(self.hidden_dim*2, self.hidden_dim)
-
         if self.GLU:
             if self.single_message:
                 self.gated_linear_unit = nn.Linear(self.hidden_dim, self.hidden_dim)
             else:
                 self.gated_linear_unit = nn.Linear(self.hidden_dim*2, self.hidden_dim)
+
+        if self.update_only_message:
+            self.fc_update = nn.Linear(self.hidden_dim, self.hidden_dim)
+        else:
+            self.fc_update = nn.Linear(self.hidden_dim * 2, self.hidden_dim)
 
         self.init_weights()
 
@@ -63,7 +67,10 @@ class InterCorrealtionStack(MessagePassing):
         return message
 
     def update(self, inputs, x):
-        aggregated_concated_message = torch.cat([x, inputs], dim=-1)
+        if self.update_only_message:
+            aggregated_concated_message = inputs
+        else:
+            aggregated_concated_message = torch.cat([x, inputs], dim=-1)
         out = F.relu(self.fc_update(aggregated_concated_message))
 
         return out

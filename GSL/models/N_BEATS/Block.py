@@ -63,8 +63,9 @@ class SeasonalityGenerator(nn.Module):
 class Inter_Correlation_Block(nn.Module):
     def __init__(self, inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length=10, forecast_length=5,
                  activation='ReLU', inter_correlation_stack_length=1,
-                 pooling_length=None):
+                 pooling_length=None, update_only_message=False):
         super(Inter_Correlation_Block, self).__init__()
+        self.update_only_message = update_only_message
         self.inter_correlation_block_type = inter_correlation_block_type
         self.n_theta_hidden = n_theta_hidden
         self.thetas_dim = thetas_dim
@@ -100,26 +101,30 @@ class Inter_Correlation_Block(nn.Module):
             elif self.inter_correlation_block_type == 'MPNN':
                 self.Inter_Correlation_Block.append(InterCorrealtionStack(
                     hidden_dim=self.n_theta_hidden[-1],
-                    message_norm=True))
+                    message_norm=True,
+                    update_only_message=self.update_only_message))
 
             elif self.inter_correlation_block_type == 'MPGLU':
                 self.Inter_Correlation_Block.append(InterCorrealtionStack(
                     hidden_dim=self.n_theta_hidden[-1],
                     message_norm=True,
-                    GLU=True))
+                    GLU=True,
+                    update_only_message=self.update_only_message))
 
             elif self.inter_correlation_block_type == 'MP_single_message':
                 self.Inter_Correlation_Block.append(InterCorrealtionStack(
                     hidden_dim=self.n_theta_hidden[-1],
                     message_norm=True,
-                    single_message=True))
+                    single_message=True,
+                    update_only_message=self.update_only_message))
 
             elif self.inter_correlation_block_type == 'MPGLU_single_message':
                 self.Inter_Correlation_Block.append(InterCorrealtionStack(
                     hidden_dim=self.n_theta_hidden[-1],
                     message_norm=True,
                     GLU=True,
-                    single_message=True))
+                    single_message=True,
+                    update_only_message=self.update_only_message))
 
             else:
                 raise ValueError('Invalid Inter Correlation Block')
