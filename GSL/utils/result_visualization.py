@@ -28,22 +28,21 @@ def get_exp_result_files(exp):
     return config, train_result, test_result
 
 
-def get_scaler(dataset, config):
-    num_timesteps_in = config.forecasting_module.backcast_length
-    num_timesteps_out = config.forecasting_module.forecast_length
-    batch_size = config.train.batch_size
-    dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
-
-    dataset_dir = f'../GSL/data/{dataset}/temporal_signal_{dataset_hyperparameter}.pickle'
+def get_scaler_and_test_dataset(dataset):
+    _dir = f'../GSL/data/{dataset}'
 
     ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
     if dataset in ett_dataset_list:
-        dataset_dir = f'../GSL/data/ETT/{dataset}/temporal_signal_{dataset_hyperparameter}.pickle'
+        _dir = f'../GSL/data/ETT/{dataset}'
 
     scaler = pickle.load(
-        open(dataset_dir, 'rb'))
+        open(os.path.join(_dir, 'scaler.pickle'), 'rb'))
 
-    return scaler['scaler']
+    test_dataset = pickle.load(
+        open(os.path.join(_dir, 'inference.pickle'), 'rb')
+    )
+
+    return scaler, test_dataset
 
 
 # def visualize_inference_result(test_result):
