@@ -19,7 +19,7 @@ import yaml
 @click.option('--mlp_num', type=int, default=1)
 def main(conf_file_path, stack_num, singular_stack, mlp_stack, mlp_num):
     mlp_stack_list = [32, 256, 512, 1024]
-    singular_stack_num_list = [1, 3]
+    singular_stack_num_list = [1, 3, 5]
 
     for singular_stack_num in singular_stack_num_list:
         for mlp_stack in mlp_stack_list:
