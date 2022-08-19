@@ -28,20 +28,18 @@ class Temporal_Graph_Signal(object):
 
     def preprocess_dataset(self):
         if (self.dataset_name == 'METR-LA') or (self.dataset_name == 'PEMS-BAY'):
-            X, A = self._get_torch_geometric_dataset()
+            X = self._get_torch_geometric_dataset()
             X = X.astype(np.float32)
             X = X.transpose((1, 2, 0))
+
+            self.time_stamp = X[:, 1, :]
             X = self.scaler.scale(X)
+            X = np.expand_dims(X, axis=1)
 
             total_sequence_length = X.shape[-1]
             train_index = int(total_sequence_length * 0.7) + 1
             valid_index = int(total_sequence_length * 0.2) + 1 + train_index
 
-            self.train_X = X[:, :, :train_index]
-            self.valid_X = X[:, :, train_index:valid_index]
-            self.test_X = X[:, :, valid_index:]
-
-            self.A = torch.from_numpy(A)
         else:
             self._read_web_data()
 
@@ -65,15 +63,15 @@ class Temporal_Graph_Signal(object):
             train_index = int(total_sequence_length * 0.6) + 1
             valid_index = int(total_sequence_length * 0.2) + 1 + train_index
 
-            self.train_X = X[:, :, :train_index]
-            self.valid_X = X[:, :, train_index:valid_index]
-            self.test_X = X[:, :, valid_index:]
+        self.train_X = X[:, :, :train_index]
+        self.valid_X = X[:, :, train_index:valid_index]
+        self.test_X = X[:, :, valid_index:]
 
-            if not os.path.isfile(os.path.join(self.path, f'inference.pickle')):
-                pickle.dump(self.test_X, open(os.path.join(self.path, f'inference.pickle'), 'wb'))
+        if not os.path.isfile(os.path.join(self.path, f'inference.pickle')):
+            pickle.dump(self.test_X, open(os.path.join(self.path, f'inference.pickle'), 'wb'))
 
-            if not os.path.isfile(os.path.join(self.path, f'scaler.pickle')):
-                pickle.dump(self.scaler, open(os.path.join(self.path, f'scaler.pickle'), 'wb'))
+        if not os.path.isfile(os.path.join(self.path, f'scaler.pickle')):
+            pickle.dump(self.scaler, open(os.path.join(self.path, f'scaler.pickle'), 'wb'))
 
     def _get_timestamp(self, y_df):
         y_df['date'] = pd.to_datetime(y_df['date'])
@@ -198,7 +196,6 @@ class Temporal_Graph_Signal(object):
                 ) as zip_fh:
                     zip_fh.extractall(self.path)
 
-            A = np.load(os.path.join(self.path, "adj_mat.npy"))
             X = np.load(os.path.join(self.path, "node_values.npy"))
 
         elif self.dataset_name == 'PEMS-BAY':
@@ -220,10 +217,9 @@ class Temporal_Graph_Signal(object):
                 ) as zip_fh:
                     zip_fh.extractall(self.path)
 
-            A = np.load(os.path.join(self.path, "pems_adj_mat.npy"))
             X = np.load(os.path.join(self.path, "pems_node_values.npy"))
 
-        return X, A
+        return X
 
     def _generate_dataset(self, dataset, num_timesteps_in: int = 12, num_timesteps_out: int = 12):
         indices = [
@@ -231,14 +227,17 @@ class Temporal_Graph_Signal(object):
             for i in range(dataset.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
         ]
 
+        if not self.univariate:
+            time_feature = []
         features, target = [], []
         if not self.univariate:
             time_feature = []
         for i, j in indices:
             features.append((dataset[:, :, i: i + num_timesteps_in]))
             target.append((dataset[:, 0, i + num_timesteps_in: j]))
+
             if not self.univariate:
-                time_feature.append(self.time_stamp[:, i:i+num_timesteps_in])
+                time_feature.append(self.time_stamp[:, i:i + num_timesteps_in])
 
         features = torch.FloatTensor(np.array(features))
         targets = torch.FloatTensor(np.array(target))
@@ -254,7 +253,8 @@ class Temporal_Graph_Signal(object):
 
         return _data
 
-    def get_dataset(self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32, return_loader=True):
+    def get_dataset(self, num_timesteps_in: int = 12, num_timesteps_out: int = 12, batch_size: int = 32,
+                    return_loader=True):
         train_dataset = self._generate_dataset(self.train_X, num_timesteps_in, num_timesteps_out)
         valid_dataset = self._generate_dataset(self.valid_X, num_timesteps_in, num_timesteps_out)
         test_dataset = self._generate_dataset(self.test_X, num_timesteps_in, num_timesteps_out)
@@ -273,4 +273,3 @@ class Temporal_Graph_Signal(object):
 
     def get_scaler(self):
         return self.scaler
-
