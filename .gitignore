@@ -2,6 +2,8 @@
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+.idea/*
+
 */ignore_jupyter/*
 venv
 *.tar.gz
