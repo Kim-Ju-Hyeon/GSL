@@ -1,7 +1,7 @@
 import numpy as np
 import torch.nn.functional as F
 from models.graph_learning_Attention.probsparseattention import GraphLearningProbSparseAttention
-from models.IC_PN_BEATS.Parallel_Block import *
+from models.IC_PN_BEATS.Block import *
 from models.layer.none_graph_learning_layer import None_Graph_Learning
 from models.embedding_module.embed import DataEmbedding
 
@@ -66,6 +66,7 @@ class IC_PN_BEATS(nn.Module):
             self.update_only_message = config.forecasting_module.update_only_message
         else:
             self.update_only_message = False
+
         self.parameters = []
 
         # Pooling
@@ -109,7 +110,6 @@ class IC_PN_BEATS(nn.Module):
             block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                n_theta_hidden=self.n_theta_hidden, thetas_dim=thetas_dim,
                                backcast_length=self.backcast_length, forecast_length=self.forecast_length,
-                               activation=self.activation,
                                inter_correlation_stack_length=self.n_layers,
                                update_only_message=self.update_only_message)
 
@@ -122,7 +122,6 @@ class IC_PN_BEATS(nn.Module):
             block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                n_theta_hidden=self.n_theta_hidden, thetas_dim=thetas_dim,
                                backcast_length=self.backcast_length, forecast_length=self.forecast_length,
-                               activation=self.activation,
                                inter_correlation_stack_length=self.n_layers,
                                update_only_message=self.update_only_message)
 
@@ -130,7 +129,6 @@ class IC_PN_BEATS(nn.Module):
             block = block_init(inter_correlation_block_type=self.inter_correlation_block_type,
                                n_theta_hidden=self.n_theta_hidden, thetas_dim=self.thetas_dim,
                                backcast_length=self.backcast_length, forecast_length=self.forecast_length,
-                               activation=self.activation,
                                inter_correlation_stack_length=self.n_layers,
                                update_only_message=self.update_only_message)
 
@@ -142,11 +140,11 @@ class IC_PN_BEATS(nn.Module):
     @staticmethod
     def select_block(block_type):
         if block_type == IC_PN_BEATS.SEASONALITY_BLOCK:
-            return Parallel_SeasonalityBlock
+            return Seasonlity_Block
         elif block_type == IC_PN_BEATS.TREND_BLOCK:
-            return Parallel_TrendBlock
+            return Trend_Block
         elif block_type == IC_PN_BEATS.GENERIC_BLOCK:
-            return Parallel_GenericBlock
+            return Generic_Block
         else:
             raise ValueError("Invalid block type")
 

@@ -43,8 +43,8 @@ def build_dynamic_batch_edge_index(edge_index):
     else:
         return edge_index[0]
 
-def squeeze_last_dim(tensor):
+def squeeze_dim(tensor):
     if len(tensor.shape) == 3 and tensor.shape[-1] == 1:  # (128, 10, 1) => (128, 10).
-        return tensor[..., 0]
+        return tensor.squeeze()
     return tensor
 
