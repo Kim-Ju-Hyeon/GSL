@@ -61,7 +61,7 @@ def main(conf_file_path):
                         n_stride_size = [4, 4, 2, 2, 2, 2, 1, 1, 1, 1]
 
                     config.forecasting_module.stack_num = stack_num
-                    config.forecasting_module.singular_stack_num = singular_stack
+                    config.forecasting_module.singular_stack_num = singular_stack_num
                     config.forecasting_module.n_theta_hidden = [mlp_stack] * mlp_num
 
                     config.forecasting_module.n_pool_kernel_size = n_pool_kernel_size
