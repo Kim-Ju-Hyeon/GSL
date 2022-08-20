@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from utils.utils import squeeze_dim
 from models.message_passing.MPNN import InterCorrealtionStack
 
@@ -43,7 +44,6 @@ class SeasonalityGenerator(nn.Module):
         ).T
 
         self.basis = nn.Parameter(basis, requires_grad=False)
-
     def forward(self, x):
         return torch.matmul(x, self.basis)
 
@@ -66,11 +66,11 @@ class GNN_Block(nn.Module):
         for i in range(len(self.n_theta_hidden)):
             if i == 0:
                 self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
-                self.MLP_stack.append(self.activ)
+                self.MLP_stack.append(nn.ReLU())
                 self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
             else:
                 self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
-                self.MLP_stack.append(self.activ)
+                self.MLP_stack.append(nn.ReLU())
                 self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
 
         self.Inter_Correlation_Block = nn.ModuleList()
@@ -111,7 +111,6 @@ class GNN_Block(nn.Module):
             self.norm_layer.append(nn.LayerNorm(self.n_theta_hidden[-1]))
 
         self.drop_out = nn.Dropout(p=0.5)
-
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
 
@@ -124,7 +123,7 @@ class GNN_Block(nn.Module):
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
             x = layer(x, edge_index, edge_weight)
-            x = self.activ(x)
+            x = F.relu(x)
             x = self.norm_layer[ii](x)
             x = self.drop_out(x)
 
@@ -206,7 +205,7 @@ class Generic_Block(GNN_Block):
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
-        x = super(GNN_Block, self).forward(x, edge_index, edge_weight)
+        x = super().forward(x, edge_index, edge_weight)
         x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)

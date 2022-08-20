@@ -27,7 +27,7 @@ train:
 graph_learning:
     graph_learning: False
     # This Parameters is available when graph_learning is False
-    graph_mode: no_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
+    graph_mode: ground_truth # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
     edge_prob: 0.05 # For random_graph
 
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query

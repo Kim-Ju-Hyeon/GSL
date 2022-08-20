@@ -40,7 +40,7 @@ class IC_PN_BEATS(nn.Module):
                                        nodes_num=self.nodes_num,
                                        freq=self.config.dataset.freq)
 
-        if self.config.graph_learning:
+        if self.config.graph_learning.graph_learning:
             self.graph_learning_module = GraphLearningProbSparseAttention(self.config)
         else:
             self.graph_learning_module = None_Graph_Learning(self.config)
@@ -176,7 +176,7 @@ class IC_PN_BEATS(nn.Module):
                                         mode='linear', align_corners=False).squeeze(dim=1)
             seasonality_input = inputs - trend_input
 
-            if self.config.graph_learning:
+            if self.config.graph_learning.graph_learning:
                 trend_attn = self.graph_learning_module(trend_input.view(self.batch_size, self.nodes_num, self.backcast_length))
                 trend_batch_edge_index, trend_batch_edge_weight = attn_to_edge_index(trend_attn)
 
@@ -193,7 +193,7 @@ class IC_PN_BEATS(nn.Module):
             trend_b, trend_f = self.trend_stacks[stack_index](trend_input, trend_batch_edge_index,
                                                               trend_batch_edge_weight)
 
-            if self.config.graph_learning:
+            if self.config.graph_learning.graph_learning:
                 seasonality_attn = self.graph_learning_module(seasonality_input.view(self.batch_size, self.nodes_num, self.backcast_length))
                 seasonality_batch_edge_index, seasonality_batch_edge_weight = attn_to_edge_index(seasonality_attn)
             else:
@@ -221,7 +221,7 @@ class IC_PN_BEATS(nn.Module):
             if not self.config.dataset.univariate:
                 inputs = self.embed(inputs, time_stamp).squeeze()
 
-            if self.config.graph_learning:
+            if self.config.graph_learning.graph_learning:
                 gl_input = inputs.view(self.batch_size, self.nodes_num, self.backcast_length)
                 attn = self.graph_learning_module(gl_input)
 
