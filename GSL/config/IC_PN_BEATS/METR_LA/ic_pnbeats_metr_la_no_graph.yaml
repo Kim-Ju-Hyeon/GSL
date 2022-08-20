@@ -1,5 +1,5 @@
 ---
-exp_name: METR_LA # 0417
+exp_name: METR_LA/No_Graph # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
