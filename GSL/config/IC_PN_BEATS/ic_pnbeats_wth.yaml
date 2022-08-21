@@ -1,5 +1,5 @@
 ---
-exp_name: 0812_WTH_Exp # 0417
+exp_name: 08222_WTH_Exp # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -16,7 +16,7 @@ train:
     optimizer: Adam
     epoch: 250
     loss_function : MAE
-    backcast_loss: True
+    backcast_loss: False
     lr: 1.0e-3
     wd: 0.0e-4 # Adam
     momentum: 0.9 # SGD
