@@ -1,5 +1,5 @@
 ---
-exp_name: 08222_WTH_Exp # 0417
+exp_name: 0822_WTH_Exp # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -25,6 +25,11 @@ train:
     batch_size : 16
 
 graph_learning:
+    graph_learning: True
+    # This Parameters is available when graph_learning is False
+    graph_mode: random_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
+    edge_prob: 0.1 # For random_graph
+
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
