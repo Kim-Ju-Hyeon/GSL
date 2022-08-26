@@ -137,10 +137,10 @@ class Temporal_Graph_Signal(object):
 
         elif dataset_name == 'WTH':
             self.index_col = False
-            self.nodes_num = 12
-            self.node_features = 5
-            self.url = 'https://drive.google.com/file/d/1GZyRQujWfVNs7Hd4uiLQefqTZS83nYE9/view?usp=sharing'
-            self.freq = '1H'
+            self.nodes_num = 21
+            self.node_features = 6
+            self.url = 'https://drive.google.com/file/d/17vm-SVYbDZt-2OZ2oIifTpBZQYxg2Go6/view?usp=sharing'
+            self.freq = '10min'
 
         elif dataset_name == 'Traffic':
             self.index_col = 0

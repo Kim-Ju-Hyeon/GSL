@@ -15,9 +15,9 @@ import yaml
 @click.option('--conf_file_path', type=click.STRING, default=None)
 @click.option('--stack_num', type=int, default=1)
 def main(conf_file_path, stack_num):
-    mlp_stack_list = [32, 256, 512, 1024]
-    singular_stack_num_list = [1, 3, 5]
-    mlp_num_list = [1, 3, 5]
+    mlp_stack_list = [256, 512, 1024]
+    singular_stack_num_list = [1, 3]
+    mlp_num_list = [1, 3]
 
     for mlp_num in mlp_num_list:
         for singular_stack_num in singular_stack_num_list:
