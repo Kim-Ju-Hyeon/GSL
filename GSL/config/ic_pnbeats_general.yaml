@@ -1,14 +1,14 @@
 ---
 exp_name: test # 0417
 exp_dir: ../exp
-use_gpu: True
+use_gpu: False
 device: 0
 seed: None # If you want to reproduce set the seed
 model_name: IC_PN_BEATS
 train_resume: False
 
 dataset:
-    name: ECL # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
+    name: WTH # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
     univariate: True
 

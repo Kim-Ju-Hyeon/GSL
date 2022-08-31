@@ -45,6 +45,8 @@ class Temporal_Graph_Signal(object):
             self._read_web_data()
 
             y_df = pd.read_csv(os.path.join(self.path, f'{self.dataset_name}.csv'), index_col=self.index_col)
+            if 'Date Time' in y_df:
+                y_df.rename(columns={'Date Time': 'date'}, inplace=True)
 
             if (not self.univariate) and (not self.dataset_name == 'Exchange'):
                 self.time_stamp = self._get_timestamp(y_df)
@@ -75,10 +77,8 @@ class Temporal_Graph_Signal(object):
             pickle.dump(self.scaler, open(os.path.join(self.path, f'scaler.pickle'), 'wb'))
 
     def _get_timestamp(self, y_df):
-        y_df['date'] = pd.to_datetime(y_df['date'])
-
         dataframe = pd.DataFrame()
-        time_cls = time_features_from_frequency_str('1H')
+        time_cls = time_features_from_frequency_str(self.freq)
         for cls_ in time_cls:
             cls_name = cls_.__class__.__name__
             dataframe[cls_name] = cls_(y_df['date'].dt)
