@@ -139,7 +139,7 @@ class Temporal_Graph_Signal(object):
             self.index_col = False
             self.nodes_num = 21
             self.node_features = 6
-            self.url = 'https://drive.google.com/file/d/17vm-SVYbDZt-2OZ2oIifTpBZQYxg2Go6/view?usp=sharing'
+            self.url = 'https://drive.google.com/file/d/1LMv2gdpVW7tG6BJgxTa5z001b743RbdH/view?usp=sharing'
             self.freq = '10min'
 
         elif dataset_name == 'Traffic':

@@ -15,7 +15,7 @@ import yaml
 @click.option('--conf_file_path', type=click.STRING, default=None)
 @click.option('--stack_num', type=int, default=1)
 def main(conf_file_path, stack_num):
-    mlp_stack_list = [256, 512, 1024]
+    mlp_stack_list = [256, 512]
     singular_stack_num_list = [1, 3]
     mlp_num_list = [1, 3]
 
@@ -42,11 +42,11 @@ def main(conf_file_path, stack_num):
 
                 if config.dataset.name == 'ECL':
                     if stack_num == 1:
-                        config.train.batch_size = 16
+                        config.train.batch_size = 32
                     elif stack_num == 2:
-                        config.train.batch_size = 16
+                        config.train.batch_size = 32
                     elif stack_num == 3:
-                        config.train.batch_size = 8
+                        config.train.batch_size = 16
 
                 if stack_num == 1:
                     n_pool_kernel_size = [8]
