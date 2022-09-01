@@ -112,7 +112,7 @@ class Runner(object):
                     backcast, forecast, _ = self.model(data_batch.x, time_stamp=data_batch.time_stamp,
                                                        interpretability=False)
 
-                univariate_dataset_list = ['WTH', 'ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+                univariate_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
                 if self.dataset_conf.name in univariate_dataset_list:
                     forecast = forecast.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
                     target = data_batch.y.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
@@ -167,7 +167,7 @@ class Runner(object):
                 with torch.no_grad():
                     _, forecast, _ = self.model(data_batch.x, interpretability=False)
 
-                univariate_dataset_list = ['WTH', 'ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+                univariate_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
                 if self.dataset_conf.name in univariate_dataset_list:
                     forecast = forecast.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
                     target = data_batch.y.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
@@ -230,7 +230,7 @@ class Runner(object):
             with torch.no_grad():
                 _backcast_output, _forecast_output, outputs = self.best_model(data_batch.x, interpretability=True)
 
-            univariate_dataset_list = ['WTH', 'ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+            univariate_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
             if self.dataset_conf.name in univariate_dataset_list:
                 forecast = _forecast_output.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
                 ground_truth = data_batch.y.view(self.train_conf.batch_size, self.dataset_conf.nodes_num, -1)[:, -1, :]
