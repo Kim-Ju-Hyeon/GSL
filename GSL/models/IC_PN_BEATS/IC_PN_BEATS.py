@@ -25,8 +25,11 @@ class IC_PN_BEATS(nn.Module):
         super(IC_PN_BEATS, self).__init__()
         assert len(config.forecasting_module.n_pool_kernel_size) == len(
             config.forecasting_module.n_stride_size), f'pooling kernel: {len(config.forecasting_module.n_pool_kernel_size)} and stride: ' \
-                                   f'{len(config.forecasting_module.n_stride_size)} is not match '
-        assert len(config.forecasting_module.n_pool_kernel_size) == config.forecasting_module.stack_num, 'Pooling num and Stack num is not match'
+                                                      f'{len(config.forecasting_module.n_stride_size)} is not match '
+        assert len(config.forecasting_module.n_pool_kernel_size) == config.forecasting_module.stack_num, 'Pooling num ' \
+                                                                                                         'and Stack ' \
+                                                                                                         'num is not ' \
+                                                                                                         'match '
 
         self.config = config
         self.nodes_num = config.dataset.nodes_num
@@ -136,7 +139,6 @@ class IC_PN_BEATS(nn.Module):
 
         return block
 
-
     @staticmethod
     def select_block(block_type):
         if block_type == IC_PN_BEATS.SEASONALITY_BLOCK:
@@ -177,12 +179,14 @@ class IC_PN_BEATS(nn.Module):
             seasonality_input = inputs - trend_input
 
             if self.config.graph_learning.graph_learning:
-                trend_attn = self.graph_learning_module(trend_input.view(self.batch_size, self.nodes_num, self.backcast_length))
+                trend_attn = self.graph_learning_module(
+                    trend_input.view(self.batch_size, self.nodes_num, self.backcast_length))
                 trend_batch_edge_index, trend_batch_edge_weight = attn_to_edge_index(trend_attn)
 
             else:
                 edge_index, edge_attr = self.graph_learning_module()
-                trend_batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size, num_nodes=self.nodes_num)
+                trend_batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size,
+                                                                num_nodes=self.nodes_num)
                 trend_attn = edge_index
 
                 if edge_attr is None:
@@ -194,7 +198,8 @@ class IC_PN_BEATS(nn.Module):
                                                               trend_batch_edge_weight)
 
             if self.config.graph_learning.graph_learning:
-                seasonality_attn = self.graph_learning_module(seasonality_input.view(self.batch_size, self.nodes_num, self.backcast_length))
+                seasonality_attn = self.graph_learning_module(
+                    seasonality_input.view(self.batch_size, self.nodes_num, self.backcast_length))
                 seasonality_batch_edge_index, seasonality_batch_edge_weight = attn_to_edge_index(seasonality_attn)
             else:
                 seasonality_attn = trend_attn
@@ -229,7 +234,8 @@ class IC_PN_BEATS(nn.Module):
 
             else:
                 edge_index, edge_attr = self.graph_learning_module()
-                _batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size, num_nodes=self.nodes_num)
+                _batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size,
+                                                           num_nodes=self.nodes_num)
                 attn = edge_index
 
                 if edge_attr is None:
