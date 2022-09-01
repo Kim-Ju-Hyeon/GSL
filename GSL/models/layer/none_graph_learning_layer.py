@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.utils import erdos_renyi_graph, dense_to_sparse
 import numpy as np
+from utils.utils import build_fully_connected_edge_idx
 
 
 class None_Graph_Learning(nn.Module):
@@ -16,6 +17,10 @@ class None_Graph_Learning(nn.Module):
     def forward(self):
         if self.graph_mode == 'random_graph':
             _edge_index = erdos_renyi_graph(num_nodes=self.nodes_num, edge_prob=self.edge_prob)
+            _edge_attr = None
+
+        elif self.graph_mode == 'complete_graph':
+            _edge_index = build_fully_connected_edge_idx(num_nodes=self.nodes_num)
             _edge_attr = None
 
         elif self.graph_mode == 'no_graph':
