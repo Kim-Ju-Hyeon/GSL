@@ -6,10 +6,9 @@ from models.layer.none_graph_learning_layer import None_Graph_Learning
 from models.embedding_module.embed import DataEmbedding
 
 import torch.nn as nn
-from torch_geometric.utils import dense_to_sparse
+from torch_geometric.utils import dense_to_sparse, to_dense_adj
 
 from utils.utils import build_batch_edge_index, build_batch_edge_weight
-
 
 def attn_to_edge_index(attn):
     _sparse = dense_to_sparse(attn)
@@ -163,8 +162,7 @@ class IC_PN_BEATS(nn.Module):
         _singual_backcast = []
         _singual_forecast = []
 
-        _trend_attention_matrix = []
-        _seasonality_attention_matrix = []
+        _attention_matrix = []
         _singual_attention_matrix = []
 
         for stack_index in range(self.stack_num):
@@ -173,49 +171,40 @@ class IC_PN_BEATS(nn.Module):
             else:
                 inputs = inputs.squeeze()
 
+            if self.config.graph_learning.graph_learning:
+                attn = self.graph_learning_module(
+                    inputs.view(self.batch_size, self.nodes_num, self.backcast_length))
+                batch_edge_index, batch_edge_weight = attn_to_edge_index(attn)
+
+            else:
+                edge_index, edge_attr = self.graph_learning_module()
+                batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size,
+                                                          num_nodes=self.nodes_num)
+                attn = to_dense_adj(edge_index)[0]
+
+                if edge_attr is None:
+                    batch_edge_weight = None
+                else:
+                    batch_edge_weight = build_batch_edge_weight(edge_attr, num_graphs=self.batch_size)
+
             pooled_inputs = self.pooling_stack[stack_index](inputs)
             trend_input = F.interpolate(pooled_inputs.unsqueeze(dim=1), size=inputs.size()[1],
                                         mode='linear', align_corners=False).squeeze(dim=1)
             seasonality_input = inputs - trend_input
 
-            if self.config.graph_learning.graph_learning:
-                trend_attn = self.graph_learning_module(
-                    trend_input.view(self.batch_size, self.nodes_num, self.backcast_length))
-                trend_batch_edge_index, trend_batch_edge_weight = attn_to_edge_index(trend_attn)
+            trend_b, trend_f = self.trend_stacks[stack_index](trend_input, batch_edge_index,
+                                                              batch_edge_weight)
 
-            else:
-                edge_index, edge_attr = self.graph_learning_module()
-                trend_batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size,
-                                                                num_nodes=self.nodes_num)
-                trend_attn = edge_index
-
-                if edge_attr is None:
-                    trend_batch_edge_weight = None
-                else:
-                    trend_batch_edge_weight = build_batch_edge_weight(edge_attr, num_graphs=self.batch_size)
-
-            trend_b, trend_f = self.trend_stacks[stack_index](trend_input, trend_batch_edge_index,
-                                                              trend_batch_edge_weight)
-
-            if self.config.graph_learning.graph_learning:
-                seasonality_attn = self.graph_learning_module(
-                    seasonality_input.view(self.batch_size, self.nodes_num, self.backcast_length))
-                seasonality_batch_edge_index, seasonality_batch_edge_weight = attn_to_edge_index(seasonality_attn)
-            else:
-                seasonality_attn = trend_attn
-                seasonality_batch_edge_index = trend_batch_edge_index
-                seasonality_batch_edge_weight = trend_batch_edge_weight
             seasonality_b, seasonality_f = self.seasonality_stacks[stack_index](seasonality_input,
-                                                                                seasonality_batch_edge_index,
-                                                                                seasonality_batch_edge_weight)
+                                                                                batch_edge_index,
+                                                                                batch_edge_weight)
 
             if interpretability:
                 _per_trend_backcast.append(trend_b.cpu().detach().numpy())
                 _per_trend_forecast.append(trend_f.cpu().detach().numpy())
                 _per_seasonality_backcast.append(seasonality_b.cpu().detach().numpy())
                 _per_seasonality_forecast.append(seasonality_f.cpu().detach().numpy())
-                _trend_attention_matrix.append(trend_attn.cpu().detach().numpy())
-                _seasonality_attention_matrix.append(seasonality_attn.cpu().detach().numpy())
+                _attention_matrix.append(attn.cpu().detach().numpy())
 
             inputs = inputs - trend_b - seasonality_b
 
@@ -236,7 +225,7 @@ class IC_PN_BEATS(nn.Module):
                 edge_index, edge_attr = self.graph_learning_module()
                 _batch_edge_index = build_batch_edge_index(edge_index, num_graphs=self.batch_size,
                                                            num_nodes=self.nodes_num)
-                attn = edge_index
+                attn = to_dense_adj(edge_index)[0]
 
                 if edge_attr is None:
                     _batch_edge_weight = None
@@ -263,8 +252,7 @@ class IC_PN_BEATS(nn.Module):
             self.per_seasonality_backcast = np.stack(_per_seasonality_backcast, axis=0)
             self.per_seasonality_forecast = np.stack(_per_seasonality_forecast, axis=0)
 
-            self.attn_matrix = {'Trend': _trend_attention_matrix,
-                                'Seasonality': _seasonality_attention_matrix,
+            self.attn_matrix = {'Double': _attention_matrix,
                                 'Singular': _singual_attention_matrix}
 
             if self.singular_stack_num >= 1:
