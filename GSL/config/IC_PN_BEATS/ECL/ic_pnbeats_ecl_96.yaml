@@ -1,5 +1,5 @@
 ---
-exp_name: 0905_ECL_Exp/Forecast_96 # 0417
+exp_name: 0905_ECL_Exp2/Forecast_96 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
