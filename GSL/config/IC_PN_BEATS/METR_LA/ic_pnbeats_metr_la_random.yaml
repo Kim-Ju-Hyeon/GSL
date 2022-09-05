@@ -1,5 +1,5 @@
 ---
-exp_name: METR_LA/Random_1 # 0417
+exp_name: METR_LA/Random # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -14,7 +14,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 200
+    epoch: 100
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3

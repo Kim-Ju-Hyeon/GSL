@@ -14,7 +14,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 200
+    epoch: 100
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3

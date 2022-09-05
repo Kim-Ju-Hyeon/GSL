@@ -1,5 +1,5 @@
 ---
-exp_name: METR_LA/Graph_Learning # 0417
+exp_name: 0905_ECL_Exp/Forecast_720 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -8,7 +8,7 @@ model_name: IC_PN_BEATS
 train_resume: False
 
 dataset:
-    name: METR-LA # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
+    name: ECL # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
     scaler_type: std # std, invariant, norm, norm1, median
     univariate: True
 
@@ -22,37 +22,36 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 32
 
 graph_learning:
     graph_learning: True
     # This Parameters is available when graph_learning is False
     graph_mode: random_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
-    edge_prob: 0.063 # For random_graph
+    edge_prob: 0.1 # For random_graph
 
-    factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
-    n_head: 16 # Use it Attention Graph Learning
+    factor: 5 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    n_head: 8 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
-    kernel_size: [2, 2]
-    stride: [1, 1]
-    conv_dim: [4, 16]
-    hidden_dim: 64
+    kernel_size: [16, 16]
+    stride: [2, 2]
+    conv_dim: [8, 16]
+    hidden_dim: 256
 
 forecasting_module:
     name: pn_beats
-    stack_num: 1
-    singular_stack_num: 1
-    inter_correlation_block_type: MPGLU_single_message # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
-    update_only_message: True
+    stack_num: 3
+    singular_stack_num: 3
+    inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
     activ: ReLU
     inter_correlation_stack_length: 1
     embedding_dim: 256
-    forecast_length: 12
-    backcast_length: 12
-    n_theta_hidden: [12]
-    thetas_dim: [4, 4]
+    forecast_length: 720
+    backcast_length: 96
+    n_theta_hidden: [256]
+    thetas_dim: [32, 512]
     message_norm: True
     pooling_mode: average
-    n_pool_kernel_size: [1]
-    n_stride_size : [1]
+    n_pool_kernel_size: [16,8,4]
+    n_stride_size : [2,2,2]
