@@ -138,8 +138,9 @@ class GraphLearningProbSparseAttention(nn.Module):
         keys = self.key_projection(x).view(B, nodes_num, self.n_head, -1)
 
         attn = self.attention(queries, keys)
+        attn = attn.masked_fill(attn < 1 / nodes_num, 0)
         attn = attn.mean(dim=1)
 
-        attn = attn.masked_fill(attn < 1/nodes_num, 0)
+        # attn = attn.masked_fill(attn < 1/nodes_num, 0)
 
         return attn

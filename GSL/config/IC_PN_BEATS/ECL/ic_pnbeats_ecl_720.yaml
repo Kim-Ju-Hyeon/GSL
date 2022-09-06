@@ -1,5 +1,5 @@
 ---
-exp_name: 0905_ECL_Exp/Forecast_720 # 0417
+exp_name: 0905_ECL_Exp2/Forecast_720 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -22,7 +22,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 32
+    batch_size : 8
 
 graph_learning:
     graph_learning: True
@@ -31,7 +31,7 @@ graph_learning:
     edge_prob: 0.1 # For random_graph
 
     factor: 5 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
-    n_head: 8 # Use it Attention Graph Learning
+    n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
     kernel_size: [16, 16]

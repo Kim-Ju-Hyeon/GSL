@@ -1,5 +1,5 @@
 ---
-exp_name: 0905_ECL_Exp/Forecast_96 # 0417
+exp_name: 0905_ECL_Exp2/Forecast_96 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -22,7 +22,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 32
+    batch_size : 16
 
 graph_learning:
     graph_learning: True
