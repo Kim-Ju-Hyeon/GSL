@@ -25,6 +25,11 @@ train:
     batch_size : 64
 
 graph_learning:
+    graph_learning: True
+    # This Parameters is available when graph_learning is False
+    graph_mode: random_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
+    edge_prob: 0.1 # For random_graph
+    
     factor: 5 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
     n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
