@@ -1,5 +1,5 @@
 ---
-exp_name: 0901_WTH_Exp # 0417
+exp_name: 0901_WTH_Exp/Forecast_96 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -30,8 +30,8 @@ graph_learning:
     graph_mode: random_graph # random_graph, complete_graph, no_graph, [ground_truth -> Only available For METR-LA, PEMS-BAY dataset]
     edge_prob: 0.1 # For random_graph
 
-    factor: 4 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
-    n_head: 4 # Use it Attention Graph Learning
+    factor: 7 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    n_head: 16 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
     kernel_size: [16, 16]
@@ -53,5 +53,5 @@ forecasting_module:
     thetas_dim: [32, 32]
     message_norm: True
     pooling_mode: average
-    n_pool_kernel_size: [2]
-    n_stride_size : [2]
+    n_pool_kernel_size: [16, 8, 4]
+    n_stride_size : [2, 2, 2]

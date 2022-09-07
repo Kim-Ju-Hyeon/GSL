@@ -1,5 +1,5 @@
 ---
-exp_name: 0906_ETTm2_EXP/Forecast_720 # 0417
+exp_name: 0906_ETTm2_EXP2/Forecast_720 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -49,7 +49,7 @@ forecasting_module:
     embedding_dim: 256
     forecast_length: 720
     backcast_length: 96
-    n_theta_hidden: [512]
+    n_theta_hidden: [128]
     thetas_dim: [32, 32]
     message_norm: True
     pooling_mode: average
