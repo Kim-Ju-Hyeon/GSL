@@ -22,7 +22,7 @@ train:
     momentum: 0.9 # SGD
     T_0: 50 # cosine annealing
     T_mult: 5 # cosine annealing
-    batch_size : 64
+    batch_size : 32
 
 graph_learning:
     graph_learning: True
@@ -31,13 +31,13 @@ graph_learning:
     edge_prob: 0.1 # For random_graph
 
     factor: 3 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
-    n_head: 8 # Use it Attention Graph Learning
+    n_head: 32 # Use it Attention Graph Learning
     dropout_rate: 0.5
 
     kernel_size: [16, 16]
     stride: [2, 2]
     conv_dim: [8, 16]
-    hidden_dim: 128
+    hidden_dim: 512
 
 forecasting_module:
     name: pn_beats

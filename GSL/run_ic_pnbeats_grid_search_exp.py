@@ -16,12 +16,12 @@ import yaml
 @click.option('--stack_num', type=int, default=1)
 def main(conf_file_path, stack_num):
     if stack_num == 950315:
-        stack_num_list = [1, 3, 5]
+        stack_num_list = [1, 3, 5, 7]
     else:
         stack_num_list = [int(stack_num)]
 
     mlp_stack_list = [32, 128, 512]
-    singular_stack_num_list = [1, 3]
+    singular_stack_num_list = [1, 3, 5]
     mlp_num_list = [1, 3]
 
     for stack_num in stack_num_list:
