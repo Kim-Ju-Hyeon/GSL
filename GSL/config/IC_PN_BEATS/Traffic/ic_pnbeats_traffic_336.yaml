@@ -1,5 +1,5 @@
 ---
-exp_name: 0910_Traffic_Exp # 0417
+exp_name: 0910_Traffic_Exp/Forecast_336 # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
