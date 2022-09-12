@@ -22,9 +22,14 @@ def main(conf_file_path, inference):
     logger.info("Exp instance id = {}".format(config.exp_name))
 
     try:
+        if not inference:
+            config.train_resume = True
+
         runner = Runner(config=config)
+
         if not inference:
             runner.train()
+
         runner.test()
     except:
         logger.error(traceback.format_exc())
