@@ -16,13 +16,13 @@ import yaml
 @click.option('--stack_num', type=int, default=1)
 def main(conf_file_path, stack_num):
     if stack_num == 950315:
-        stack_num_list = [1, 3, 5, 7]
+        stack_num_list = [1, 3, 5]
     else:
         stack_num_list = [int(stack_num)]
 
-    mlp_stack_list = [32, 128, 512]
+    mlp_stack_list = [512]
     singular_stack_num_list = [1, 3, 5]
-    mlp_num_list = [1, 3]
+    mlp_num_list = [1]
 
     for stack_num in stack_num_list:
         for mlp_num in mlp_num_list:
@@ -54,21 +54,22 @@ def main(conf_file_path, stack_num):
                         elif stack_num == 3:
                             config.train.batch_size = 8
 
+                    # WTH Dataset No Pooling
                     if stack_num == 1:
-                        n_pool_kernel_size = [8]
-                        n_stride_size = [4]
+                        n_pool_kernel_size = [2]
+                        n_stride_size = [1]
                     elif stack_num == 2:
-                        n_pool_kernel_size = [8, 4]
-                        n_stride_size = [4, 2]
+                        n_pool_kernel_size = [2, 2]
+                        n_stride_size = [1, 1]
                     elif stack_num == 3:
-                        n_pool_kernel_size = [8, 4, 2]
-                        n_stride_size = [4, 2, 1]
+                        n_pool_kernel_size = [2, 2, 2]
+                        n_stride_size = [1, 1, 1]
                     elif stack_num == 4:
                         n_pool_kernel_size = [8, 4, 4, 2]
                         n_stride_size = [4, 2, 2, 1]
                     elif stack_num == 5:
-                        n_pool_kernel_size = [8, 4, 4, 2, 2]
-                        n_stride_size = [4, 2, 2, 1, 1]
+                        n_pool_kernel_size = [2, 2, 2, 2, 2]
+                        n_stride_size = [1, 1, 1, 1, 1]
                     elif stack_num == 10:
                         n_pool_kernel_size = [8, 8, 4, 4, 4, 4, 2, 2, 2, 2]
                         n_stride_size = [4, 4, 2, 2, 2, 2, 1, 1, 1, 1]
