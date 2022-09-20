@@ -18,6 +18,39 @@ def get_config_file(exp):
 
     return config
 
+def get_test_dataset(config):
+    dataset = config.dataset.name
+    num_timesteps_in = config.forecasting_module.backcast_length
+    num_timesteps_out = config.forecasting_module.forecast_length
+
+    _dir = f'../GSL/data/{dataset}'
+
+    ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+    if dataset in ett_dataset_list:
+        _dir = f'../GSL/data/ETT/{dataset}'
+
+    scaler = pickle.load(
+        open(os.path.join(_dir, 'scaler.pickle'), 'rb'))
+
+    test_dataset = pickle.load(
+        open(os.path.join(_dir, 'inference.pickle'), 'rb')
+    )
+
+    indices = [
+        (i, i + (num_timesteps_in + num_timesteps_out))
+        for i in range(test_dataset.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
+    ]
+
+    features, target = [], []
+    for i, j in indices:
+        features.append((test_dataset[:, 0, i: i + num_timesteps_in]))
+        target.append((test_dataset[:, 0, i + num_timesteps_in: j]))
+
+    features = features[-1]
+    target = target[-1]
+
+    return scaler, np.array(features), np.array(target)
+
 
 def get_exp_result_files(exp):
     config_file = glob(escape(exp + '/config.yaml'))[0]
