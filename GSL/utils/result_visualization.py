@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch_geometric.data import Data
 
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
@@ -46,10 +47,11 @@ def get_test_dataset(config):
         features.append((test_dataset[:, 0, i: i + num_timesteps_in]))
         target.append((test_dataset[:, 0, i + num_timesteps_in: j]))
 
-    features = features[-1]
-    target = target[-1]
+    features = torch.Tensor(features[-1])
+    target = torch.Tensor(target[-1])
+    dataset = Data(x=features, y=target)
 
-    return scaler, np.array(features), np.array(target)
+    return scaler, dataset
 
 
 def get_exp_result_files(exp):
