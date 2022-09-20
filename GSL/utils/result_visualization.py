@@ -10,6 +10,15 @@ import torch
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
 
+def get_config_file(exp):
+    config_file = glob(escape(exp + '/config.yaml'))[0]
+    if len(config_file) == 0:
+        config_file = glob(exp + '/config.yaml')[0]
+    config = edict(yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader))
+
+    return config
+
+
 def get_exp_result_files(exp):
     config_file = glob(escape(exp + '/config.yaml'))[0]
     if len(config_file) == 0:
