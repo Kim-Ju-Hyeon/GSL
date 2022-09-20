@@ -59,7 +59,7 @@ class Scaler(object):
 
             self.x_inv_scaled.append(x_inv_scaled)
 
-        return np.array(self.x_inv_scaled, dtype=float)
+        return np.asarray(self.x_inv_scaled)
 
 # Norm
 def norm_scaler(x):
