@@ -42,7 +42,7 @@ def get_score(target, prediction, scaler=None):
 def MAPE(v, v_, axis=None):
     mape = (np.abs(v_ - v) / (np.abs(v)+1e-5))
     mape = np.where(mape > 5, 5, mape)
-    return np.mean(mape, axis)
+    return np.mean(mape, axis)*100
 
 def RMSE(v, v_, axis=None):
     '''
