@@ -42,7 +42,7 @@ class ProbAttention(nn.Module):
         queries = queries.transpose(2, 1)
         keys = keys.transpose(2, 1)
 
-        U_part = self.factor * np.ceil(np.log(L)).astype('int').item()  # c*ln(L_k)
+        U_part = 2 * self.factor * np.ceil(np.log(L)).astype('int').item()  # c*ln(L_k)
         u = self.factor * np.ceil(np.log(L)).astype('int').item()  # c*ln(L_q)
 
         U_part = U_part if U_part < L else L
