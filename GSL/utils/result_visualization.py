@@ -51,7 +51,9 @@ def get_test_dataset(config):
     target = torch.Tensor(target[-1])
     dataset = Data(x=features, y=target)
 
-    return scaler, dataset
+    node_list = [1, 5, 119, 20, 125, 48, 55, 61, 69, 267]
+
+    return scaler, dataset, node_list
 
 
 def get_exp_result_files(exp):
