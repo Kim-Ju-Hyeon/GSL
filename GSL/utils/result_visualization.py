@@ -47,8 +47,8 @@ def get_test_dataset(config):
         features.append((test_dataset[:, 0, i: i + num_timesteps_in]))
         target.append((test_dataset[:, 0, i + num_timesteps_in: j]))
 
-    features = torch.Tensor(features[-1])
-    target = torch.Tensor(target[-1])
+    features = torch.Tensor(features[2])
+    target = torch.Tensor(target[2])
     dataset = Data(x=features, y=target)
 
     node_list = [1, 5, 119, 20, 125, 48, 55, 61, 69, 267]
