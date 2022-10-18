@@ -1,5 +1,5 @@
 ---
-exp_name: 0905_ECL_Exp # 0417
+exp_name: test # 0417
 exp_dir: ../exp
 use_gpu: True
 device: 0
@@ -14,7 +14,7 @@ dataset:
 
 train:
     optimizer: Adam
-    epoch: 150
+    epoch: 1
     loss_function : MAE
     backcast_loss: False
     lr: 1.0e-3
@@ -25,7 +25,7 @@ train:
     batch_size : 8
 
 graph_learning:
-    graph_learning: True
+    graph_learning: False
     # This Parameters is available when graph_learning is False
     graph_mode: random_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
     edge_prob: 0.1 # For random_graph
@@ -43,14 +43,14 @@ forecasting_module:
     name: pn_beats
     stack_num: 3
     singular_stack_num: 3
-    inter_correlation_block_type: MPGLU # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message
+    inter_correlation_block_type: GAT # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message, GAT
     activ: ReLU
     inter_correlation_stack_length: 3
     embedding_dim: 256
-    forecast_length: 96
-    backcast_length: 96
-    n_theta_hidden: [512]
-    thetas_dim: [32, 32]
+    forecast_length: 16
+    backcast_length: 16
+    n_theta_hidden: [16]
+    thetas_dim: [8, 8]
     message_norm: True
     pooling_mode: average
     n_pool_kernel_size: [16,8,4]

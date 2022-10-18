@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils.utils import squeeze_dim
 from models.message_passing.MPNN import InterCorrealtionStack
+from torch_geometric.nn import GATConv
 
 
 class TrendGenerator(nn.Module):
@@ -102,6 +103,16 @@ class GNN_Block(nn.Module):
                     GLU=True,
                     single_message=True,
                     update_only_message=self.update_only_message))
+
+            elif self.inter_correlation_block_type == 'GAT':
+                self.Inter_Correlation_Block.append(GATConv(
+                    in_channels=self.n_theta_hidden[-1],
+                    out_channels=self.n_theta_hidden[-1],
+                    heads=32
+                ))
+
+            elif self.inter_correlation_block_type == 'MTGNN':
+                pass
 
             else:
                 raise ValueError('Invalid Inter Correlation Block')
