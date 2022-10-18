@@ -108,7 +108,8 @@ class GNN_Block(nn.Module):
                 self.Inter_Correlation_Block.append(GATConv(
                     in_channels=self.n_theta_hidden[-1],
                     out_channels=self.n_theta_hidden[-1],
-                    heads=32
+                    heads=32,
+                    concat=False
                 ))
 
             elif self.inter_correlation_block_type == 'MTGNN':
