@@ -16,18 +16,12 @@ from dataset.make_spike_datset import MakeSpikeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 
-from dataset.make_dataset_METR_PEMS import METR_PEMS_DatasetLoader
-from dataset.make_dataset_ett import ETTDatasetLoader
-from dataset.make_dataset_covid19 import COVID19DatasetLoader
-from dataset.make_dataset_exchange import ExchangeDatasetLoader
-from dataset.make_dataset_ecl import ECLDatasetLoader
-from dataset.make_dataset_wth import WTHDatasetLoader
-from dataset.make_dataset_traffic import TrafficDatasetLoader
 
-from torch_geometric_temporal.signal import temporal_signal_split
+from dataset.temporal_graph_dataset import Temporal_Graph_Signal
 
 from utils.score import get_score
-
+import yaml
+from utils.train_helper import edict2dict
 
 def get_dataset_length(_dataset):
     length = 0
@@ -38,9 +32,11 @@ def get_dataset_length(_dataset):
 
 class Runner(object):
     def __init__(self, config):
+        self.get_dataset(config)
         self.config = config
         self.exp_dir = config.exp_dir
         self.model_save = config.model_save
+        self.logger = get_logger(logger_name=str(config.seed))
         self.seed = config.seed
         self.use_gpu = config.use_gpu
         self.device = config.device
@@ -49,10 +45,10 @@ class Runner(object):
         self.best_model_dir = os.path.join(self.model_save, 'best.pth')
         self.ck_dir = os.path.join(self.model_save, 'training.ck')
 
-        self.dataset_conf = config.dataset
         self.train_conf = config.train
+        self.dataset_conf = config.dataset
+        self.nodes_num = config.dataset.nodes_num
 
-        self.logger = get_logger(logger_name=str(config.seed))
 
         if self.train_conf.loss_function == 'MAE':
             self.loss = nn.L1Loss()
@@ -61,101 +57,28 @@ class Runner(object):
         else:
             raise ValueError('Non-supported Loss Function')
 
-        self.nodes_num = self.dataset_conf.nodes_num
-        self.initial_edge_index = config.graph_learning.initial_edge_index
-        if self.initial_edge_index == 'Fully Connected':
-            self.init_edge_index = build_fully_connected_edge_idx(self.nodes_num)
-        else:
-            raise ValueError("Non-supported Edge Index!")
-
-        self.get_dataset()
 
         self.model = My_Model(self.config)
 
         if self.use_gpu and (self.device != 'cpu'):
             self.model = self.model.to(device=self.device)
-            self.init_edge_index = self.init_edge_index.to(device=self.device)
-            self.entire_inputs = self.entire_inputs.to(device=self.device)
 
-    def get_dataset(self):
-        num_timesteps_in = self.config.forecasting_module.backcast_length
-        num_timesteps_out = self.config.forecasting_module.forecast_length
-        batch_size = self.train_conf.batch_size
-        dataset_hyperparameter = f'{num_timesteps_in}_{num_timesteps_out}_{batch_size}'
+    def get_dataset(self, config):
+        loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
+        config.dataset.nodes_num = loader.nodes_num
+        config.dataset.node_features = loader.node_features
+        config.dataset.root = loader.path
+        config.dataset.freq = loader.freq
+        save_name = os.path.join(config.exp_sub_dir, 'config.yaml')
+        yaml.dump(edict2dict(config), open(save_name, 'w'), default_flow_style=False)
 
-        ett_dataset_list = ['ETTm1', 'ETTm2', 'ETTh1', 'ETTh2']
+        loader.preprocess_dataset()
+        self.train_dataset, self.valid_dataset, self.test_dataset = loader.get_dataset(
+            num_timesteps_in=config.forecasting_module.backcast_length,
+            num_timesteps_out=config.forecasting_module.forecast_length,
+            batch_size=config.train.batch_size)
 
-        if os.path.exists(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle')):
-            temporal_signal = pickle.load(
-                open(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'), 'rb'))
-            self.train_dataset = temporal_signal['train']
-            self.valid_dataset = temporal_signal['validation']
-            self.test_dataset = temporal_signal['test']
-            self.entire_inputs = temporal_signal['entire_inputs'][:, :, :self.dataset_conf.graph_learning_length]
-            self.scaler = temporal_signal['scaler']
-
-        else:
-            if self.dataset_conf.name == 'spike_lambda_bin100':
-                spike = pickle.load(open('./data/spk_bin_n100.pickle', 'rb'))
-
-                self.entire_inputs = torch.FloatTensor(spike[:, :self.dataset_conf.graph_learning_length])
-
-                dataset_maker = MakeSpikeDataset(self.config)
-                total_dataset = dataset_maker.make()
-
-                self.train_dataset = DataLoader(total_dataset['train'], batch_size=self.train_conf.batch_size)
-                self.valid_dataset = DataLoader(total_dataset['valid'], batch_size=self.train_conf.batch_size)
-                self.test_dataset = DataLoader(total_dataset['test'], batch_size=self.train_conf.batch_size)
-
-            elif (self.dataset_conf.name == 'METR-LA') or (self.dataset_conf.name == 'PEMS-BAY'):
-                loader = METR_PEMS_DatasetLoader(raw_data_dir=self.dataset_conf.root, dataset_name=self.dataset_conf.name,
-                                              scaler_type=self.config.dataset.scaler_type)
-
-            elif self.dataset_conf.name == 'ECL':
-                loader = ECLDatasetLoader(raw_data_dir=self.dataset_conf.root,
-                                          scaler_type=self.config.dataset.scaler_type)
-
-            elif self.dataset_conf.name in ett_dataset_list:
-                loader = ETTDatasetLoader(raw_data_dir=self.dataset_conf.root,
-                                          scaler_type=self.config.dataset.scaler_type,
-                                          group=self.dataset_conf.name)
-
-            elif self.dataset_conf.name == 'COVID19':
-                loader = COVID19DatasetLoader(raw_data_dir=self.dataset_conf.root,
-                                              scaler_type=self.config.dataset.scaler_type)
-
-            elif self.dataset_conf.name == 'Exchange':
-                loader = ExchangeDatasetLoader(raw_data_dir=self.dataset_conf.root,
-                                          scaler_type=self.config.dataset.scaler_type)
-
-            elif self.dataset_conf.name == 'WTH':
-                loader = WTHDatasetLoader(raw_data_dir=self.dataset_conf.root,
-                                          scaler_type=self.config.dataset.scaler_type)
-
-            elif self.dataset_conf.name == 'Traffic':
-                loader = TrafficDatasetLoader(raw_data_dir=self.dataset_conf.root,
-                                          scaler_type=self.config.dataset.scaler_type)
-            else:
-                raise ValueError("Non-supported dataset!")
-
-            self.train_dataset, self.valid_dataset, self.test_dataset, self.entire_inputs = loader.get_dataset(
-                num_timesteps_in=self.config.forecasting_module.backcast_length,
-                num_timesteps_out=self.config.forecasting_module.forecast_length,
-                batch_size=self.train_conf.batch_size)
-
-            self.entire_inputs = self.entire_inputs[:, :, :self.dataset_conf.graph_learning_length]
-            self.scaler = loader.get_scaler()
-
-            temporal_signal = {'train': self.train_dataset,
-                               'validation': self.valid_dataset,
-                               'test': self.test_dataset,
-                               'entire_inputs': self.entire_inputs,
-                               'scaler': self.scaler}
-
-            pickle.dump(temporal_signal,
-                        open(os.path.join(self.dataset_conf.root, f'temporal_signal_{dataset_hyperparameter}.pickle'),
-                             'wb'))
-
+        self.scaler = loader.get_scaler()
     def train(self):
         # create optimizer
         params = filter(lambda p: p.requires_grad, self.model.parameters())
@@ -185,7 +108,6 @@ class Runner(object):
             best_val_loss = checkpoint['best_valid_loss']
             self.train_conf.epoch -= checkpoint['epoch']
 
-        length = get_dataset_length(self.train_dataset)
         # ========================= Training Loop ============================= #
         for epoch in range(self.train_conf.epoch):
             # ====================== training ============================= #
