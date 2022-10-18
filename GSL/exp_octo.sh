@@ -5,12 +5,12 @@ python3 run_ic_pnbeats_exp.py --conf_file_path ./config/IC_PN_BEATS/ECL/ic_pnbea
 sleep 3
 
 export CUDA_VISIBLE_DEVICES=1
-python3 run_ic_pnbeats_exp.py --conf_file_path ./config/IC_PN_BEATS/ETTm2/ic_pnbeats_wth_ettm2.yaml
+python3 run_ic_pnbeats_exp.py --conf_file_path ./config/IC_PN_BEATS/ETTm2/ic_pnbeats_ettm2_96.yaml
 sleep 3
 
-export CUDA_VISIBLE_DEVICES=2
-python3 run_ic_pnbeats_exp.py --conf_file_path ./config/IC_PN_BEATS/Exchange/ic_pnbeats_exchange_96.yaml
-sleep 3
+#export CUDA_VISIBLE_DEVICES=2
+#python3 run_ic_pnbeats_exp.py --conf_file_path ./config/IC_PN_BEATS/Exchange/ic_pnbeats_exchange_96.yaml
+#sleep 3
 
 export CUDA_VISIBLE_DEVICES=3
 python3 run_ic_pnbeats_exp.py --conf_file_path ./config/IC_PN_BEATS/WTH/ic_pnbeats_wth_96.yaml
