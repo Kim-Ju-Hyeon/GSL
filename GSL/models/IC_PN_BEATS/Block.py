@@ -216,7 +216,9 @@ class Generic_Block(GNN_Block):
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
+        print(x.shape)
         x = super().forward(x, edge_index, edge_weight)
+        print(x.shape)
         x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)

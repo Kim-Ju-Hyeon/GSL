@@ -105,6 +105,7 @@ class Runner(object):
 
                 if self.use_gpu and (self.device != 'cpu'):
                     data_batch = data_batch.to(device=self.device)
+                    print(data_batch.x.shape)
 
                 if self.univariate:
                     backcast, forecast, _ = self.model(data_batch.x, interpretability=False)
