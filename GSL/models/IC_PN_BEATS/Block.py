@@ -134,7 +134,11 @@ class GNN_Block(nn.Module):
             x = self.drop_out(x)
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
-            x = layer(x, edge_index, edge_weight)
+            if self.inter_correlation_block_type == 'GAT':
+                x = layer(x, edge_index)
+
+            else:
+                x = layer(x, edge_index, edge_weight)
             x = F.relu(x)
             x = self.norm_layer[ii](x)
             x = self.drop_out(x)
@@ -217,9 +221,7 @@ class Generic_Block(GNN_Block):
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
-        print(x.shape)
         x = super().forward(x, edge_index, edge_weight)
-        print(x.shape)
         x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)
