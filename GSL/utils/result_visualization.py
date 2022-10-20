@@ -96,15 +96,15 @@ def get_scaler_and_test_dataset(config):
     if dataset == 'Sea_Fog':
         indices = [
             (i, i + (num_timesteps_in + num_timesteps_out))
-            for i in range(dataset.shape[1] - (num_timesteps_in + num_timesteps_out) + 1)
+            for i in range(test_dataset.shape[1] - (num_timesteps_in + num_timesteps_out) + 1)
             if i % 3 == 0
         ]
 
         features, target = [], []
 
         for i, j in indices:
-            features.append((dataset[:, i: i + num_timesteps_in]))
-            target.append((dataset[:, i + num_timesteps_in: j]))
+            features.append((test_dataset[:, i: i + num_timesteps_in]))
+            target.append((test_dataset[:, i + num_timesteps_in: j]))
 
     else:
         indices = [
