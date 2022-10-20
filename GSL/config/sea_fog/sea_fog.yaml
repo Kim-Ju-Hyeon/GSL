@@ -1,0 +1,57 @@
+---
+exp_name: Sea_Fog # 0417
+exp_dir: ../exp
+use_gpu: True
+device: 0
+seed: None # If you want to reproduce set the seed
+model_name: IC_PN_BEATS
+train_resume: False
+
+dataset:
+    name: sea_fog # ETTm1, ETTm2, ETTh1, ETTh2, ECL, WTH, Traffic, COVID19, METR-LA, PEMS-BAY, Exchange
+    scaler_type: std # std, invariant, norm, norm1, median
+    univariate: True
+
+train:
+    optimizer: Adam
+    epoch: 10
+    loss_function : MSE
+    backcast_loss: False
+    lr: 1.0e-3
+    wd: 0.0e-4 # Adam
+    momentum: 0.9 # SGD
+    T_0: 50 # cosine annealing
+    T_mult: 5 # cosine annealing
+    batch_size : 128
+
+graph_learning:
+    graph_learning: True
+    # This Parameters is available when graph_learning is False
+    graph_mode: random_graph # no_graph, ground_truth -> Only available For METR-LA, PEMS-BAY dataset
+    edge_prob: 0.1 # For random_graph
+
+    factor: 10 # Use it when Graph learning mode is ProbSparse Attention -> # of sampling Key and Query
+    n_head: 8 # Use it Attention Graph Learning
+    dropout_rate: 0.5
+
+    kernel_size: [16, 16]
+    stride: [2, 2]
+    conv_dim: [8, 16]
+    hidden_dim: 256
+
+forecasting_module:
+    name: pn_beats
+    stack_num: 3
+    singular_stack_num: 3
+    inter_correlation_block_type: GAT # GCN, MPNN, MPGLU, MP_single_message, MPGLU_single_message, GAT
+    activ: ReLU
+    inter_correlation_stack_length: 1
+    embedding_dim: 256
+    forecast_length: 60
+    backcast_length: 10
+    n_theta_hidden: [64, 32, 16]
+    thetas_dim: [32, 8]
+    message_norm: True
+    pooling_mode: average
+    n_pool_kernel_size: [16,8,4]
+    n_stride_size : [2,2,2]

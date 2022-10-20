@@ -18,9 +18,9 @@ import pickle
 from utils.dataset_utils import time_features_from_frequency_str
 
 
-class Temporal_Graph_Signal(object):
+class Sea_Fog_Graph_Signal(object):
     def __init__(self, dataset_name, scaler_type='std', univariate=False):
-        super(Temporal_Graph_Signal, self).__init__()
+        super(Sea_Fog_Graph_Signal, self).__init__()
         self.dataset_name = dataset_name
         self.univariate = univariate
         self.num_workers = 4 * torch.cuda.device_count()

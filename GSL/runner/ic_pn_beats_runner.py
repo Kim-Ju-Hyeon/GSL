@@ -13,6 +13,7 @@ from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 
 from dataset.temporal_graph_dataset import Temporal_Graph_Signal
+from dataset.sea_fog_dataset import Sea_Fog_Graph_Signal
 
 from utils.score import get_score
 import yaml
@@ -54,7 +55,11 @@ class Runner(object):
             self.model = self.model.to(device=self.device)
 
     def get_dataset(self, config):
-        loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
+        if config.dataset.name == 'sea_fog':
+            loader = Sea_Fog_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
+        else:
+            loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
+
         config.dataset.nodes_num = loader.nodes_num
         config.dataset.node_features = loader.node_features
         config.dataset.root = loader.path
