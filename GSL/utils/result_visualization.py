@@ -93,15 +93,29 @@ def get_scaler_and_test_dataset(config):
         open(os.path.join(_dir, 'inference.pickle'), 'rb')
     )
 
-    indices = [
-        (i, i + (num_timesteps_in + num_timesteps_out))
-        for i in range(test_dataset.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
-    ]
+    if dataset == 'Sea_Fog':
+        indices = [
+            (i, i + (num_timesteps_in + num_timesteps_out))
+            for i in range(dataset.shape[1] - (num_timesteps_in + num_timesteps_out) + 1)
+            if i % 3 == 0
+        ]
 
-    features, target = [], []
-    for i, j in indices:
-        features.append((test_dataset[:, 0, i: i + num_timesteps_in]))
-        target.append((test_dataset[:, 0, i + num_timesteps_in: j]))
+        features, target = [], []
+
+        for i, j in indices:
+            features.append((dataset[:, i: i + num_timesteps_in]))
+            target.append((dataset[:, i + num_timesteps_in: j]))
+
+    else:
+        indices = [
+            (i, i + (num_timesteps_in + num_timesteps_out))
+            for i in range(test_dataset.shape[2] - (num_timesteps_in + num_timesteps_out) + 1)
+        ]
+
+        features, target = [], []
+        for i, j in indices:
+            features.append((test_dataset[:, 0, i: i + num_timesteps_in]))
+            target.append((test_dataset[:, 0, i + num_timesteps_in: j]))
 
     # features = torch.FloatTensor(np.array(features))
     # targets = torch.FloatTensor(np.array(target))

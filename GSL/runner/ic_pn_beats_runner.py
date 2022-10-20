@@ -55,7 +55,7 @@ class Runner(object):
             self.model = self.model.to(device=self.device)
 
     def get_dataset(self, config):
-        if config.dataset.name == 'sea_fog':
+        if config.dataset.name == 'Sea_Fog':
             loader = Sea_Fog_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
         else:
             loader = Temporal_Graph_Signal(config.dataset.name, config.dataset.scaler_type, config.dataset.univariate)
