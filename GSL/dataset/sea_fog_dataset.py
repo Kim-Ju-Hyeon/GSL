@@ -103,7 +103,7 @@ class Sea_Fog_Graph_Signal(object):
                                num_workers=self.num_workers, pin_memory=True)
             valid = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, drop_last=True,
                                num_workers=self.num_workers, pin_memory=True)
-            test = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True,
+            test = DataLoader(test_dataset, batch_size=1, shuffle=False, # drop_last=True,
                               num_workers=self.num_workers, pin_memory=True)
 
             return train, valid, test
