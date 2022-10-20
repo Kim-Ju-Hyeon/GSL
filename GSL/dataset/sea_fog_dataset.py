@@ -28,7 +28,7 @@ class Temporal_Graph_Signal(object):
         self.scaler = Scaler(scaler_type)
 
     def preprocess_dataset(self):
-        y_df = pd.read_csv(self.path, index_col=0).to_numpy().T
+        y_df = pd.read_csv(self.data_dir, index_col=0).to_numpy().T
         y_df = self.scaler.scale(y_df)
 
         total_sequence_length = len(y_df)
