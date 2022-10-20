@@ -56,13 +56,13 @@ class Temporal_Graph_Signal(object):
         return time_stamp
 
     def _set_dataset_parameters(self):
+        self.path = './data/Sea_Fog'
         if self.univariate:
             self.nodes_num = 6
-            self.path = './data/port_visible_feature.csv'
-
+            self.data_dir = os.path.join(self.path, 'port_visible_feature.csv')
         else:
             self.nodes_num = 90
-            self.path = './data/port_total_feature.csv'
+            self.data_dir = os.path.join(self.path, 'port_total_feature.csv')
 
         self.node_features = 1
         self.freq = '10min'
