@@ -43,6 +43,8 @@ class Runner(object):
             self.loss = nn.L1Loss()
         elif self.train_conf.loss_function == 'Poisson':
             self.loss = nn.PoissonNLLLoss()
+        elif self.train_conf.loss_function == 'MSE':
+            self.loss = nn.MSELoss()
         else:
             raise ValueError('Non-supported Loss Function')
 
