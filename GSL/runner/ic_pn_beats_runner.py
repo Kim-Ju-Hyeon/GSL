@@ -202,7 +202,7 @@ class Runner(object):
         pickle.dump(results, open(os.path.join(self.config.exp_sub_dir, 'training_result.pickle'), 'wb'))
 
     def test(self):
-        self.config.train.batch_size = 1
+        # self.config.train.batch_size = 1
         self.best_model = IC_PN_BEATS_model(self.config)
         best_snapshot = load_model(self.best_model_dir)
 
