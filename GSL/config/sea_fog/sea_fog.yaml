@@ -47,8 +47,8 @@ forecasting_module:
     activ: ReLU
     inter_correlation_stack_length: 1
     embedding_dim: 256
-    forecast_length: 60
-    backcast_length: 10
+    forecast_length: 10
+    backcast_length: 60
     n_theta_hidden: [64, 32, 16]
     thetas_dim: [32, 8]
     message_norm: True
