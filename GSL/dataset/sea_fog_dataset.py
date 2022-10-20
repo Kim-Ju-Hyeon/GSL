@@ -31,7 +31,7 @@ class Temporal_Graph_Signal(object):
         y_df = pd.read_csv(self.data_dir, index_col=0).to_numpy().T
         y_df = self.scaler.scale(y_df)
 
-        total_sequence_length = len(y_df)
+        total_sequence_length = y_df.shape[1]
         train_index = int(total_sequence_length * 0.7)
         valid_index = int(total_sequence_length * 0.1) + train_index
 
