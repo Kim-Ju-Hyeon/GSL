@@ -1,14 +1,10 @@
 import os
-import gdown
 import numpy as np
 import pandas as pd
-import random
 import torch
 from utils.dataset_utils import time_features_from_frequency_str
-from utils.utils import build_fully_connected_edge_idx, build_batch_edge_index
-from torch_geometric_temporal.signal import StaticGraphTemporalSignalBatch
-from utils.scalers import Scaler
-from dataset.make_dataset_base import DatasetLoader
+from utils.utils import build_fully_connected_edge_idx
+from dataset._prev_version.make_dataset_base import DatasetLoader
 
 
 class COVID19DatasetLoader(DatasetLoader):

@@ -38,8 +38,8 @@ class Temporal_Graph_Signal(object):
             X = np.expand_dims(X, axis=1)
 
             total_sequence_length = X.shape[-1]
-            train_index = int(total_sequence_length * 0.7) + 1
-            valid_index = int(total_sequence_length * 0.2) + 1 + train_index
+            train_index = int(total_sequence_length * 0.7)
+            valid_index = int(total_sequence_length * 0.2) + train_index
 
         else:
             self._read_web_data()
@@ -63,8 +63,8 @@ class Temporal_Graph_Signal(object):
                 X = self.scaler.scale(X)
 
             total_sequence_length = X.shape[-1]
-            train_index = int(total_sequence_length * 0.6) + 1
-            valid_index = int(total_sequence_length * 0.2) + 1 + train_index
+            train_index = int(total_sequence_length * 0.7)
+            valid_index = int(total_sequence_length * 0.1) + train_index
 
         self.train_X = X[:, :, :train_index]
         self.valid_X = X[:, :, train_index:valid_index]
@@ -260,6 +260,8 @@ class Temporal_Graph_Signal(object):
                     return_loader=True):
         train_dataset = self._generate_dataset(self.train_X, num_timesteps_in, num_timesteps_out)
         valid_dataset = self._generate_dataset(self.valid_X, num_timesteps_in, num_timesteps_out)
+
+        self.test_X = np.concatenate([self.test_X, self.valid_X[:, :, -num_timesteps_in:]], axis=-1)
         test_dataset = self._generate_dataset(self.test_X, num_timesteps_in, num_timesteps_out)
 
         if return_loader:

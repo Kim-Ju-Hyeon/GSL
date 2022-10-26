@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from utils.utils import squeeze_last_dim
+from utils.utils import squeeze_dim
 from models.message_passing.MPNN import InterCorrealtionStack
 from models.layer.GatedLinearUnit import GLU
 
@@ -139,7 +139,7 @@ class Inter_Correlation_Block(nn.Module):
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
 
     def forward(self, x, edge_index, edge_weight=None):
-        x = squeeze_last_dim(x)
+        x = squeeze_dim(x)
 
         for mlp in self.MLP_stack:
             x = mlp(x)
@@ -255,7 +255,7 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
         # self.forecast_norm = nn.LayerNorm(forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
-        x = squeeze_last_dim(x)
+        x = squeeze_dim(x)
         x = x.unsqueeze(dim=1)
         x = self.pooling_layer(x)
         x = x.squeeze()
@@ -309,7 +309,7 @@ class GNN_smoothing_Trend(Inter_Correlation_Block):
         # self.forecast_norm = nn.LayerNorm(forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
-        x = squeeze_last_dim(x)
+        x = squeeze_dim(x)
         x = x.unsqueeze(dim=1)
         x = self.pooling_layer(x)
         x = x.squeeze()
@@ -352,7 +352,7 @@ class Block(nn.Module):
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim, bias=False)
 
     def forward(self, x):
-        x = squeeze_last_dim(x)
+        x = squeeze_dim(x)
         for layer in self.MLP_stack:
             x = layer(x)
             x = self.activ(x)
@@ -424,7 +424,7 @@ class NHITSBlock(Block):
                                               stride=self.n_pool_kernel_size, ceil_mode=True)
 
     def forward(self, x):
-        x = squeeze_last_dim(x)
+        x = squeeze_dim(x)
         x = self.pooling_layer(x)
         x = super(NHITSBlock, self).forward(x)
 

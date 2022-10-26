@@ -7,12 +7,8 @@ import torch.nn as nn
 
 from collections import defaultdict
 import torch.optim as optim
-from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
-from torch_geometric.loader import DataLoader
 
 from models.model import My_Model
-from utils.utils import build_fully_connected_edge_idx
-from dataset.make_spike_datset import MakeSpikeDataset
 from utils.train_helper import model_snapshot, load_model
 from utils.logger import get_logger
 

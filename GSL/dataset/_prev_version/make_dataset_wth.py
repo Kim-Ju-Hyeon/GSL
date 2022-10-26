@@ -1,7 +1,5 @@
 # Cell
 import os
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
 import torch
 from utils.dataset_utils import time_features_from_frequency_str
 from utils.utils import build_fully_connected_edge_idx
@@ -10,7 +8,7 @@ import gdown
 import numpy as np
 import pandas as pd
 
-from dataset.make_dataset_base import DatasetLoader
+from dataset._prev_version.make_dataset_base import DatasetLoader
 
 
 class WTHDatasetLoader(DatasetLoader):
