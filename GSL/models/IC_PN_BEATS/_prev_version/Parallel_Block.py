@@ -1,7 +1,6 @@
-import torch
 import torch.nn as nn
 
-from models.N_BEATS.Parallel_N_model import Inter_Correlation_Block, TrendGenerator, SeasonalityGenerator
+from models.N_BEATS._prev_version.Parallel_N_model import Inter_Correlation_Block, TrendGenerator, SeasonalityGenerator
 
 
 class MultiHead_Inter_Correlation_Block(Inter_Correlation_Block):

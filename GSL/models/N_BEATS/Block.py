@@ -84,14 +84,12 @@ class Inter_Correlation_Block(nn.Module):
         for i in range(len(self.n_theta_hidden)):
             if i == 0:
                 self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
-                # self.MLP_stack.append(GLU(self.backcast_length, self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
-                self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
+                # self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
             else:
                 self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
-                # self.MLP_stack.append(GLU(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
                 self.MLP_stack.append(self.activ)
-                self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
+                # self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
 
         self.Inter_Correlation_Block = nn.ModuleList()
         for i in range(self.n_layers):
@@ -126,14 +124,22 @@ class Inter_Correlation_Block(nn.Module):
                     single_message=True,
                     update_only_message=self.update_only_message))
 
+            elif self.inter_correlation_block_type == 'None_GNN':
+                self.Inter_Correlation_Block.append(InterCorrealtionStack(
+                    hidden_dim=self.n_theta_hidden[-1],
+                    message_norm=False,
+                    GLU=False,
+                    single_message=True,
+                    update_only_message=self.update_only_message,
+                    none_gnn=True))
+
             else:
                 raise ValueError('Invalid Inter Correlation Block')
 
-        self.batch_norm_layer_list = nn.ModuleList()
-        for i in range(self.n_layers):
-            self.batch_norm_layer_list.append(nn.LayerNorm(self.n_theta_hidden[-1]))
-
-        self.drop_out = nn.Dropout(p=0.2)
+        # self.batch_norm_layer_list = nn.ModuleList()
+        # for i in range(self.n_layers):
+        #     self.batch_norm_layer_list.append(nn.LayerNorm(self.n_theta_hidden[-1]))
+        # self.drop_out = nn.Dropout(p=0.2)
 
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
@@ -143,14 +149,14 @@ class Inter_Correlation_Block(nn.Module):
 
         for mlp in self.MLP_stack:
             x = mlp(x)
-            x = self.drop_out(x)
+            # x = self.drop_out(x)
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
             for head in range(edge_index.shape[0]):
                 x = layer(x, edge_index[head], edge_weight[head])
                 x = self.activ(x)
-                x = self.batch_norm_layer_list[ii](x)
-                x = self.drop_out(x)
+                # x = self.batch_norm_layer_list[ii](x)
+                # x = self.drop_out(x)
 
         return x
 
@@ -163,14 +169,14 @@ class GNN_SeasonalityBlock(Inter_Correlation_Block):
                                                    activation,
                                                    inter_correlation_stack_length)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        # self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 
         self.backcast_seasonality_model = SeasonalityGenerator(backcast_length)
         self.forecast_seasonality_model = SeasonalityGenerator(forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_SeasonalityBlock, self).forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
+        # x = self.norm1(x)
 
         backcast = self.backcast_seasonality_model(self.theta_b_fc(x))
         forecast = self.forecast_seasonality_model(self.theta_f_fc(x))
@@ -184,14 +190,14 @@ class GNN_TrendBlock(Inter_Correlation_Block):
         super(GNN_TrendBlock, self).__init__(inter_correlation_block_type, n_theta_hidden, thetas_dim, backcast_length,
                                              forecast_length, activation, inter_correlation_stack_length)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        # self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 
         self.backcast_trend_model = TrendGenerator(thetas_dim[0], backcast_length)
         self.forecast_trend_model = TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_TrendBlock, self).forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
+        # x = self.norm1(x)
 
         backcast = self.backcast_trend_model(self.theta_b_fc(x))
         forecast = self.forecast_trend_model(self.theta_f_fc(x))
@@ -206,14 +212,14 @@ class GNN_GenericBlock(Inter_Correlation_Block):
                                                backcast_length, forecast_length,
                                                activation, inter_correlation_stack_length)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        # self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
 
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super(GNN_GenericBlock, self).forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
+        # x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)
@@ -250,7 +256,7 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
             self.pooling_layer = nn.AvgPool1d(kernel_size=self.n_pool_kernel_size,
                                               stride=self.n_pool_kernel_size, ceil_mode=False)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
+        # self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
         # self.backcast_norm = nn.LayerNorm(backcast_length)
         # self.forecast_norm = nn.LayerNorm(forecast_length)
 
@@ -260,7 +266,7 @@ class GNN_NHITSBlock(Inter_Correlation_Block):
         x = self.pooling_layer(x)
         x = x.squeeze()
         x = super(GNN_NHITSBlock, self).forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
+        # x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)

@@ -6,17 +6,17 @@ from torch_geometric.utils import degree
 
 
 class InterCorrealtionStack(MessagePassing):
-    def __init__(self, hidden_dim, message_norm, GLU=False, single_message=False, update_only_message=False):
+    def __init__(self, hidden_dim, message_norm, GLU=False, single_message=False, update_only_message=False, none_gnn=False):
         super().__init__(aggr='add', flow='target_to_source')
         self.hidden_dim = hidden_dim
         self.message_norm = message_norm
         self.GLU = GLU
         self.single_message = single_message
         self.update_only_message = update_only_message
+        self.none_gnn = none_gnn
 
         if self.single_message:
             self.fc_message = nn.Linear(self.hidden_dim, self.hidden_dim)
-
         else:
             self.fc_message = nn.Linear(self.hidden_dim*2, self.hidden_dim)
 
@@ -71,6 +71,10 @@ class InterCorrealtionStack(MessagePassing):
             aggregated_concated_message = inputs
         else:
             aggregated_concated_message = torch.cat([x, inputs], dim=-1)
+
+        if self.none_gnn:
+            return inputs
+
         out = F.relu(self.fc_update(aggregated_concated_message))
 
         return out

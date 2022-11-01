@@ -68,11 +68,11 @@ class GNN_Block(nn.Module):
             if i == 0:
                 self.MLP_stack.append(nn.Linear(self.backcast_length, self.n_theta_hidden[i]))
                 self.MLP_stack.append(nn.ReLU())
-                self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
+                # self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
             else:
                 self.MLP_stack.append(nn.Linear(self.n_theta_hidden[i - 1], self.n_theta_hidden[i]))
                 self.MLP_stack.append(nn.ReLU())
-                self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
+                # self.MLP_stack.append(nn.LayerNorm(self.n_theta_hidden[i]))
 
         self.Inter_Correlation_Block = nn.ModuleList()
         for _ in range(self.n_layers):
@@ -112,17 +112,23 @@ class GNN_Block(nn.Module):
                     concat=False
                 ))
 
-            elif self.inter_correlation_block_type == 'MTGNN':
-                pass
+            elif self.inter_correlation_block_type == 'None_GNN':
+                self.Inter_Correlation_Block.append(InterCorrealtionStack(
+                    hidden_dim=self.n_theta_hidden[-1],
+                    message_norm=False,
+                    GLU=False,
+                    single_message=True,
+                    update_only_message=self.update_only_message,
+                    none_gnn=True))
 
             else:
                 raise ValueError('Invalid Inter Correlation Block')
 
-        self.norm_layer = nn.ModuleList()
-        for i in range(self.n_layers):
-            self.norm_layer.append(nn.LayerNorm(self.n_theta_hidden[-1]))
+        # self.norm_layer = nn.ModuleList()
+        # for i in range(self.n_layers):
+        #     self.norm_layer.append(nn.LayerNorm(self.n_theta_hidden[-1]))
 
-        self.drop_out = nn.Dropout(p=0.5)
+        # self.drop_out = nn.Dropout(p=0.5)
         self.theta_b_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[0], bias=False)
         self.theta_f_fc = nn.Linear(n_theta_hidden[-1], thetas_dim[1], bias=False)
 
@@ -131,7 +137,7 @@ class GNN_Block(nn.Module):
 
         for mlp in self.MLP_stack:
             x = mlp(x)
-            x = self.drop_out(x)
+            # x = self.drop_out(x)
 
         for ii, layer in enumerate(self.Inter_Correlation_Block):
             if self.inter_correlation_block_type == 'GAT':
@@ -140,8 +146,8 @@ class GNN_Block(nn.Module):
             else:
                 x = layer(x, edge_index, edge_weight)
             x = F.relu(x)
-            x = self.norm_layer[ii](x)
-            x = self.drop_out(x)
+            # x = self.norm_layer[ii](x)
+            # x = self.drop_out(x)
 
         return x
 
@@ -159,14 +165,11 @@ class Trend_Block(GNN_Block):
                          thetas_dim, backcast_length, forecast_length,
                          inter_correlation_stack_length, update_only_message)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
-
         self.backcast_trend_model = TrendGenerator(thetas_dim[0], backcast_length)
         self.forecast_trend_model = TrendGenerator(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight):
         x = super().forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
 
         backcast = self.backcast_trend_model(self.theta_b_fc(x))
         forecast = self.forecast_trend_model(self.theta_f_fc(x))
@@ -187,14 +190,11 @@ class Seasonlity_Block(GNN_Block):
                          thetas_dim, backcast_length, forecast_length,
                          inter_correlation_stack_length, update_only_message)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
-
         self.backcast_seasonality_model = SeasonalityGenerator(backcast_length)
         self.forecast_seasonality_model = SeasonalityGenerator(forecast_length)
 
     def forward(self, x, edge_index, edge_weight):
         x = super().forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
 
         backcast = self.backcast_seasonality_model(self.theta_b_fc(x))
         forecast = self.forecast_seasonality_model(self.theta_f_fc(x))
@@ -215,14 +215,11 @@ class Generic_Block(GNN_Block):
                          thetas_dim, backcast_length, forecast_length,
                          inter_correlation_stack_length, update_only_message)
 
-        self.norm1 = nn.LayerNorm(self.n_theta_hidden[-1])
-
         self.backcast_fc = nn.Linear(thetas_dim[0], backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim[1], forecast_length)
 
     def forward(self, x, edge_index, edge_weight=None):
         x = super().forward(x, edge_index, edge_weight)
-        x = self.norm1(x)
 
         theta_b = self.theta_b_fc(x)
         theta_f = self.theta_f_fc(x)

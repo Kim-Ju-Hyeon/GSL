@@ -4,7 +4,7 @@ import torch
 
 from models.GTS.gts_forecasting_module import GTS_Forecasting_Module, GTS_Traffic_Forecasting_Module
 from models.N_BEATS.N_model import N_model
-from models.N_BEATS.Parallel_N_model import PN_model
+from models.N_BEATS._prev_version.Parallel_N_model import PN_model
 
 from models.GTS.gts_graph_learning2 import GTS_Graph_Learning2
 from models.graph_learning_Attention.self_attention_graph_learning import Attention_Graph_Learning
